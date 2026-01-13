@@ -2,8 +2,11 @@
 
 import { motion } from "framer-motion";
 import { Star, GitFork, ExternalLink, FolderGit2 } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 import styles from "./ProjectsBlock.module.css";
 import { ProjectsContent } from "@/app/lib/types";
+import { getTechIconUrl } from "@/app/lib/tech-icons";
 
 interface ProjectsBlockProps {
   data: ProjectsContent;
@@ -15,7 +18,34 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-// Language color mapping
+// Language icon component with SVG support
+function LanguageIcon({ language }: { language: string }) {
+  const [imgError, setImgError] = useState(false);
+  const iconUrl = getTechIconUrl(language);
+
+  if (iconUrl && !imgError) {
+    return (
+      <Image
+        src={iconUrl}
+        alt={language}
+        width={14}
+        height={14}
+        className={styles.languageIcon}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
+  // Fallback to colored dot
+  return (
+    <span
+      className={styles.languageDot}
+      style={{ backgroundColor: getLanguageColor(language) }}
+    />
+  );
+}
+
+// Language color mapping (fallback)
 const languageColors: Record<string, string> = {
   typescript: "#3178c6",
   javascript: "#f7df1e",
@@ -95,14 +125,7 @@ export function ProjectsBlock({ data }: ProjectsBlockProps) {
             <div className={styles.projectMeta}>
               {project.language && (
                 <span className={styles.language}>
-                  <span
-                    className={styles.languageDot}
-                    style={{
-                      backgroundColor:
-                        project.languageColor ||
-                        getLanguageColor(project.language),
-                    }}
-                  />
+                  <LanguageIcon language={project.language} />
                   {project.language}
                 </span>
               )}

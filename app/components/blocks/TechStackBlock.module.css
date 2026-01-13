@@ -45,6 +45,15 @@
 
 .techIcon {
   font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.techSvg {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 .empty {

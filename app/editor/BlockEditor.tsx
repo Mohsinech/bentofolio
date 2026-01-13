@@ -1,9 +1,18 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { X, Plus, Trash2, Upload, Image as ImageIcon } from "lucide-react";
+import NextImage from "next/image";
 import { useEditor } from "@/app/lib/editor-context";
 import { BlockContent } from "@/app/lib/types";
+import {
+  techStack,
+  getTechSuggestions,
+  techCategories,
+  getTechsByCategory,
+  TechItem,
+} from "@/app/lib/tech-stack";
+import { getTechIconUrl } from "@/app/lib/tech-icons";
 import styles from "./BlockEditor.module.css";
 
 export function BlockEditor() {
@@ -217,44 +226,9 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
 
     case "techstack":
       return (
-        <ArrayField
-          label="Technologies"
+        <TechStackEditor
           items={content.data.items}
-          renderItem={(item, i) => (
-            <div className={styles.arrayItemRow}>
-              <input
-                className={styles.smallInput}
-                value={item.icon}
-                onChange={(e) => {
-                  const newItems = [...content.data.items];
-                  newItems[i] = { ...item, icon: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Icon"
-                style={{ width: 50 }}
-              />
-              <input
-                className={styles.smallInput}
-                value={item.name}
-                onChange={(e) => {
-                  const newItems = [...content.data.items];
-                  newItems[i] = { ...item, name: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Name"
-              />
-            </div>
-          )}
-          onAdd={() =>
-            handleChange("items", [
-              ...content.data.items,
-              { name: "", icon: "💻" },
-            ])
-          }
-          onRemove={(i) => {
-            const newItems = content.data.items.filter((_, idx) => idx !== i);
-            handleChange("items", newItems);
-          }}
+          onChange={(items) => handleChange("items", items)}
         />
       );
 
@@ -427,65 +401,9 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
 
     case "projects":
       return (
-        <ArrayField
-          label="Projects"
+        <ProjectsEditor
           items={content.data.items || []}
-          renderItem={(item, i) => (
-            <div className={styles.arrayItemColumn}>
-              <input
-                className={styles.input}
-                value={item.name || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, name: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Project name"
-              />
-              <input
-                className={styles.input}
-                value={item.description || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, description: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Description"
-              />
-              <input
-                className={styles.smallInput}
-                value={item.url || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, url: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="URL"
-              />
-              <input
-                className={styles.smallInput}
-                value={item.language || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, language: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Language (e.g. TypeScript)"
-              />
-            </div>
-          )}
-          onAdd={() =>
-            handleChange("items", [
-              ...(content.data.items || []),
-              { name: "", description: "", url: "", language: "" },
-            ])
-          }
-          onRemove={(i) => {
-            const newItems = (content.data.items || []).filter(
-              (_, idx) => idx !== i
-            );
-            handleChange("items", newItems);
-          }}
+          onChange={(items) => handleChange("items", items)}
         />
       );
 
@@ -706,6 +624,307 @@ function ImageUploadField({
         placeholder="Or paste image URL"
         style={{ marginTop: 8 }}
       />
+    </div>
+  );
+}
+
+// Tech Stack Editor with autocomplete
+interface TechStackEditorProps {
+  items: { name: string; icon: string }[];
+  onChange: (items: { name: string; icon: string }[]) => void;
+}
+
+// Tech icon component for editor
+function TechIcon({
+  name,
+  fallbackIcon,
+}: {
+  name: string;
+  fallbackIcon: string;
+}) {
+  const [imgError, setImgError] = useState(false);
+  const iconUrl = getTechIconUrl(name);
+
+  if (iconUrl && !imgError) {
+    return (
+      <NextImage
+        src={iconUrl}
+        alt={name}
+        width={16}
+        height={16}
+        className={styles.techIconSvg}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+  return <span>{fallbackIcon}</span>;
+}
+
+function TechStackEditor({ items, onChange }: TechStackEditorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  const suggestions = searchQuery
+    ? getTechSuggestions(searchQuery)
+    : selectedCategory === "all"
+    ? techStack.slice(0, 12)
+    : getTechsByCategory(selectedCategory as TechItem["category"]);
+
+  const handleAddTech = (tech: TechItem) => {
+    // Check if already added
+    if (
+      items.some((item) => item.name.toLowerCase() === tech.name.toLowerCase())
+    ) {
+      return;
+    }
+    onChange([...items, { name: tech.name, icon: tech.icon }]);
+    setSearchQuery("");
+  };
+
+  const handleRemoveTech = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>Technologies</label>
+
+      {/* Selected techs */}
+      {items.length > 0 && (
+        <div className={styles.techChips}>
+          {items.map((item, i) => (
+            <div key={i} className={styles.techChip}>
+              <span className={styles.techChipIcon}>
+                <TechIcon name={item.name} fallbackIcon={item.icon} />
+              </span>
+              <span className={styles.techChipName}>{item.name}</span>
+              <button
+                className={styles.techChipRemove}
+                onClick={() => handleRemoveTech(i)}
+              >
+                <X size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Category filter */}
+      <div className={styles.techCategoryFilter}>
+        <button
+          className={`${styles.techCategoryBtn} ${
+            selectedCategory === "all" ? styles.active : ""
+          }`}
+          onClick={() => setSelectedCategory("all")}
+        >
+          All
+        </button>
+        {techCategories.map((cat) => (
+          <button
+            key={cat.value}
+            className={`${styles.techCategoryBtn} ${
+              selectedCategory === cat.value ? styles.active : ""
+            }`}
+            onClick={() => setSelectedCategory(cat.value)}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Search input */}
+      <div className={styles.techSearchWrapper}>
+        <input
+          className={styles.input}
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search technologies..."
+        />
+      </div>
+
+      {/* Suggestions grid */}
+      <div className={styles.techSuggestions}>
+        {suggestions.slice(0, 12).map((tech) => {
+          const isAdded = items.some(
+            (item) => item.name.toLowerCase() === tech.name.toLowerCase()
+          );
+          return (
+            <button
+              key={tech.name}
+              className={`${styles.techSuggestion} ${
+                isAdded ? styles.added : ""
+              }`}
+              onClick={() => !isAdded && handleAddTech(tech)}
+              disabled={isAdded}
+            >
+              <span className={styles.techSuggestionIcon}>
+                <TechIcon name={tech.name} fallbackIcon={tech.icon} />
+              </span>
+              <span className={styles.techSuggestionName}>{tech.name}</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// Projects Editor with language autocomplete
+interface ProjectItem {
+  name: string;
+  description: string;
+  url: string;
+  language: string;
+  stars?: number;
+  forks?: number;
+}
+
+interface ProjectsEditorProps {
+  items: ProjectItem[];
+  onChange: (items: ProjectItem[]) => void;
+}
+
+function ProjectsEditor({ items, onChange }: ProjectsEditorProps) {
+  const handleAdd = () => {
+    onChange([...items, { name: "", description: "", url: "", language: "" }]);
+  };
+
+  const handleRemove = (index: number) => {
+    onChange(items.filter((_, i) => i !== index));
+  };
+
+  const handleUpdate = (
+    index: number,
+    field: keyof ProjectItem,
+    value: string | number
+  ) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    onChange(newItems);
+  };
+
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>Projects</label>
+      <div className={styles.arrayItems}>
+        {items.map((item, i) => (
+          <div key={i} className={styles.arrayItem}>
+            <div className={styles.arrayItemColumn}>
+              <input
+                className={styles.input}
+                value={item.name || ""}
+                onChange={(e) => handleUpdate(i, "name", e.target.value)}
+                placeholder="Project name"
+              />
+              <input
+                className={styles.input}
+                value={item.description || ""}
+                onChange={(e) => handleUpdate(i, "description", e.target.value)}
+                placeholder="Description"
+              />
+              <input
+                className={styles.smallInput}
+                value={item.url || ""}
+                onChange={(e) => handleUpdate(i, "url", e.target.value)}
+                placeholder="URL"
+              />
+              <LanguageAutocomplete
+                value={item.language || ""}
+                onChange={(lang) => handleUpdate(i, "language", lang)}
+              />
+            </div>
+            <button
+              className={styles.removeButton}
+              onClick={() => handleRemove(i)}
+            >
+              <Trash2 size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button className={styles.addButton} onClick={handleAdd}>
+        <Plus size={14} />
+        Add project
+      </button>
+    </div>
+  );
+}
+
+// Language autocomplete component
+interface LanguageAutocompleteProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function LanguageAutocomplete({ value, onChange }: LanguageAutocompleteProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState(value);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Filter languages based on search
+  const languages = techStack.filter(
+    (tech) =>
+      tech.category === "language" ||
+      tech.category === "frontend" ||
+      tech.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const filtered = search
+    ? languages.filter((tech) =>
+        tech.name.toLowerCase().includes(search.toLowerCase())
+      )
+    : languages;
+
+  const handleSelect = (tech: TechItem) => {
+    onChange(tech.name);
+    setSearch(tech.name);
+    setIsOpen(false);
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setIsOpen(true);
+    if (!e.target.value) {
+      onChange("");
+    }
+  };
+
+  return (
+    <div className={styles.autocompleteWrapper} ref={wrapperRef}>
+      <div className={styles.autocompleteInput}>
+        {value && getTechIconUrl(value) && (
+          <NextImage
+            src={getTechIconUrl(value)!}
+            alt={value}
+            width={14}
+            height={14}
+            className={styles.autocompleteIcon}
+          />
+        )}
+        <input
+          className={styles.smallInput}
+          value={search}
+          onChange={handleInputChange}
+          onFocus={() => setIsOpen(true)}
+          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
+          placeholder="Type to search language..."
+        />
+      </div>
+      {isOpen && filtered.length > 0 && (
+        <div className={styles.autocompleteDropdown}>
+          {filtered.slice(0, 8).map((tech) => (
+            <button
+              key={tech.name}
+              className={styles.autocompleteOption}
+              onClick={() => handleSelect(tech)}
+              type="button"
+            >
+              <TechIcon name={tech.name} fallbackIcon={tech.icon} />
+              <span>{tech.name}</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

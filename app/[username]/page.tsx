@@ -5,6 +5,7 @@ import { getProfileByUsername } from "@/app/lib/supabase/profiles";
 import { PublicGrid } from "./PublicGrid";
 import { Watermark } from "@/app/components/Watermark";
 import { ProfileClientWrapper } from "./ProfileClientWrapper";
+import { ExportButton } from "./ExportButton";
 import styles from "./profile.module.css";
 
 interface PageProps {
@@ -93,9 +94,10 @@ export default async function ProfilePage({ params }: PageProps) {
       <div className={styles.page}>
         <header className={styles.header}>
           <p className={styles.username}>@{profile.username}</p>
+          <ExportButton username={profile.username} />
         </header>
 
-        <div className={styles.grid}>
+        <div className={styles.grid} id="public-portfolio-grid">
           <PublicGrid
             layout={profile.layout}
             content={profile.content}

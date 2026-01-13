@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
-import { useAuth } from "@/app/lib/hooks";
+import { useAuth, useExportPDF } from "@/app/lib/hooks";
 import { BlockType, ThemeId } from "@/app/lib/types";
 import { DraggableSidebarBlock } from "./DraggableSidebarBlock";
 import { BlockEditor } from "./BlockEditor";
@@ -138,6 +138,7 @@ export function EditorSidebar({
 }: EditorSidebarProps) {
   const { isEditMode, toggleEditMode, addBlock, selectedBlockId } = useEditor();
   const { signOut, githubUsername } = useAuth();
+  const { exportToPDF, exporting } = useExportPDF();
   const [saved, setSaved] = useState(false);
   const [importing, setImporting] = useState(false);
 
@@ -146,6 +147,17 @@ export function EditorSidebar({
       await onSave();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    const success = await exportToPDF("portfolio-grid", {
+      filename: username ? `${username}-portfolio` : "portfolio",
+      quality: 0.95,
+      scale: 2,
+    });
+    if (!success) {
+      alert("Failed to export PDF. Please try again.");
     }
   };
 
@@ -290,9 +302,17 @@ export function EditorSidebar({
           Preview
         </button>
 
-        <button className={`${styles.actionButton} ${styles.secondaryButton}`}>
-          <Download size={16} />
-          Export PDF
+        <button
+          className={`${styles.actionButton} ${styles.secondaryButton}`}
+          onClick={handleExportPDF}
+          disabled={exporting}
+        >
+          {exporting ? (
+            <Loader2 size={16} className={styles.spinning} />
+          ) : (
+            <Download size={16} />
+          )}
+          {exporting ? "Exporting..." : "Export PDF"}
         </button>
 
         <button

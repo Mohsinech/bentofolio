@@ -119,7 +119,7 @@ export function EditorDndWrapper({ children }: { children: React.ReactNode }) {
 
       {/* Main grid area with sortable context */}
       <main className={styles.main} onClick={handleBackgroundClick}>
-        <div className={styles.gridWrapper}>
+        <div className={styles.gridWrapper} id="portfolio-grid">
           <SortableContext
             items={layout.map((block) => block.id)}
             strategy={rectSortingStrategy}

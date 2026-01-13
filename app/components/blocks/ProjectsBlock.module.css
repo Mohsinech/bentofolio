@@ -103,6 +103,12 @@
   border-radius: 50%;
 }
 
+.languageIcon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+
 .stat {
   display: flex;
   align-items: center;
