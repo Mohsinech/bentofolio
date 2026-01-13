@@ -216,3 +216,34 @@
   background: rgba(255, 255, 255, 0.03);
   border-radius: 6px;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .page {
+    padding: 24px 12px;
+  }
+
+  .header {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .notFoundTitle {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page {
+    padding: 16px 8px;
+  }
+
+  .username {
+    font-size: 0.8rem;
+  }
+
+  .shareButton {
+    padding: 6px 10px;
+    font-size: 0.75rem;
+  }
+}

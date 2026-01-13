@@ -429,13 +429,25 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
       return (
         <>
           <Field
-            label="YouTube URL"
+            label="Channel Name"
+            value={content.data.channelName || ""}
+            onChange={(v) => handleChange("channelName", v)}
+            placeholder="Your channel name"
+          />
+          <Field
+            label="Subscribers"
+            value={content.data.subscribers || ""}
+            onChange={(v) => handleChange("subscribers", v)}
+            placeholder="e.g. 100K"
+          />
+          <Field
+            label="Video URL"
             value={content.data.videoUrl || ""}
             onChange={(v) => handleChange("videoUrl", v)}
-            placeholder="https://youtube.com/watch?v=... or playlist"
+            placeholder="https://youtube.com/watch?v=..."
           />
           <p className={styles.fieldHint}>
-            Paste any YouTube video, shorts, or playlist link
+            Paste a YouTube video, shorts, or playlist link
           </p>
         </>
       );

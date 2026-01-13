@@ -1,6 +1,6 @@
 "use client";
 
-import { Youtube } from "lucide-react";
+import { Youtube, Users } from "lucide-react";
 import { YouTubeContent } from "@/app/lib/types";
 import styles from "./YouTubeBlock.module.css";
 
@@ -16,12 +16,6 @@ function getEmbedUrl(url: string): string | null {
 
   // Already an embed URL
   if (trimmedUrl.includes("/embed/")) return trimmedUrl;
-
-  // YouTube video patterns:
-  // https://www.youtube.com/watch?v=VIDEO_ID
-  // https://youtu.be/VIDEO_ID
-  // https://www.youtube.com/v/VIDEO_ID
-  // https://www.youtube.com/shorts/VIDEO_ID
 
   // Standard watch URL
   const watchMatch = trimmedUrl.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
@@ -54,39 +48,45 @@ function getEmbedUrl(url: string): string | null {
 
 export function YouTubeBlock({ data }: YouTubeBlockProps) {
   const embedUrl = data.videoUrl ? getEmbedUrl(data.videoUrl) : null;
-  const hasInvalidUrl =
-    data.videoUrl && data.videoUrl.trim() !== "" && !embedUrl;
 
-  // If we have a valid YouTube URL, show the embed player
-  if (embedUrl) {
-    return (
-      <div className={styles.container}>
-        <iframe
-          src={embedUrl}
-          className={styles.embed}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          loading="lazy"
-          title="YouTube Video"
-        />
-      </div>
-    );
-  }
-
-  // Empty state or invalid URL
   return (
     <div className={styles.container}>
-      <div className={styles.placeholder}>
-        <Youtube size={32} className={styles.placeholderIcon} />
-        <span className={styles.placeholderText}>
-          {hasInvalidUrl ? "Invalid YouTube URL" : "Add YouTube URL"}
-        </span>
-        <span className={styles.placeholderHint}>
-          {hasInvalidUrl
-            ? "Use a video or playlist link"
-            : "Paste a video or playlist link"}
-        </span>
+      {/* Header with channel info */}
+      <div className={styles.header}>
+        <div className={styles.channelInfo}>
+          <div className={styles.icon}>
+            <Youtube size={18} />
+          </div>
+          <div className={styles.details}>
+            <span className={styles.channelName}>
+              {data.channelName || "Channel Name"}
+            </span>
+            <div className={styles.stats}>
+              <Users size={12} />
+              <span>{data.subscribers || "0"} subscribers</span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* Video embed or placeholder */}
+      {embedUrl ? (
+        <div className={styles.videoWrapper}>
+          <iframe
+            src={embedUrl}
+            className={styles.embed}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            loading="lazy"
+            title="YouTube Video"
+          />
+        </div>
+      ) : (
+        <div className={styles.placeholder}>
+          <Youtube size={24} className={styles.placeholderIcon} />
+          <span className={styles.placeholderText}>Add video URL</span>
+        </div>
+      )}
     </div>
   );
 }

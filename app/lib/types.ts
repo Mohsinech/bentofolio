@@ -161,9 +161,11 @@ export interface ResumeContent {
   lastUpdated?: string;
 }
 
-// NEW: YouTube Block - Simple URL-based embed
+// NEW: YouTube Block - Channel with video embed
 export interface YouTubeContent {
-  videoUrl: string; // YouTube video or playlist URL
+  channelName: string;
+  subscribers: string;
+  videoUrl?: string; // YouTube video URL for embed
 }
 
 // NEW: Instagram Block - Simple URL-based embed

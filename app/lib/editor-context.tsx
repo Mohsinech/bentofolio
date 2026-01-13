@@ -201,7 +201,9 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       youtube: {
         type: "youtube",
         data: {
-          videoUrl: "", // User will paste YouTube URL
+          channelName: "My Channel",
+          subscribers: "0",
+          videoUrl: "",
         },
       },
       instagram: {
