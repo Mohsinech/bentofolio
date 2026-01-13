@@ -242,6 +242,10 @@ export const premiumBlocks: BlockType[] = [
   "spotify",
   "quote",
   "resume",
+  "youtube",
+  "instagram",
+  "network",
+  "career",
 ];
 
 export const freeBlocks: BlockType[] = [
