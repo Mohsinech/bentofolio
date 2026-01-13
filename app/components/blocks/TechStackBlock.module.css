@@ -1,7 +1,6 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: 100%;
   padding: 18px;
   gap: 14px;
 }
@@ -21,7 +20,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  flex: 1;
   align-content: flex-start;
 }
 

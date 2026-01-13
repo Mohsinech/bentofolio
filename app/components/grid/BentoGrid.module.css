@@ -6,6 +6,7 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: var(--grid-gap);
+  grid-auto-rows: auto; /* Dynamic row heights based on content */
 }
 
 /* Edit mode grid - ensure smooth transitions */
@@ -37,13 +38,15 @@
   overflow: hidden;
   transition: transform 0.3s var(--ease-bounce),
     box-shadow 0.3s var(--ease-smooth);
+  /* Dynamic sizing - content determines height */
+  height: fit-content;
 }
 
 .item:hover {
   transform: translateY(-4px);
 }
 
-/* Grid positioning classes */
+/* Grid positioning classes - column spans only */
 .col1 {
   grid-column: span 1;
 }
@@ -57,31 +60,12 @@
   grid-column: span 4;
 }
 
-.row1 {
-  grid-row: span 1;
-}
-.row2 {
-  grid-row: span 2;
-}
-.row3 {
-  grid-row: span 3;
-}
+/* Row spans removed - height is dynamic based on content */
+.row1,
+.row2,
+.row3,
 .row4 {
-  grid-row: span 4;
-}
-
-/* Minimum heights based on row span */
-.row1 {
-  min-height: 140px;
-}
-.row2 {
-  min-height: 296px;
-}
-.row3 {
-  min-height: 452px;
-}
-.row4 {
-  min-height: 608px;
+  /* No fixed heights - content determines size */
 }
 
 /* Responsive adjustments */
@@ -97,15 +81,6 @@
   .col3,
   .col4 {
     grid-column: span 1;
-  }
-
-  .row1,
-  .row2 {
-    min-height: 160px;
-  }
-  .row3,
-  .row4 {
-    min-height: 200px;
   }
 }
 
