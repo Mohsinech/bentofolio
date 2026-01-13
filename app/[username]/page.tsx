@@ -6,6 +6,7 @@ import { PublicGrid } from "./PublicGrid";
 import { Watermark } from "@/app/components/Watermark";
 import { ProfileClientWrapper } from "./ProfileClientWrapper";
 import { ShareButton } from "./ShareButton";
+import { ViewsCounter } from "./ViewsCounter";
 import styles from "./profile.module.css";
 
 interface PageProps {
@@ -94,6 +95,7 @@ export default async function ProfilePage({ params }: PageProps) {
       <div className={styles.page}>
         <header className={styles.header}>
           <p className={styles.username}>@{profile.username}</p>
+          <ViewsCounter username={profile.username} isPro={profile.isPro} />
           <ShareButton username={profile.username} />
         </header>
 

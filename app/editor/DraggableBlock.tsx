@@ -25,6 +25,10 @@ import {
   AvailabilityBlock,
   QuoteBlock,
   ResumeBlock,
+  YouTubeBlock,
+  InstagramBlock,
+  NetworkBlock,
+  CareerBlock,
 } from "@/app/components/blocks";
 
 interface DraggableBlockProps {
@@ -71,6 +75,14 @@ function renderBlock(content: BlockContent) {
       return <QuoteBlock data={content.data} />;
     case "resume":
       return <ResumeBlock data={content.data} />;
+    case "youtube":
+      return <YouTubeBlock data={content.data} />;
+    case "instagram":
+      return <InstagramBlock data={content.data} />;
+    case "network":
+      return <NetworkBlock data={content.data} />;
+    case "career":
+      return <CareerBlock data={content.data} />;
     default:
       return <div>Unknown block</div>;
   }

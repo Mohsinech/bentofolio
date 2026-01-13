@@ -17,6 +17,10 @@ import {
   AvailabilityBlock,
   QuoteBlock,
   ResumeBlock,
+  YouTubeBlock,
+  InstagramBlock,
+  NetworkBlock,
+  CareerBlock,
 } from "@/app/components/blocks";
 import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
 import { useTheme } from "@/app/lib/theme-context";
@@ -27,10 +31,10 @@ interface PublicGridProps {
   isPro?: boolean;
 }
 
-function renderBlock(blockContent: BlockContent) {
+function renderBlock(blockContent: BlockContent, isPro: boolean = false) {
   switch (blockContent.type) {
     case "identity":
-      return <IdentityBlock data={blockContent.data} />;
+      return <IdentityBlock data={blockContent.data} verified={isPro} />;
     case "map":
       return <MapBlock data={blockContent.data} />;
     case "techstack":
@@ -59,6 +63,14 @@ function renderBlock(blockContent: BlockContent) {
       return <QuoteBlock data={blockContent.data} />;
     case "resume":
       return <ResumeBlock data={blockContent.data} />;
+    case "youtube":
+      return <YouTubeBlock data={blockContent.data} />;
+    case "instagram":
+      return <InstagramBlock data={blockContent.data} />;
+    case "network":
+      return <NetworkBlock data={blockContent.data} />;
+    case "career":
+      return <CareerBlock data={blockContent.data} />;
     default:
       return null;
   }
@@ -88,7 +100,7 @@ export function PublicGrid({
             enableMagnetic={isPro}
             cardEffect={cardEffect}
           >
-            {renderBlock(blockContent)}
+            {renderBlock(blockContent, isPro)}
           </BentoItem>
         );
       })}

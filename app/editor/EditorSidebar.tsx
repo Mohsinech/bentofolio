@@ -27,6 +27,10 @@ import {
   FileDown,
   Copy,
   ExternalLink,
+  Youtube,
+  Instagram,
+  Users,
+  TrendingUp as Career,
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
@@ -117,6 +121,24 @@ const blockTypes: {
     label: "Spotify",
     category: "social",
   },
+  {
+    type: "youtube",
+    icon: <Youtube size={18} />,
+    label: "YouTube",
+    category: "social",
+  },
+  {
+    type: "instagram",
+    icon: <Instagram size={18} />,
+    label: "Instagram",
+    category: "social",
+  },
+  {
+    type: "network",
+    icon: <Users size={18} />,
+    label: "Network",
+    category: "social",
+  },
   // Content
   {
     type: "text",
@@ -134,6 +156,12 @@ const blockTypes: {
     type: "resume",
     icon: <FileDown size={18} />,
     label: "Resume",
+    category: "content",
+  },
+  {
+    type: "career",
+    icon: <Career size={18} />,
+    label: "Career",
     category: "content",
   },
 ];

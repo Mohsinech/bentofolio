@@ -425,6 +425,235 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
         />
       );
 
+    case "youtube":
+      return (
+        <>
+          <Field
+            label="Channel Name"
+            value={content.data.channelName || ""}
+            onChange={(v) => handleChange("channelName", v)}
+          />
+          <Field
+            label="Channel URL"
+            value={content.data.channelUrl || ""}
+            onChange={(v) => handleChange("channelUrl", v)}
+          />
+          <Field
+            label="Subscribers"
+            value={content.data.subscribers || ""}
+            onChange={(v) => handleChange("subscribers", v)}
+            placeholder="e.g. 10.5K"
+          />
+          <Field
+            label="Views"
+            value={content.data.views || ""}
+            onChange={(v) => handleChange("views", v)}
+            placeholder="e.g. 1.2M"
+          />
+          <Field
+            label="Description"
+            value={content.data.description || ""}
+            onChange={(v) => handleChange("description", v)}
+            multiline
+          />
+          <Field
+            label="Latest Video URL"
+            value={content.data.latestVideoUrl || ""}
+            onChange={(v) => handleChange("latestVideoUrl", v)}
+          />
+          <Field
+            label="Latest Video Title"
+            value={content.data.latestVideoTitle || ""}
+            onChange={(v) => handleChange("latestVideoTitle", v)}
+          />
+          <Field
+            label="Thumbnail URL"
+            value={content.data.thumbnailUrl || ""}
+            onChange={(v) => handleChange("thumbnailUrl", v)}
+          />
+        </>
+      );
+
+    case "instagram":
+      return (
+        <>
+          <Field
+            label="Username"
+            value={content.data.username || ""}
+            onChange={(v) => handleChange("username", v)}
+          />
+          <Field
+            label="Profile URL"
+            value={content.data.profileUrl || ""}
+            onChange={(v) => handleChange("profileUrl", v)}
+          />
+          <Field
+            label="Followers"
+            value={content.data.followers || ""}
+            onChange={(v) => handleChange("followers", v)}
+            placeholder="e.g. 50.2K"
+          />
+          <Field
+            label="Posts"
+            value={content.data.posts || ""}
+            onChange={(v) => handleChange("posts", v)}
+          />
+          <Field
+            label="Bio"
+            value={content.data.bio || ""}
+            onChange={(v) => handleChange("bio", v)}
+            multiline
+          />
+          <Field
+            label="Avatar URL"
+            value={content.data.avatarUrl || ""}
+            onChange={(v) => handleChange("avatarUrl", v)}
+          />
+        </>
+      );
+
+    case "network":
+      return (
+        <>
+          <Field
+            label="Title"
+            value={content.data.title || "Network"}
+            onChange={(v) => handleChange("title", v)}
+          />
+          <ArrayField
+            label="Connections"
+            items={content.data.connections || []}
+            renderItem={(conn, idx) => (
+              <div key={idx} className={styles.arrayItemFields}>
+                <input
+                  className={styles.input}
+                  value={conn.name}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.connections || [])];
+                    newItems[idx] = { ...newItems[idx], name: e.target.value };
+                    handleChange("connections", newItems);
+                  }}
+                  placeholder="Name"
+                />
+                <input
+                  className={styles.input}
+                  value={conn.avatar}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.connections || [])];
+                    newItems[idx] = {
+                      ...newItems[idx],
+                      avatar: e.target.value,
+                    };
+                    handleChange("connections", newItems);
+                  }}
+                  placeholder="Avatar URL"
+                />
+                <input
+                  className={styles.input}
+                  value={conn.url || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.connections || [])];
+                    newItems[idx] = { ...newItems[idx], url: e.target.value };
+                    handleChange("connections", newItems);
+                  }}
+                  placeholder="Profile URL (optional)"
+                />
+              </div>
+            )}
+            onAdd={() =>
+              handleChange("connections", [
+                ...(content.data.connections || []),
+                { name: "", avatar: "", url: "" },
+              ])
+            }
+            onRemove={(i) => {
+              const newItems = (content.data.connections || []).filter(
+                (_, idx) => idx !== i
+              );
+              handleChange("connections", newItems);
+            }}
+          />
+        </>
+      );
+
+    case "career":
+      return (
+        <>
+          <Field
+            label="Title"
+            value={content.data.title || "Career Trajectory"}
+            onChange={(v) => handleChange("title", v)}
+          />
+          <ArrayField
+            label="Milestones"
+            items={content.data.milestones || []}
+            renderItem={(milestone, idx) => (
+              <div key={idx} className={styles.arrayItemFields}>
+                <input
+                  className={styles.input}
+                  value={milestone.label}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.milestones || [])];
+                    newItems[idx] = { ...newItems[idx], label: e.target.value };
+                    handleChange("milestones", newItems);
+                  }}
+                  placeholder="Label (e.g. Junior)"
+                />
+                <input
+                  className={styles.input}
+                  type="number"
+                  value={milestone.percentage}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.milestones || [])];
+                    newItems[idx] = {
+                      ...newItems[idx],
+                      percentage: parseInt(e.target.value) || 0,
+                    };
+                    handleChange("milestones", newItems);
+                  }}
+                  placeholder="Percentage"
+                />
+                <input
+                  className={styles.input}
+                  value={milestone.company || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.milestones || [])];
+                    newItems[idx] = {
+                      ...newItems[idx],
+                      company: e.target.value,
+                    };
+                    handleChange("milestones", newItems);
+                  }}
+                  placeholder="Company (optional)"
+                />
+                <input
+                  className={styles.input}
+                  value={milestone.icon || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.milestones || [])];
+                    newItems[idx] = { ...newItems[idx], icon: e.target.value };
+                    handleChange("milestones", newItems);
+                  }}
+                  placeholder="Icon URL (optional)"
+                />
+              </div>
+            )}
+            onAdd={() =>
+              handleChange("milestones", [
+                ...(content.data.milestones || []),
+                { label: "", percentage: 25, company: "", icon: "" },
+              ])
+            }
+            onRemove={(i) => {
+              const newItems = (content.data.milestones || []).filter(
+                (_, idx) => idx !== i
+              );
+              handleChange("milestones", newItems);
+            }}
+          />
+        </>
+      );
+
     default:
       return (
         <p className={styles.noFields}>

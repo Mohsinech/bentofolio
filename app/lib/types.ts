@@ -14,7 +14,11 @@ export type BlockType =
   | "social"
   | "availability"
   | "quote"
-  | "resume";
+  | "resume"
+  | "youtube"
+  | "instagram"
+  | "network"
+  | "career";
 
 // Position and size of a block in the grid
 export interface BlockLayout {
@@ -157,6 +161,52 @@ export interface ResumeContent {
   lastUpdated?: string;
 }
 
+// NEW: YouTube Block
+export interface YouTubeContent {
+  channelName: string;
+  channelUrl: string;
+  subscribers: string;
+  views: string;
+  videoCount?: string;
+  thumbnailUrl?: string;
+  latestVideoUrl?: string;
+  latestVideoTitle?: string;
+  description?: string;
+}
+
+// NEW: Instagram Block
+export interface InstagramContent {
+  username: string;
+  profileUrl: string;
+  followers: string;
+  following?: string;
+  posts?: string;
+  avatarUrl?: string;
+  bio?: string;
+  verified?: boolean;
+}
+
+// NEW: Network/Connections Block
+export interface NetworkContent {
+  title: string;
+  connections: {
+    name: string;
+    avatar: string;
+    url?: string;
+  }[];
+}
+
+// NEW: Career Trajectory Block
+export interface CareerContent {
+  title: string;
+  milestones: {
+    label: string;
+    percentage: number;
+    icon?: string;
+    company?: string;
+  }[];
+}
+
 // Union type for all content
 export type BlockContent =
   | { type: "identity"; data: IdentityContent }
@@ -173,7 +223,11 @@ export type BlockContent =
   | { type: "social"; data: SocialContent }
   | { type: "availability"; data: AvailabilityContent }
   | { type: "quote"; data: QuoteContent }
-  | { type: "resume"; data: ResumeContent };
+  | { type: "resume"; data: ResumeContent }
+  | { type: "youtube"; data: YouTubeContent }
+  | { type: "instagram"; data: InstagramContent }
+  | { type: "network"; data: NetworkContent }
+  | { type: "career"; data: CareerContent };
 
 // Full block with layout + content
 export interface Block {

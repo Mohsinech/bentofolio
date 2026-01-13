@@ -38,6 +38,7 @@
 }
 
 .name {
+  font-family: var(--font-montreal), system-ui, sans-serif;
   font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
@@ -45,11 +46,30 @@
   letter-spacing: -0.02em;
 }
 
+.info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.verified {
+  color: #3b82f6;
+  flex-shrink: 0;
+}
+
 .title {
+  font-family: var(--font-mori), var(--font-montreal), system-ui, sans-serif;
   font-size: 0.95rem;
   color: var(--text-secondary);
   margin: 0;
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .bio {

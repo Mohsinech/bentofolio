@@ -1,7 +1,7 @@
 /* Properties Panel - Right sidebar for block editing */
 
 .panel {
-  width: 320px;
+  width: 280px;
   background: var(--sidebar-bg, rgba(0, 0, 0, 0.4));
   border-left: 1px solid var(--border-subtle);
   position: fixed;

@@ -2,12 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
+import { User, BadgeCheck } from "lucide-react";
 import styles from "./IdentityBlock.module.css";
 import { IdentityContent } from "@/app/lib/types";
 
 interface IdentityBlockProps {
   data: IdentityContent;
+  verified?: boolean;
 }
 
 function AvatarWithFallback({ src, name }: { src?: string; name: string }) {
@@ -67,12 +68,15 @@ function AvatarWithFallback({ src, name }: { src?: string; name: string }) {
   );
 }
 
-export function IdentityBlock({ data }: IdentityBlockProps) {
+export function IdentityBlock({ data, verified = false }: IdentityBlockProps) {
   return (
     <div className={styles.container}>
       <AvatarWithFallback src={data.avatar} name={data.name} />
-      <div>
-        <h1 className={styles.name}>{data.name || "Your Name"}</h1>
+      <div className={styles.info}>
+        <div className={styles.nameRow}>
+          <h1 className={styles.name}>{data.name || "Your Name"}</h1>
+          {verified && <BadgeCheck size={18} className={styles.verified} />}
+        </div>
         <p className={styles.title}>{data.title || "Your Title"}</p>
       </div>
       {data.bio && <p className={styles.bio}>{data.bio}</p>}
