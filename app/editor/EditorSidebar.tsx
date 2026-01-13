@@ -176,7 +176,9 @@ export function EditorSidebar({
       {username && (
         <div className={styles.usernameDisplay}>
           <span className={styles.usernameLabel}>Your profile</span>
-          <span className={styles.usernameValue}>bentofolio.io/{username}</span>
+          <span className={styles.usernameValue}>
+            bentofolio.dev/{username}
+          </span>
         </div>
       )}
 

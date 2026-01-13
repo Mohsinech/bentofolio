@@ -36,4 +36,4 @@ export const LEMON_SQUEEZY_VARIANT_ID =
 // App config
 export const APP_NAME = "BentoFolio";
 export const APP_DOMAIN =
-  process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.page";
+  process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev";

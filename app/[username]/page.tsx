@@ -40,7 +40,7 @@ export async function generateMetadata({
       title: `${name} | BentoFolio`,
       description: title || `${name}'s portfolio on BentoFolio`,
       type: "profile",
-      url: `https://bentofolio.io/${username}`,
+      url: `https://bentofolio.dev/${username}`,
     },
     twitter: {
       card: "summary_large_image",
