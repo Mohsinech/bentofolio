@@ -429,48 +429,14 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
       return (
         <>
           <Field
-            label="Channel Name"
-            value={content.data.channelName || ""}
-            onChange={(v) => handleChange("channelName", v)}
+            label="YouTube URL"
+            value={content.data.videoUrl || ""}
+            onChange={(v) => handleChange("videoUrl", v)}
+            placeholder="https://youtube.com/watch?v=... or playlist"
           />
-          <Field
-            label="Channel URL"
-            value={content.data.channelUrl || ""}
-            onChange={(v) => handleChange("channelUrl", v)}
-          />
-          <Field
-            label="Subscribers"
-            value={content.data.subscribers || ""}
-            onChange={(v) => handleChange("subscribers", v)}
-            placeholder="e.g. 10.5K"
-          />
-          <Field
-            label="Views"
-            value={content.data.views || ""}
-            onChange={(v) => handleChange("views", v)}
-            placeholder="e.g. 1.2M"
-          />
-          <Field
-            label="Description"
-            value={content.data.description || ""}
-            onChange={(v) => handleChange("description", v)}
-            multiline
-          />
-          <Field
-            label="Latest Video URL"
-            value={content.data.latestVideoUrl || ""}
-            onChange={(v) => handleChange("latestVideoUrl", v)}
-          />
-          <Field
-            label="Latest Video Title"
-            value={content.data.latestVideoTitle || ""}
-            onChange={(v) => handleChange("latestVideoTitle", v)}
-          />
-          <Field
-            label="Thumbnail URL"
-            value={content.data.thumbnailUrl || ""}
-            onChange={(v) => handleChange("thumbnailUrl", v)}
-          />
+          <p className={styles.fieldHint}>
+            Paste any YouTube video, shorts, or playlist link
+          </p>
         </>
       );
 
@@ -478,37 +444,14 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
       return (
         <>
           <Field
-            label="Username"
-            value={content.data.username || ""}
-            onChange={(v) => handleChange("username", v)}
+            label="Instagram URL"
+            value={content.data.postUrl || ""}
+            onChange={(v) => handleChange("postUrl", v)}
+            placeholder="https://instagram.com/p/... or /reel/..."
           />
-          <Field
-            label="Profile URL"
-            value={content.data.profileUrl || ""}
-            onChange={(v) => handleChange("profileUrl", v)}
-          />
-          <Field
-            label="Followers"
-            value={content.data.followers || ""}
-            onChange={(v) => handleChange("followers", v)}
-            placeholder="e.g. 50.2K"
-          />
-          <Field
-            label="Posts"
-            value={content.data.posts || ""}
-            onChange={(v) => handleChange("posts", v)}
-          />
-          <Field
-            label="Bio"
-            value={content.data.bio || ""}
-            onChange={(v) => handleChange("bio", v)}
-            multiline
-          />
-          <Field
-            label="Avatar URL"
-            value={content.data.avatarUrl || ""}
-            onChange={(v) => handleChange("avatarUrl", v)}
-          />
+          <p className={styles.fieldHint}>
+            Paste any Instagram post or reel link
+          </p>
         </>
       );
 

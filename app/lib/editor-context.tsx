@@ -201,19 +201,13 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       youtube: {
         type: "youtube",
         data: {
-          channelName: "My Channel",
-          channelUrl: "https://youtube.com/@yourchannel",
-          subscribers: "0",
-          views: "0",
+          videoUrl: "", // User will paste YouTube URL
         },
       },
       instagram: {
         type: "instagram",
         data: {
-          username: "@yourusername",
-          profileUrl: "https://instagram.com/yourusername",
-          followers: "0",
-          posts: "0",
+          postUrl: "", // User will paste Instagram URL
         },
       },
       network: {

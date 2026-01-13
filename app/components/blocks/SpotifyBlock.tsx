@@ -10,18 +10,22 @@ interface SpotifyBlockProps {
 
 // Convert any Spotify URL to embed URL
 function getEmbedUrl(url: string): string | null {
-  if (!url) return null;
+  if (!url || url.trim() === "") return null;
+
+  const trimmedUrl = url.trim();
 
   // Already an embed URL
-  if (url.includes("/embed/")) return url;
+  if (trimmedUrl.includes("/embed/")) return trimmedUrl;
 
   // Parse Spotify URL patterns
   // https://open.spotify.com/track/xxx
   // https://open.spotify.com/playlist/xxx
   // https://open.spotify.com/album/xxx
   // https://open.spotify.com/artist/xxx
-  const match = url.match(
-    /spotify\.com\/(track|playlist|album|artist)\/([a-zA-Z0-9]+)/
+  // https://open.spotify.com/show/xxx (podcasts)
+  // https://open.spotify.com/episode/xxx
+  const match = trimmedUrl.match(
+    /spotify\.com\/(track|playlist|album|artist|show|episode)\/([a-zA-Z0-9]+)/
   );
   if (match) {
     const [, type, id] = match;
@@ -29,12 +33,17 @@ function getEmbedUrl(url: string): string | null {
   }
 
   // Spotify URI format: spotify:track:xxx
-  const uriMatch = url.match(
-    /spotify:(track|playlist|album|artist):([a-zA-Z0-9]+)/
+  const uriMatch = trimmedUrl.match(
+    /spotify:(track|playlist|album|artist|show|episode):([a-zA-Z0-9]+)/
   );
   if (uriMatch) {
     const [, type, id] = uriMatch;
     return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
+  }
+
+  // User profile URLs don't have embeds - show error
+  if (trimmedUrl.includes("/user/")) {
+    return null; // User profiles can't be embedded
   }
 
   return null;
@@ -42,6 +51,8 @@ function getEmbedUrl(url: string): string | null {
 
 export function SpotifyBlock({ data }: SpotifyBlockProps) {
   const embedUrl = data.spotifyUrl ? getEmbedUrl(data.spotifyUrl) : null;
+  const hasInvalidUrl =
+    data.spotifyUrl && data.spotifyUrl.trim() !== "" && !embedUrl;
 
   // If we have a valid Spotify URL, show the embed player
   if (embedUrl) {
@@ -58,14 +69,18 @@ export function SpotifyBlock({ data }: SpotifyBlockProps) {
     );
   }
 
-  // Empty state - show placeholder with instructions
+  // Empty state or invalid URL - show placeholder with instructions
   return (
     <div className={styles.container}>
       <div className={styles.placeholder}>
         <Music2 size={32} className={styles.placeholderIcon} />
-        <span className={styles.placeholderText}>Add Spotify URL</span>
+        <span className={styles.placeholderText}>
+          {hasInvalidUrl ? "Invalid Spotify URL" : "Add Spotify URL"}
+        </span>
         <span className={styles.placeholderHint}>
-          Paste a track, playlist, or album link
+          {hasInvalidUrl
+            ? "Use a track, playlist, or album link"
+            : "Paste a track, playlist, or album link"}
         </span>
       </div>
     </div>

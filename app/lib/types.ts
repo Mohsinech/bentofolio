@@ -161,29 +161,14 @@ export interface ResumeContent {
   lastUpdated?: string;
 }
 
-// NEW: YouTube Block
+// NEW: YouTube Block - Simple URL-based embed
 export interface YouTubeContent {
-  channelName: string;
-  channelUrl: string;
-  subscribers: string;
-  views: string;
-  videoCount?: string;
-  thumbnailUrl?: string;
-  latestVideoUrl?: string;
-  latestVideoTitle?: string;
-  description?: string;
+  videoUrl: string; // YouTube video or playlist URL
 }
 
-// NEW: Instagram Block
+// NEW: Instagram Block - Simple URL-based embed
 export interface InstagramContent {
-  username: string;
-  profileUrl: string;
-  followers: string;
-  following?: string;
-  posts?: string;
-  avatarUrl?: string;
-  bio?: string;
-  verified?: boolean;
+  postUrl: string; // Instagram post URL
 }
 
 // NEW: Network/Connections Block
