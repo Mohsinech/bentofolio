@@ -1,31 +1,31 @@
 .container {
   display: flex;
   min-height: 100vh;
+  background: var(--bg-primary);
 }
 
-/* Sidebar */
+/* Sidebar - Clean & minimal */
 .sidebar {
   width: 280px;
-  background: var(--sidebar-bg, rgba(0, 0, 0, 0.4));
+  background: var(--bg-secondary);
   border-right: 1px solid var(--border-subtle);
-  padding: 20px;
+  padding: 20px 16px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
   z-index: 100;
-  backdrop-filter: blur(12px);
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb, rgba(255, 255, 255, 0.1)) transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
 }
 
 .sidebar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .sidebar::-webkit-scrollbar-track {
@@ -33,17 +33,18 @@
 }
 
 .sidebar::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.1));
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 3px;
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
-  background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.2));
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .logo {
-  font-size: 1.25rem;
-  font-weight: 800;
+  font-family: var(--font-achiko), system-ui, sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
   letter-spacing: -0.03em;
 }
 
@@ -57,7 +58,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .sectionHeader {
@@ -117,7 +118,7 @@
   border-style: solid;
 }
 
-/* Block menu */
+/* Block menu - cleaner grid */
 .blockMenu {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -128,52 +129,34 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 12px 6px;
-  background: var(--card-bg-subtle, rgba(255, 255, 255, 0.03));
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  gap: 6px;
+  padding: 14px 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid transparent;
+  border-radius: 12px;
   cursor: grab;
-  transition: all 0.2s var(--ease-bounce);
-  color: var(--text-secondary);
-  font-size: 0.7rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.blockMenuItem::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(139, 92, 246, 0.1) 0%,
-    rgba(99, 102, 241, 0.1) 100%
-  );
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.blockMenuItem:hover::before {
-  opacity: 1;
+  transition: all 0.2s var(--ease-out);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
 }
 
 .blockMenuItem:hover {
-  background: var(--card-bg-hover, rgba(255, 255, 255, 0.08));
-  border-color: var(--border-hover);
-  transform: translateY(-2px) scale(1.02);
-  box-shadow: var(--shadow-hover, 0 4px 12px rgba(0, 0, 0, 0.2));
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+  transform: translateY(-1px);
 }
 
 .blockMenuItem:active {
-  transform: scale(0.98);
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.4);
+  transform: scale(0.97);
+  background: rgba(139, 92, 246, 0.1);
 }
 
 .blockMenuIcon {
-  font-size: 1.25rem;
-  transition: transform 0.2s ease;
+  font-size: 1.1rem;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
 }
 
 .blockMenuItem:hover .blockMenuIcon {

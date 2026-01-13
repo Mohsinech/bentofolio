@@ -8,7 +8,7 @@ interface SpotifyBlockProps {
   data: SpotifyContent;
 }
 
-// Convert Spotify URL to embed URL
+// Convert any Spotify URL to embed URL
 function getEmbedUrl(url: string): string | null {
   if (!url) return null;
 
@@ -43,15 +43,13 @@ function getEmbedUrl(url: string): string | null {
 export function SpotifyBlock({ data }: SpotifyBlockProps) {
   const embedUrl = data.spotifyUrl ? getEmbedUrl(data.spotifyUrl) : null;
 
-  // If we have a Spotify URL, show the embed player
+  // If we have a valid Spotify URL, show the embed player
   if (embedUrl) {
-    const isPlaylist =
-      embedUrl.includes("/playlist/") || embedUrl.includes("/album/");
     return (
       <div className={styles.container}>
         <iframe
           src={embedUrl}
-          className={isPlaylist ? styles.embedLarge : styles.embed}
+          className={styles.embed}
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
           loading="lazy"
           title="Spotify Player"
@@ -60,38 +58,15 @@ export function SpotifyBlock({ data }: SpotifyBlockProps) {
     );
   }
 
-  // Fallback to manual display
+  // Empty state - show placeholder with instructions
   return (
     <div className={styles.container}>
-      <div className={styles.header}>
-        <Music2 size={14} />
-        <span>{data.type === "now-playing" ? "Now Playing" : "Top Track"}</span>
-      </div>
-      <div className={styles.content}>
-        {data.albumArt ? (
-          <img
-            src={data.albumArt}
-            alt={data.trackName}
-            className={styles.albumArt}
-          />
-        ) : (
-          <div className={styles.albumPlaceholder}>
-            <Music2 size={24} color="#1db954" />
-          </div>
-        )}
-        <div className={styles.trackInfo}>
-          <span className={styles.trackName}>
-            {data.trackName || "Not playing"}
-          </span>
-          <span className={styles.artistName}>{data.artistName || "..."}</span>
-        </div>
-        {data.type === "now-playing" && (
-          <div className={styles.bars}>
-            <div className={styles.bar} />
-            <div className={styles.bar} />
-            <div className={styles.bar} />
-          </div>
-        )}
+      <div className={styles.placeholder}>
+        <Music2 size={32} className={styles.placeholderIcon} />
+        <span className={styles.placeholderText}>Add Spotify URL</span>
+        <span className={styles.placeholderHint}>
+          Paste a track, playlist, or album link
+        </span>
       </div>
     </div>
   );

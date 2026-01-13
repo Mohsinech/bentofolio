@@ -50,12 +50,18 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         case "identity":
         case "saas":
         case "github":
+        case "youtube":
+        case "instagram":
           return { w: 2, h: 1 };
         case "experience":
         case "projects":
+        case "career":
           return { w: 2, h: 2 };
         case "social":
+        case "network":
           return { w: 2, h: 1 };
+        case "spotify":
+          return { w: 1, h: 2 };
         default:
           return { w: 1, h: 1 };
       }
@@ -99,7 +105,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       },
       spotify: {
         type: "spotify",
-        data: { type: "now-playing" },
+        data: {
+          type: "embed",
+          spotifyUrl: "", // User will paste their Spotify URL
+        },
       },
       metrics: {
         type: "metrics",
@@ -187,6 +196,56 @@ export function EditorProvider({ children }: { children: ReactNode }) {
             month: "short",
             year: "numeric",
           }),
+        },
+      },
+      youtube: {
+        type: "youtube",
+        data: {
+          channelName: "My Channel",
+          channelUrl: "https://youtube.com/@yourchannel",
+          subscribers: "0",
+          views: "0",
+        },
+      },
+      instagram: {
+        type: "instagram",
+        data: {
+          username: "@yourusername",
+          profileUrl: "https://instagram.com/yourusername",
+          followers: "0",
+          posts: "0",
+        },
+      },
+      network: {
+        type: "network",
+        data: {
+          title: "My Network",
+          connections: [
+            {
+              name: "Friend 1",
+              avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
+            },
+            {
+              name: "Friend 2",
+              avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
+            },
+            {
+              name: "Friend 3",
+              avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
+            },
+          ],
+        },
+      },
+      career: {
+        type: "career",
+        data: {
+          title: "Career Journey",
+          milestones: [
+            { label: "Started Coding", percentage: 20 },
+            { label: "First Job", percentage: 40 },
+            { label: "Senior Dev", percentage: 70 },
+            { label: "Tech Lead", percentage: 90 },
+          ],
         },
       },
     };

@@ -15,6 +15,12 @@ import {
   ProjectsBlock,
   SocialBlock,
   AvailabilityBlock,
+  QuoteBlock,
+  ResumeBlock,
+  YouTubeBlock,
+  InstagramBlock,
+  NetworkBlock,
+  CareerBlock,
 } from "@/app/components/blocks";
 import { demoLayout, demoContent } from "@/app/lib/demo-data";
 import { BlockLayout, BlockContent } from "@/app/lib/types";
@@ -48,6 +54,18 @@ function renderBlock(layout: BlockLayout, content: BlockContent) {
       return <SocialBlock data={content.data} />;
     case "availability":
       return <AvailabilityBlock data={content.data} />;
+    case "quote":
+      return <QuoteBlock data={content.data} />;
+    case "resume":
+      return <ResumeBlock data={content.data} />;
+    case "youtube":
+      return <YouTubeBlock data={content.data} />;
+    case "instagram":
+      return <InstagramBlock data={content.data} />;
+    case "network":
+      return <NetworkBlock data={content.data} />;
+    case "career":
+      return <CareerBlock data={content.data} />;
     default:
       return null;
   }
