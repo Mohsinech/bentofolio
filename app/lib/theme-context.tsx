@@ -103,6 +103,27 @@ export function ThemeProvider({ theme, children }: ThemeProviderProps) {
       root.style.setProperty("--border-glow", "0");
     }
 
+    // Fun animation effects
+    root.style.setProperty(
+      "--has-particles",
+      themeConfig.particles ? "1" : "0"
+    );
+    root.style.setProperty(
+      "--particle-color",
+      themeConfig.particleColor || "rgba(139, 92, 246, 0.5)"
+    );
+    root.style.setProperty(
+      "--has-mouse-glow",
+      themeConfig.mouseGlow ? "1" : "0"
+    );
+    root.style.setProperty("--card-effect", themeConfig.cardEffect || "none");
+    root.style.setProperty("--has-blobs", themeConfig.blobs ? "1" : "0");
+    if (themeConfig.blobColors && themeConfig.blobColors.length >= 3) {
+      root.style.setProperty("--blob-color-1", themeConfig.blobColors[0]);
+      root.style.setProperty("--blob-color-2", themeConfig.blobColors[1]);
+      root.style.setProperty("--blob-color-3", themeConfig.blobColors[2]);
+    }
+
     // Set body background with image
     if (themeConfig.backgroundImage) {
       document.body.style.background = `${themeConfig.backgroundImage}, ${themeConfig.background}`;

@@ -216,6 +216,13 @@ export interface ThemeConfig {
   borderGlow?: boolean; // Animated border glow
   gradientBorder?: string; // Gradient border for cards
   cardOpacity?: number; // Card background opacity (0-1)
+  // Fun animations
+  particles?: boolean; // Floating particles
+  particleColor?: string; // Particle color
+  mouseGlow?: boolean; // Mouse follow glow
+  cardEffect?: "wiggle" | "bounce" | "jelly" | "none"; // Card hover animation
+  blobs?: boolean; // Animated background blobs
+  blobColors?: string[]; // Blob colors
 }
 
 export type ThemeId =

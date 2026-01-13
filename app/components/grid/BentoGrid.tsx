@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useRef, useState, useCallback } from "react";
+import { ReactNode, useRef, useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import styles from "./BentoGrid.module.css";
 import { cn } from "@/app/lib/utils";
@@ -36,6 +36,7 @@ interface BentoItemProps {
   className?: string;
   index?: number;
   enableMagnetic?: boolean;
+  cardEffect?: "wiggle" | "bounce" | "jelly" | "none";
 }
 
 export function BentoItem({
@@ -45,6 +46,7 @@ export function BentoItem({
   className,
   index = 0,
   enableMagnetic = false,
+  cardEffect = "none",
 }: BentoItemProps) {
   const colClass = styles[`col${colSpan}`];
   const rowClass = styles[`row${rowSpan}`];
@@ -76,6 +78,59 @@ export function BentoItem({
     setMagneticPos({ x: 0, y: 0 });
   }, []);
 
+  // Card effect-specific hover animations
+  const hoverAnimation = useMemo(() => {
+    switch (cardEffect) {
+      case "wiggle":
+        return {
+          scale: 1.02,
+          rotate: [0, -1, 1, -1, 0],
+          transition: {
+            scale: { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] },
+            rotate: {
+              duration: 0.4,
+              repeat: Infinity,
+              repeatType: "reverse" as const,
+            },
+          },
+        };
+      case "bounce":
+        return {
+          y: -8,
+          scale: 1.04,
+          transition: {
+            type: "spring",
+            stiffness: 400,
+            damping: 10,
+          },
+        };
+      case "jelly":
+        return {
+          scale: 1.03,
+          transition: {
+            duration: 0.3,
+            ease: [0.34, 1.56, 0.64, 1],
+          },
+        };
+      default:
+        return {
+          scale: 1.02,
+          transition: { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] },
+        };
+    }
+  }, [cardEffect]);
+
+  // Card effect-specific tap animations
+  const tapAnimation = useMemo(() => {
+    if (cardEffect === "jelly") {
+      return {
+        scale: [1, 0.95, 1.05, 0.98, 1],
+        transition: { duration: 0.4 },
+      };
+    }
+    return { scale: 0.98 };
+  }, [cardEffect]);
+
   return (
     <motion.div
       ref={ref}
@@ -95,11 +150,8 @@ export function BentoItem({
         x: { type: "spring", stiffness: 400, damping: 30 },
         y: { type: "spring", stiffness: 400, damping: 30 },
       }}
-      whileHover={{
-        scale: 1.02,
-        transition: { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] },
-      }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={hoverAnimation}
+      whileTap={tapAnimation}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >

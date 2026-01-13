@@ -40,6 +40,11 @@ export const themes: Record<ThemeId, ThemeConfig> = {
     borderGlow: true,
     gradientBorder: "linear-gradient(135deg, #8b5cf6, #6366f1, #8b5cf6)",
     cardOpacity: 0.25,
+    // Fun effects
+    particles: true,
+    particleColor: "rgba(139, 92, 246, 0.6)",
+    mouseGlow: true,
+    cardEffect: "jelly",
   },
   lofi: {
     name: "Lo-Fi",
@@ -59,6 +64,10 @@ export const themes: Record<ThemeId, ThemeConfig> = {
     glowIntensity: 1.3,
     borderGlow: false,
     cardOpacity: 0.3,
+    // Fun effects - cozy vibes
+    particles: true,
+    particleColor: "rgba(251, 191, 36, 0.4)",
+    cardEffect: "wiggle",
   },
   ocean: {
     name: "Ocean",
@@ -79,6 +88,10 @@ export const themes: Record<ThemeId, ThemeConfig> = {
     borderGlow: true,
     gradientBorder: "linear-gradient(135deg, #0ea5e9, #38bdf8, #0ea5e9)",
     cardOpacity: 0.25,
+    // Fun effects - wave vibes
+    blobs: true,
+    blobColors: ["#0ea5e9", "#38bdf8", "#0284c7"],
+    cardEffect: "bounce",
   },
   forest: {
     name: "Forest",
@@ -98,6 +111,10 @@ export const themes: Record<ThemeId, ThemeConfig> = {
     glowIntensity: 1.3,
     borderGlow: false,
     cardOpacity: 0.25,
+    // Fun effects - nature vibes
+    particles: true,
+    particleColor: "rgba(34, 197, 94, 0.4)",
+    cardEffect: "bounce",
   },
   sunset: {
     name: "Sunset",
@@ -118,6 +135,10 @@ export const themes: Record<ThemeId, ThemeConfig> = {
     borderGlow: true,
     gradientBorder: "linear-gradient(135deg, #f97316, #fb923c, #f97316)",
     cardOpacity: 0.25,
+    // Fun effects - warm vibes
+    blobs: true,
+    blobColors: ["#f97316", "#fb923c", "#ea580c"],
+    cardEffect: "wiggle",
   },
   monochrome: {
     name: "Monochrome",
@@ -157,6 +178,13 @@ export const themes: Record<ThemeId, ThemeConfig> = {
     borderGlow: true,
     gradientBorder: "linear-gradient(135deg, #ec4899, #a855f7, #ec4899)",
     cardOpacity: 0.2,
+    // Fun effects - electric vibes
+    particles: true,
+    particleColor: "rgba(236, 72, 153, 0.5)",
+    mouseGlow: true,
+    blobs: true,
+    blobColors: ["#ec4899", "#a855f7", "#6366f1"],
+    cardEffect: "jelly",
   },
   minimal: {
     name: "Minimal",
@@ -195,6 +223,12 @@ export const themes: Record<ThemeId, ThemeConfig> = {
     borderGlow: true,
     gradientBorder: "linear-gradient(135deg, #88c0d0, #81a1c1, #88c0d0)",
     cardOpacity: 0.25,
+    // Fun effects - calm arctic vibes
+    particles: true,
+    particleColor: "rgba(136, 192, 208, 0.35)",
+    blobs: true,
+    blobColors: ["#88c0d0", "#81a1c1", "#5e81ac"],
+    cardEffect: "bounce",
   },
 };
 

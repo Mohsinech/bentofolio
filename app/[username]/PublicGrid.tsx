@@ -16,7 +16,8 @@ import {
   SocialBlock,
   AvailabilityBlock,
 } from "@/app/components/blocks";
-import { BlockLayout, BlockContent } from "@/app/lib/types";
+import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
+import { useTheme } from "@/app/lib/theme-context";
 
 interface PublicGridProps {
   layout: BlockLayout[];
@@ -62,6 +63,10 @@ export function PublicGrid({
   content,
   isPro = false,
 }: PublicGridProps) {
+  const { theme } = useTheme();
+  const themeConfig = themes[theme];
+  const cardEffect = isPro ? themeConfig?.cardEffect : "none";
+
   return (
     <BentoGrid isPro={isPro}>
       {layout.map((block, index) => {
@@ -75,6 +80,7 @@ export function PublicGrid({
             rowSpan={block.h as 1 | 2 | 3 | 4}
             index={index}
             enableMagnetic={isPro}
+            cardEffect={cardEffect}
           >
             {renderBlock(blockContent)}
           </BentoItem>

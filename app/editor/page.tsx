@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import { EditorProvider, useEditor } from "@/app/lib/editor-context";
 import { useProfile, useAuth } from "@/app/lib/hooks";
 import { ThemeProvider } from "@/app/lib/theme-context";
+import { ThemeEffectsWrapper } from "@/app/components/ThemeEffects";
 import { EditorSidebar } from "./EditorSidebar";
 import { EditorDndWrapper } from "./EditorDndWrapper";
 import { importFromGitHub } from "@/app/lib/github";
 import { generateId } from "@/app/lib/utils";
-import { BlockLayout, BlockContent, ThemeId } from "@/app/lib/types";
+import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
 import styles from "./editor.module.css";
 
 function EditorContent() {
@@ -146,6 +147,14 @@ function EditorContent() {
   return (
     <ThemeProvider theme={currentTheme}>
       <div className={styles.container}>
+        {/* Fun interactive theme effects */}
+        <ThemeEffectsWrapper
+          particles={themes[currentTheme]?.particles}
+          particleColor={themes[currentTheme]?.particleColor}
+          mouseGlow={themes[currentTheme]?.mouseGlow}
+          blobs={themes[currentTheme]?.blobs}
+          blobColors={themes[currentTheme]?.blobColors}
+        />
         <EditorDndWrapper>
           <EditorSidebar
             username={profile?.username}
