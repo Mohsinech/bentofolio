@@ -1,0 +1,13 @@
+export { IdentityBlock } from "./IdentityBlock";
+export { MapBlock } from "./MapBlock";
+export { TechStackBlock } from "./TechStackBlock";
+export { ExperienceBlock } from "./ExperienceBlock";
+export { SpotifyBlock } from "./SpotifyBlock";
+export { MetricsBlock } from "./MetricsBlock";
+export { LinkBlock } from "./LinkBlock";
+export { TextBlock } from "./TextBlock";
+export { SaaSBlock } from "./SaaSBlock";
+export { GitHubBlock } from "./GitHubBlock";
+export { ProjectsBlock } from "./ProjectsBlock";
+export { SocialBlock } from "./SocialBlock";
+export { AvailabilityBlock } from "./AvailabilityBlock";

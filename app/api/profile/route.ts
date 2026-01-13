@@ -1,0 +1,106 @@
+import { NextResponse } from "next/server";
+import { createClient } from "@/app/lib/supabase/server";
+
+// GET: Fetch current user's profile (or create one if it doesn't exist)
+export async function GET() {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Try to get existing profile
+  let { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  // If profile doesn't exist, create one
+  if (error && error.code === "PGRST116") {
+    const username =
+      user.user_metadata?.username ||
+      user.user_metadata?.preferred_username ||
+      user.user_metadata?.user_name ||
+      `user_${user.id.slice(0, 8)}`;
+
+    const { data: newProfile, error: insertError } = await supabase
+      .from("profiles")
+      .insert({
+        id: user.id,
+        username: username,
+        theme: "dark",
+        layout: [],
+        content: {},
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      return NextResponse.json({ error: insertError.message }, { status: 500 });
+    }
+
+    data = newProfile;
+  } else if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json(data);
+}
+
+// PUT: Update current user's profile
+export async function PUT(request: Request) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const body = await request.json();
+  const { layout, content, theme, username } = body;
+
+  // Build update object (only include fields that were provided)
+  const updates: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (layout !== undefined) updates.layout = layout;
+  if (content !== undefined) updates.content = content;
+  if (theme !== undefined) updates.theme = theme;
+  if (username !== undefined) {
+    // Validate username
+    if (!/^[a-zA-Z0-9_-]+$/.test(username) || username.length < 3) {
+      return NextResponse.json(
+        { error: "Invalid username format" },
+        { status: 400 }
+      );
+    }
+    updates.username = username;
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update(updates)
+    .eq("id", user.id);
+
+  if (error) {
+    // Handle unique constraint violation (username taken)
+    if (error.code === "23505") {
+      return NextResponse.json(
+        { error: "Username is already taken" },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
+}

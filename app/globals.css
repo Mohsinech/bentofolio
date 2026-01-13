@@ -1,26 +1,257 @@
 @import "tailwindcss";
 
+/* ========================================
+   BentoFolio Design System
+   "Indie Hacker / ShipFast" aesthetic
+   ======================================== */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Colors - Dark Mode Default */
+  --bg-primary: #09090b;
+  --bg-secondary: #18181b;
+  --bg-card: rgba(255, 255, 255, 0.03);
+
+  /* Text */
+  --text-primary: #fafafa;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+
+  /* Borders & Effects */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(255, 255, 255, 0.15);
+  --glow-color: rgba(255, 255, 255, 0.1);
+  --glow-accent: rgba(139, 92, 246, 0.4);
+
+  /* Grid */
+  --grid-cols: 4;
+  --grid-gap: 16px;
+  --block-radius: 20px;
+
+  /* Animation */
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ========================================
+   Base Styles
+   ======================================== */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+/* Glassmorphism card - uses theme variables for premium blur effects */
+.glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(var(--blur-amount, 12px)) saturate(180%);
+  -webkit-backdrop-filter: blur(var(--blur-amount, 12px)) saturate(180%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--block-radius);
+  position: relative;
+  overflow: hidden;
+  opacity: var(--card-opacity, 0.9);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease,
+    opacity 0.3s ease;
+}
+
+/* Gradient border overlay for premium themes */
+.glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: var(--block-radius);
+  padding: 1px;
+  background: var(--gradient-border, transparent);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: calc(var(--has-gradient-border, 0) * 0.5);
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.glass:hover {
+  opacity: 1;
+  border-color: var(--border-hover);
+  transform: translateY(-6px) scale(1.02);
+}
+
+.glass:hover::before {
+  opacity: calc(var(--has-gradient-border, 0) * 1);
+}
+
+/* Glow effect on hover - uses theme glow intensity */
+.glow {
+  transition: box-shadow 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.glow:hover {
+  box-shadow: 0 10px calc(40px * var(--glow-intensity, 1)) var(--glow-color),
+    0 6px calc(80px * var(--glow-intensity, 1)) var(--glow-color),
+    inset 0 0 40px rgba(255, 255, 255, 0.03);
+}
+
+/* Accent glow (uses theme accent) */
+.glow-accent:hover {
+  box-shadow: 0 10px calc(45px * var(--glow-intensity, 1)) var(--glow-accent),
+    0 6px calc(90px * var(--glow-intensity, 1)) var(--glow-accent);
+}
+
+/* Animated border glow for premium themes */
+@keyframes border-glow {
+  0%,
+  100% {
+    opacity: 0.4;
+    filter: blur(10px);
+  }
+  50% {
+    opacity: 0.8;
+    filter: blur(15px);
+  }
+}
+
+.glass[data-border-glow="true"]::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: calc(var(--block-radius) + 4px);
+  background: var(--gradient-border, transparent);
+  z-index: -1;
+  opacity: 0;
+  filter: blur(15px);
+  transition: opacity 0.4s ease;
+}
+
+.glass[data-border-glow="true"]:hover::after {
+  opacity: 0.6;
+  animation: border-glow 2.5s ease-in-out infinite;
+}
+
+/* Floating animation */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Subtle pulse */
+@keyframes pulse-subtle {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.pulse-subtle {
+  animation: pulse-subtle 3s ease-in-out infinite;
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #fff 0%, #a1a1aa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Selection */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-subtle);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-hover);
+}
+
+/* ========================================
+   Focus States (Accessibility)
+   ======================================== */
+
+:focus-visible {
+  outline: 2px solid var(--glow-accent);
+  outline-offset: 2px;
+}
+
+/* ========================================
+   Print Styles (PDF Export)
+   ======================================== */
+
+@media print {
+  body::before {
+    display: none;
+  }
+
+  .glass {
+    backdrop-filter: none;
+    background: #fff;
+    border: 1px solid #e5e5e5;
+    color: #000;
+  }
 }

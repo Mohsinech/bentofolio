@@ -1,0 +1,54 @@
+.watermark {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.2s ease;
+  z-index: 1000;
+}
+
+.watermark:hover {
+  background: rgba(0, 0, 0, 0.8);
+  border-color: rgba(139, 92, 246, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.text {
+  opacity: 0.8;
+}
+
+.brand {
+  font-weight: 700;
+  color: white;
+}
+
+.accent {
+  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.icon {
+  color: #a855f7;
+  opacity: 0.8;
+}
+
+/* Hide on small screens */
+@media (max-width: 480px) {
+  .watermark {
+    bottom: 8px;
+    right: 8px;
+    padding: 6px 10px;
+    font-size: 0.65rem;
+  }
+}

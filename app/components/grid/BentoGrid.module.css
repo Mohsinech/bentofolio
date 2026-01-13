@@ -1,0 +1,125 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), 1fr);
+  gap: var(--grid-gap);
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--grid-gap);
+}
+
+/* Edit mode grid - ensure smooth transitions */
+.grid[data-editing="true"] {
+  /* Smoother layout shifts during drag */
+}
+
+.grid[data-editing="true"] .item {
+  transition: transform 250ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 200ms ease;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 768px) {
+  .grid {
+    --grid-cols: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    --grid-cols: 1;
+  }
+}
+
+.item {
+  position: relative;
+  border-radius: var(--block-radius);
+  overflow: hidden;
+  transition: transform 0.3s var(--ease-bounce),
+    box-shadow 0.3s var(--ease-smooth);
+}
+
+.item:hover {
+  transform: translateY(-4px);
+}
+
+/* Grid positioning classes */
+.col1 {
+  grid-column: span 1;
+}
+.col2 {
+  grid-column: span 2;
+}
+.col3 {
+  grid-column: span 3;
+}
+.col4 {
+  grid-column: span 4;
+}
+
+.row1 {
+  grid-row: span 1;
+}
+.row2 {
+  grid-row: span 2;
+}
+.row3 {
+  grid-row: span 3;
+}
+.row4 {
+  grid-row: span 4;
+}
+
+/* Minimum heights based on row span */
+.row1 {
+  min-height: 140px;
+}
+.row2 {
+  min-height: 296px;
+}
+.row3 {
+  min-height: 452px;
+}
+.row4 {
+  min-height: 608px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .col3,
+  .col4 {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .col2,
+  .col3,
+  .col4 {
+    grid-column: span 1;
+  }
+
+  .row1,
+  .row2 {
+    min-height: 160px;
+  }
+  .row3,
+  .row4 {
+    min-height: 200px;
+  }
+}
+
+/* Edit mode indicator */
+.editing {
+  cursor: grab;
+}
+
+.editing:active {
+  cursor: grabbing;
+}
+
+.dragging {
+  opacity: 0.8;
+  transform: scale(1.02) rotate(1deg);
+  z-index: 100;
+}

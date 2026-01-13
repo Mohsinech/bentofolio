@@ -1,0 +1,202 @@
+"use client";
+
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { motion } from "framer-motion";
+import { Trash2, GripVertical, Pencil } from "lucide-react";
+import styles from "./DraggableBlock.module.css";
+import gridStyles from "../components/grid/BentoGrid.module.css";
+import { cn } from "@/app/lib/utils";
+import { useEditor } from "@/app/lib/editor-context";
+import { BlockLayout, BlockContent } from "@/app/lib/types";
+import {
+  IdentityBlock,
+  MapBlock,
+  TechStackBlock,
+  ExperienceBlock,
+  SpotifyBlock,
+  MetricsBlock,
+  LinkBlock,
+  TextBlock,
+  SaaSBlock,
+  GitHubBlock,
+  ProjectsBlock,
+  SocialBlock,
+  AvailabilityBlock,
+} from "@/app/components/blocks";
+
+interface DraggableBlockProps {
+  layout: BlockLayout;
+  content: BlockContent;
+  index: number;
+  isDragActive?: boolean;
+}
+
+interface BlockPreviewProps {
+  layout: BlockLayout;
+  content: BlockContent;
+}
+
+function renderBlock(content: BlockContent) {
+  switch (content.type) {
+    case "identity":
+      return <IdentityBlock data={content.data} />;
+    case "map":
+      return <MapBlock data={content.data} />;
+    case "techstack":
+      return <TechStackBlock data={content.data} />;
+    case "experience":
+      return <ExperienceBlock data={content.data} />;
+    case "spotify":
+      return <SpotifyBlock data={content.data} />;
+    case "metrics":
+      return <MetricsBlock data={content.data} />;
+    case "link":
+      return <LinkBlock data={content.data} />;
+    case "text":
+      return <TextBlock data={content.data} />;
+    case "saas":
+      return <SaaSBlock data={content.data} />;
+    case "github":
+      return <GitHubBlock data={content.data} />;
+    case "projects":
+      return <ProjectsBlock data={content.data} />;
+    case "social":
+      return <SocialBlock data={content.data} />;
+    case "availability":
+      return <AvailabilityBlock data={content.data} />;
+    default:
+      return <div>Unknown block</div>;
+  }
+}
+
+// Preview component shown during drag
+export function BlockPreview({ layout, content }: BlockPreviewProps) {
+  const colClass = gridStyles[`col${layout.w}`];
+  const rowClass = gridStyles[`row${layout.h}`];
+
+  return (
+    <div
+      className={cn(
+        gridStyles.item,
+        colClass,
+        rowClass,
+        "glass",
+        styles.preview
+      )}
+    >
+      <div className={styles.content}>{renderBlock(content)}</div>
+    </div>
+  );
+}
+
+export function DraggableBlock({
+  layout,
+  content,
+  index,
+  isDragActive,
+}: DraggableBlockProps) {
+  const { isEditMode, selectedBlockId, selectBlock, removeBlock } = useEditor();
+
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: layout.id,
+    transition: {
+      duration: 250,
+      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+    },
+  });
+
+  // More responsive transform with smooth transitions
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging
+      ? undefined
+      : transition || "transform 250ms cubic-bezier(0.25, 1, 0.5, 1)",
+    zIndex: isDragging ? 50 : "auto",
+    position: "relative" as const,
+  };
+
+  const colClass = gridStyles[`col${layout.w}`];
+  const rowClass = gridStyles[`row${layout.h}`];
+  const isSelected = selectedBlockId === layout.id;
+
+  const handleClick = (e: React.MouseEvent) => {
+    if (isEditMode && !isDragging) {
+      e.stopPropagation();
+      selectBlock(layout.id);
+    }
+  };
+
+  const handleRemove = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    removeBlock(layout.id);
+  };
+
+  // In edit mode, make the whole block draggable
+  const dragProps = isEditMode ? { ...attributes, ...listeners } : {};
+
+  return (
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        gridStyles.item,
+        colClass,
+        rowClass,
+        "glass glow",
+        styles.block,
+        isEditMode && styles.editable,
+        isSelected && styles.selected,
+        isDragging && styles.dragging,
+        isDragActive && !isDragging && styles.shifting
+      )}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{
+        opacity: isDragging ? 0.4 : 1,
+        y: 0,
+        scale: isDragging ? 1.02 : 1,
+      }}
+      transition={{
+        duration: 0.3,
+        delay: index * 0.03,
+        ease: [0.25, 1, 0.5, 1],
+      }}
+      onClick={handleClick}
+      whileHover={!isEditMode && !isDragging ? { y: -4 } : undefined}
+      {...dragProps}
+    >
+      {/* Drag handle + Edit + Delete (Edit mode only) */}
+      {isEditMode && (
+        <div className={styles.controls}>
+          <div className={styles.dragHandle}>
+            <GripVertical size={16} />
+          </div>
+          <button
+            className={styles.editButton}
+            onClick={(e) => {
+              e.stopPropagation();
+              selectBlock(layout.id);
+            }}
+          >
+            <Pencil size={14} />
+          </button>
+          <button className={styles.deleteButton} onClick={handleRemove}>
+            <Trash2 size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Block content */}
+      <div className={cn(styles.content, isDragging && styles.contentDragging)}>
+        {renderBlock(content)}
+      </div>
+    </motion.div>
+  );
+}

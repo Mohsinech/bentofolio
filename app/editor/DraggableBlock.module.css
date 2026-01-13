@@ -1,0 +1,136 @@
+.block {
+  position: relative;
+  cursor: default;
+  transition: transform 250ms cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.editable {
+  cursor: grab;
+}
+
+.editable:active {
+  cursor: grabbing;
+}
+
+.editable:hover {
+  border-color: var(--border-hover);
+}
+
+.selected {
+  border-color: rgba(139, 92, 246, 0.5) !important;
+  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2),
+    0 0 20px rgba(139, 92, 246, 0.15);
+}
+
+.dragging {
+  opacity: 0.4 !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(139, 92, 246, 0.5);
+  cursor: grabbing !important;
+  z-index: 50;
+}
+
+/* Block shifting to make space */
+.shifting {
+  transition: transform 250ms cubic-bezier(0.25, 1, 0.5, 1) !important;
+}
+
+/* Controls overlay */
+.controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  z-index: 10;
+}
+
+.block:hover .controls,
+.selected .controls {
+  opacity: 1;
+}
+
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--control-bg, rgba(0, 0, 0, 0.6));
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: grab;
+  transition: all 0.2s ease;
+  pointer-events: none; /* Handle is now visual-only since whole block is draggable */
+}
+
+.block:hover .dragHandle {
+  background: var(--control-bg-hover, rgba(0, 0, 0, 0.8));
+  color: var(--text-primary);
+}
+
+.deleteButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 6px;
+  color: #ef4444;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  pointer-events: auto; /* Keep delete button clickable */
+}
+
+.deleteButton:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.editButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--accent-bg, rgba(139, 92, 246, 0.2));
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--accent-border, rgba(139, 92, 246, 0.3));
+  border-radius: 6px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+}
+
+.editButton:hover {
+  background: var(--accent-bg-hover, rgba(139, 92, 246, 0.3));
+  border-color: var(--accent-border-hover, rgba(139, 92, 246, 0.5));
+}
+
+/* Content wrapper */
+.content {
+  width: 100%;
+  height: 100%;
+  transition: opacity 200ms ease;
+}
+
+.contentDragging {
+  opacity: 0.8;
+}
+
+/* Drag overlay preview */
+.preview {
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(139, 92, 246, 0.5);
+  transform: rotate(2deg) scale(1.05);
+  cursor: grabbing;
+  pointer-events: none;
+  opacity: 1 !important;
+}
