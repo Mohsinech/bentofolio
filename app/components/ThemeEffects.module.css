@@ -214,20 +214,20 @@
   }
 }
 
-/* Apply animations via data attributes */
-[data-effect="wiggle"]:hover {
+/* Apply animations via classes */
+.wiggleEffect:hover {
   animation: wiggle 0.3s ease-in-out infinite;
 }
 
-[data-effect="bounce"]:hover {
+.bounceEffect:hover {
   animation: bounce 0.6s ease-in-out infinite;
 }
 
-[data-effect="float"] {
+.floatEffect {
   animation: float 4s ease-in-out infinite;
 }
 
-[data-effect="pulse"]:hover {
+.pulseEffect:hover {
   animation: pulse 1s ease-in-out infinite;
 }
 

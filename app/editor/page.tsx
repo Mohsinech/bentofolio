@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/app/lib/theme-context";
 import { ThemeEffectsWrapper } from "@/app/components/ThemeEffects";
 import { EditorSidebar } from "./EditorSidebar";
 import { EditorDndWrapper } from "./EditorDndWrapper";
+import { PropertiesPanel } from "./PropertiesPanel";
 import { importFromGitHub } from "@/app/lib/github";
 import { generateId } from "@/app/lib/utils";
 import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
@@ -155,6 +156,8 @@ function EditorContent() {
           blobs={themes[currentTheme]?.blobs}
           blobColors={themes[currentTheme]?.blobColors}
         />
+
+        {/* Left sidebar - Block palette & actions */}
         <EditorDndWrapper>
           <EditorSidebar
             username={profile?.username}
@@ -166,6 +169,9 @@ function EditorContent() {
             isPro={hasProAccess}
           />
         </EditorDndWrapper>
+
+        {/* Right sidebar - Properties panel */}
+        <PropertiesPanel />
       </div>
     </ThemeProvider>
   );

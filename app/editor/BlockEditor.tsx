@@ -15,15 +15,33 @@ import {
 import { getTechIconUrl } from "@/app/lib/tech-icons";
 import styles from "./BlockEditor.module.css";
 
-export function BlockEditor() {
+interface BlockEditorProps {
+  embedded?: boolean;
+}
+
+export function BlockEditor({ embedded = false }: BlockEditorProps) {
   const { selectedBlockId, content, updateBlockContent, selectBlock } =
     useEditor();
   const selectedContent = selectedBlockId ? content[selectedBlockId] : null;
 
   if (!selectedBlockId || !selectedContent) {
+    if (embedded) return null;
     return (
       <div className={styles.empty}>
         <p>Select a block to edit</p>
+      </div>
+    );
+  }
+
+  // When embedded in PropertiesPanel, don't show the header
+  if (embedded) {
+    return (
+      <div className={styles.fieldsOnly}>
+        <BlockFields
+          blockId={selectedBlockId}
+          content={selectedContent}
+          onUpdate={updateBlockContent}
+        />
       </div>
     );
   }

@@ -1,7 +1,7 @@
 "use client";
 
-import { ReactNode, useRef, useState, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
+import { ReactNode, useRef, useState, useCallback } from "react";
+import { motion, type TargetAndTransition } from "framer-motion";
 import styles from "./BentoGrid.module.css";
 import { cn } from "@/app/lib/utils";
 
@@ -79,18 +79,18 @@ export function BentoItem({
   }, []);
 
   // Card effect-specific hover animations
-  const hoverAnimation = useMemo(() => {
+  const getHoverAnimation = (): TargetAndTransition | undefined => {
     switch (cardEffect) {
       case "wiggle":
         return {
           scale: 1.02,
           rotate: [0, -1, 1, -1, 0],
           transition: {
-            scale: { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] },
+            scale: { duration: 0.3 },
             rotate: {
               duration: 0.4,
               repeat: Infinity,
-              repeatType: "reverse" as const,
+              repeatType: "reverse",
             },
           },
         };
@@ -109,19 +109,18 @@ export function BentoItem({
           scale: 1.03,
           transition: {
             duration: 0.3,
-            ease: [0.34, 1.56, 0.64, 1],
           },
         };
       default:
         return {
           scale: 1.02,
-          transition: { duration: 0.3, ease: [0.34, 1.56, 0.64, 1] },
+          transition: { duration: 0.3 },
         };
     }
-  }, [cardEffect]);
+  };
 
   // Card effect-specific tap animations
-  const tapAnimation = useMemo(() => {
+  const getTapAnimation = (): TargetAndTransition | undefined => {
     if (cardEffect === "jelly") {
       return {
         scale: [1, 0.95, 1.05, 0.98, 1],
@@ -129,7 +128,7 @@ export function BentoItem({
       };
     }
     return { scale: 0.98 };
-  }, [cardEffect]);
+  };
 
   return (
     <motion.div
@@ -146,12 +145,11 @@ export function BentoItem({
       transition={{
         duration: 0.5,
         delay: index * 0.06,
-        ease: [0.34, 1.56, 0.64, 1], // bounce ease
         x: { type: "spring", stiffness: 400, damping: 30 },
         y: { type: "spring", stiffness: 400, damping: 30 },
       }}
-      whileHover={hoverAnimation}
-      whileTap={tapAnimation}
+      whileHover={getHoverAnimation()}
+      whileTap={getTapAnimation()}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >

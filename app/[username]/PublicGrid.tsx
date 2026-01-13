@@ -15,6 +15,8 @@ import {
   ProjectsBlock,
   SocialBlock,
   AvailabilityBlock,
+  QuoteBlock,
+  ResumeBlock,
 } from "@/app/components/blocks";
 import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
 import { useTheme } from "@/app/lib/theme-context";
@@ -53,6 +55,10 @@ function renderBlock(blockContent: BlockContent) {
       return <SocialBlock data={blockContent.data} />;
     case "availability":
       return <AvailabilityBlock data={blockContent.data} />;
+    case "quote":
+      return <QuoteBlock data={blockContent.data} />;
+    case "resume":
+      return <ResumeBlock data={blockContent.data} />;
     default:
       return null;
   }

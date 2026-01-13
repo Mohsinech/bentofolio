@@ -11,3 +11,5 @@ export { GitHubBlock } from "./GitHubBlock";
 export { ProjectsBlock } from "./ProjectsBlock";
 export { SocialBlock } from "./SocialBlock";
 export { AvailabilityBlock } from "./AvailabilityBlock";
+export { QuoteBlock } from "./QuoteBlock";
+export { ResumeBlock } from "./ResumeBlock";

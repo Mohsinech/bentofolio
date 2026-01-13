@@ -305,10 +305,12 @@
 .main {
   flex: 1;
   margin-left: 280px;
+  margin-right: 320px;
   padding: 48px 24px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  transition: margin-right 0.3s ease;
 }
 
 .gridWrapper {
@@ -376,6 +378,38 @@
   border-color: rgba(239, 68, 68, 0.3);
 }
 
+/* Action row for side-by-side buttons */
+.actionRow {
+  display: flex;
+  gap: 8px;
+}
+
+.actionHalf {
+  flex: 1;
+  padding: 10px 12px !important;
+  font-size: 0.8rem !important;
+}
+
+/* Share button */
+.shareButton {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.1),
+    rgba(34, 197, 94, 0.2)
+  );
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.shareButton:hover {
+  background: linear-gradient(
+    135deg,
+    rgba(34, 197, 94, 0.2),
+    rgba(34, 197, 94, 0.3)
+  );
+  border-color: rgba(34, 197, 94, 0.5);
+}
+
 /* Loading state */
 .loading {
   min-height: 100vh;
@@ -434,6 +468,12 @@
 }
 
 /* Mobile responsive */
+@media (max-width: 1024px) {
+  .main {
+    margin-right: 280px;
+  }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     display: none;
@@ -441,5 +481,6 @@
 
   .main {
     margin-left: 0;
+    margin-right: 0;
   }
 }

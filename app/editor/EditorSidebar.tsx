@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Link as LinkIcon,
   FileText,
-  Download,
   Eye,
   Save,
   LogOut,
@@ -23,13 +22,17 @@ import {
   CircleDot,
   Palette,
   Sparkles,
+  Music,
+  Quote,
+  FileDown,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
-import { useAuth, useExportPDF } from "@/app/lib/hooks";
+import { useAuth } from "@/app/lib/hooks";
 import { BlockType, ThemeId } from "@/app/lib/types";
 import { DraggableSidebarBlock } from "./DraggableSidebarBlock";
-import { BlockEditor } from "./BlockEditor";
 import { ThemeSelector } from "@/app/components/ThemeSelector";
 
 const blockTypes: {
@@ -108,11 +111,29 @@ const blockTypes: {
     label: "Link",
     category: "social",
   },
+  {
+    type: "spotify",
+    icon: <Music size={18} />,
+    label: "Spotify",
+    category: "social",
+  },
   // Content
   {
     type: "text",
     icon: <FileText size={18} />,
     label: "Text",
+    category: "content",
+  },
+  {
+    type: "quote",
+    icon: <Quote size={18} />,
+    label: "Quote",
+    category: "content",
+  },
+  {
+    type: "resume",
+    icon: <FileDown size={18} />,
+    label: "Resume",
     category: "content",
   },
 ];
@@ -136,11 +157,13 @@ export function EditorSidebar({
   onThemeChange,
   isPro = false,
 }: EditorSidebarProps) {
-  const { isEditMode, toggleEditMode, addBlock, selectedBlockId } = useEditor();
+  const { isEditMode, toggleEditMode, addBlock } = useEditor();
   const { signOut, githubUsername } = useAuth();
-  const { exportToPDF, exporting } = useExportPDF();
   const [saved, setSaved] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const profileUrl = username ? `https://bentofolio.dev/${username}` : "";
 
   const handleSave = async () => {
     if (onSave) {
@@ -150,14 +173,23 @@ export function EditorSidebar({
     }
   };
 
-  const handleExportPDF = async () => {
-    const success = await exportToPDF("portfolio-grid", {
-      filename: username ? `${username}-portfolio` : "portfolio",
-      quality: 0.95,
-      scale: 2,
-    });
-    if (!success) {
-      alert("Failed to export PDF. Please try again.");
+  const handleShare = async () => {
+    if (!username) return;
+
+    try {
+      await navigator.clipboard.writeText(profileUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Fallback for older browsers
+      const input = document.createElement("input");
+      input.value = profileUrl;
+      document.body.appendChild(input);
+      input.select();
+      document.execCommand("copy");
+      document.body.removeChild(input);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -210,13 +242,6 @@ export function EditorSidebar({
             Import from GitHub
           </button>
           <span className={styles.githubHint}>@{githubUsername}</span>
-        </div>
-      )}
-
-      {/* Block Editor - shown when a block is selected */}
-      {selectedBlockId && (
-        <div className={styles.section}>
-          <BlockEditor />
         </div>
       )}
 
@@ -293,27 +318,27 @@ export function EditorSidebar({
           {saving ? "Saving..." : saved ? "Saved!" : "Save"}
         </button>
 
-        <button
-          className={`${styles.actionButton} ${styles.secondaryButton}`}
-          onClick={handlePreview}
-          disabled={!username}
-        >
-          <Eye size={16} />
-          Preview
-        </button>
+        <div className={styles.actionRow}>
+          <button
+            className={`${styles.actionButton} ${styles.secondaryButton} ${styles.actionHalf}`}
+            onClick={handlePreview}
+            disabled={!username}
+            title="Open in new tab"
+          >
+            <ExternalLink size={16} />
+            Preview
+          </button>
 
-        <button
-          className={`${styles.actionButton} ${styles.secondaryButton}`}
-          onClick={handleExportPDF}
-          disabled={exporting}
-        >
-          {exporting ? (
-            <Loader2 size={16} className={styles.spinning} />
-          ) : (
-            <Download size={16} />
-          )}
-          {exporting ? "Exporting..." : "Export PDF"}
-        </button>
+          <button
+            className={`${styles.actionButton} ${styles.shareButton} ${styles.actionHalf}`}
+            onClick={handleShare}
+            disabled={!username}
+            title="Copy link to clipboard"
+          >
+            {copied ? <Check size={16} /> : <Copy size={16} />}
+            {copied ? "Copied!" : "Share"}
+          </button>
+        </div>
 
         <button
           className={`${styles.actionButton} ${styles.dangerButton}`}

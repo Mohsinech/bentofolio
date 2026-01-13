@@ -12,7 +12,9 @@ export type BlockType =
   | "github"
   | "projects"
   | "social"
-  | "availability";
+  | "availability"
+  | "quote"
+  | "resume";
 
 // Position and size of a block in the grid
 export interface BlockLayout {
@@ -139,6 +141,22 @@ export interface AvailabilityContent {
   preferredContact?: string;
 }
 
+// NEW: Quote/Testimonial Block
+export interface QuoteContent {
+  quote: string;
+  author: string;
+  role?: string;
+  company?: string;
+  avatar?: string;
+}
+
+// NEW: Resume/CV Block
+export interface ResumeContent {
+  title: string;
+  fileUrl: string;
+  lastUpdated?: string;
+}
+
 // Union type for all content
 export type BlockContent =
   | { type: "identity"; data: IdentityContent }
@@ -153,7 +171,9 @@ export type BlockContent =
   | { type: "github"; data: GitHubContent }
   | { type: "projects"; data: ProjectsContent }
   | { type: "social"; data: SocialContent }
-  | { type: "availability"; data: AvailabilityContent };
+  | { type: "availability"; data: AvailabilityContent }
+  | { type: "quote"; data: QuoteContent }
+  | { type: "resume"; data: ResumeContent };
 
 // Full block with layout + content
 export interface Block {

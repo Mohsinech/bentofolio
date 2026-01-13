@@ -169,6 +169,26 @@ export function EditorProvider({ children }: { children: ReactNode }) {
           forHire: true,
         },
       },
+      quote: {
+        type: "quote",
+        data: {
+          quote: "This person is amazing to work with!",
+          author: "Someone Great",
+          role: "CEO",
+          company: "Amazing Co",
+        },
+      },
+      resume: {
+        type: "resume",
+        data: {
+          title: "My Resume",
+          fileUrl: "",
+          lastUpdated: new Date().toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          }),
+        },
+      },
     };
 
     setLayout((prev) => [...prev, newBlock]);

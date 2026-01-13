@@ -1,8 +1,10 @@
 .block {
   position: relative;
   cursor: default;
-  transition: transform 250ms cubic-bezier(0.25, 1, 0.5, 1),
-    box-shadow 200ms ease, border-color 200ms ease;
+  transition: box-shadow 150ms ease, border-color 150ms ease;
+  /* GPU acceleration for smoother transforms */
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .editable {
@@ -24,15 +26,17 @@
 }
 
 .dragging {
-  opacity: 0.4 !important;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(139, 92, 246, 0.5);
+  opacity: 0.5 !important;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35), 0 0 0 2px rgba(139, 92, 246, 0.5);
   cursor: grabbing !important;
   z-index: 50;
+  /* Smooth scale during drag */
+  transform: scale(1.03);
 }
 
-/* Block shifting to make space */
+/* Block shifting to make space - faster response */
 .shifting {
-  transition: transform 250ms cubic-bezier(0.25, 1, 0.5, 1) !important;
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1) !important;
 }
 
 /* Controls overlay */

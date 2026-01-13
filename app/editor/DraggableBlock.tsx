@@ -23,6 +23,8 @@ import {
   ProjectsBlock,
   SocialBlock,
   AvailabilityBlock,
+  QuoteBlock,
+  ResumeBlock,
 } from "@/app/components/blocks";
 
 interface DraggableBlockProps {
@@ -65,6 +67,10 @@ function renderBlock(content: BlockContent) {
       return <SocialBlock data={content.data} />;
     case "availability":
       return <AvailabilityBlock data={content.data} />;
+    case "quote":
+      return <QuoteBlock data={content.data} />;
+    case "resume":
+      return <ResumeBlock data={content.data} />;
     default:
       return <div>Unknown block</div>;
   }
@@ -108,19 +114,20 @@ export function DraggableBlock({
   } = useSortable({
     id: layout.id,
     transition: {
-      duration: 250,
-      easing: "cubic-bezier(0.25, 1, 0.5, 1)",
+      duration: 200,
+      easing: "cubic-bezier(0.2, 0, 0, 1)", // Smoother ease-out
     },
   });
 
-  // More responsive transform with smooth transitions
+  // Optimized transform with GPU acceleration
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition: isDragging
-      ? undefined
-      : transition || "transform 250ms cubic-bezier(0.25, 1, 0.5, 1)",
+      ? "none" // No transition while dragging for instant feedback
+      : transition || "transform 200ms cubic-bezier(0.2, 0, 0, 1)",
     zIndex: isDragging ? 50 : "auto",
     position: "relative" as const,
+    willChange: isDragging ? "transform" : "auto", // GPU hint
   };
 
   const colClass = gridStyles[`col${layout.w}`];
@@ -159,17 +166,19 @@ export function DraggableBlock({
       )}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{
-        opacity: isDragging ? 0.4 : 1,
+        opacity: isDragging ? 0.5 : 1,
         y: 0,
-        scale: isDragging ? 1.02 : 1,
+        scale: isDragging ? 1.03 : 1,
       }}
       transition={{
-        duration: 0.3,
-        delay: index * 0.03,
-        ease: [0.25, 1, 0.5, 1],
+        duration: 0.25,
+        delay: index * 0.02,
+        ease: [0.2, 0, 0, 1],
       }}
       onClick={handleClick}
-      whileHover={!isEditMode && !isDragging ? { y: -4 } : undefined}
+      whileHover={
+        !isEditMode && !isDragging ? { y: -4, scale: 1.01 } : undefined
+      }
       {...dragProps}
     >
       {/* Drag handle + Edit + Delete (Edit mode only) */}

@@ -31,7 +31,7 @@ export function EditorGrid() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5, // Small distance to start drag
+        distance: 3, // Reduced distance for quicker drag start
       },
     }),
     useSensor(KeyboardSensor, {

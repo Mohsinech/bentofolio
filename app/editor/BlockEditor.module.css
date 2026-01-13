@@ -4,6 +4,14 @@
   gap: 12px;
 }
 
+/* Embedded mode - used in PropertiesPanel */
+.fieldsOnly {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
 .header {
   display: flex;
   align-items: center;

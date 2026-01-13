@@ -239,6 +239,9 @@ export const premiumBlocks: BlockType[] = [
   "saas",
   "metrics",
   "experience",
+  "spotify",
+  "quote",
+  "resume",
 ];
 
 export const freeBlocks: BlockType[] = [
