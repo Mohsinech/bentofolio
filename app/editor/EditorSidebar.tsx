@@ -32,6 +32,8 @@ import {
   Users,
   TrendingUp as Career,
   Globe,
+  Info,
+  X,
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
@@ -196,6 +198,7 @@ export function EditorSidebar({
   const [importing, setImporting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [domainInput, setDomainInput] = useState(customDomain || "");
+  const [showDomainHelp, setShowDomainHelp] = useState(false);
 
   // Sync domain input with prop
   useEffect(() => {
@@ -279,27 +282,114 @@ export function EditorSidebar({
               <Globe size={14} />
               Custom Domain
             </span>
+            <button
+              className={styles.helpButton}
+              onClick={() => setShowDomainHelp(true)}
+              title="How to setup"
+            >
+              <Info size={14} />
+            </button>
           </div>
-          <div className={styles.domainInputWrapper}>
-            <input
-              type="text"
-              className={styles.domainInput}
-              placeholder="yourname.dev"
-              value={domainInput}
-              onChange={(e) => setDomainInput(e.target.value)}
-              onBlur={handleDomainSave}
-              onKeyDown={(e) => e.key === "Enter" && handleDomainSave()}
-            />
-          </div>
-          {customDomain && (
-            <span className={styles.domainActive}>
-              <Check size={12} />
-              Active: {customDomain}
-            </span>
+          {!customDomain ? (
+            <>
+              <p className={styles.domainExplain}>
+                Buy a domain (e.g., from Namecheap) and point it to your
+                portfolio
+              </p>
+              <div className={styles.domainInputWrapper}>
+                <input
+                  type="text"
+                  className={styles.domainInput}
+                  placeholder="yourname.dev"
+                  value={domainInput}
+                  onChange={(e) => setDomainInput(e.target.value)}
+                />
+                <button
+                  className={styles.domainAddButton}
+                  onClick={handleDomainSave}
+                  disabled={!domainInput.trim()}
+                >
+                  Add Domain
+                </button>
+              </div>
+              <span className={styles.domainHint}>
+                After adding, configure DNS in your domain provider
+              </span>
+            </>
+          ) : (
+            <>
+              <div className={styles.domainActive}>
+                <Check size={14} />
+                <span>{customDomain}</span>
+              </div>
+              <button
+                className={styles.domainChangeButton}
+                onClick={() => {
+                  setDomainInput("");
+                  if (onCustomDomainChange) {
+                    onCustomDomainChange("");
+                  }
+                }}
+              >
+                Remove Domain
+              </button>
+            </>
           )}
-          <span className={styles.domainHint}>
-            Point your domain&apos;s DNS to Vercel
-          </span>
+
+          {/* Domain Setup Help Modal */}
+          {showDomainHelp && (
+            <>
+              <div
+                className={styles.modalOverlay}
+                onClick={() => setShowDomainHelp(false)}
+              />
+              <div className={styles.helpModal}>
+                <div className={styles.helpHeader}>
+                  <h3>Setup Custom Domain</h3>
+                  <button
+                    className={styles.closeButton}
+                    onClick={() => setShowDomainHelp(false)}
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+                <div className={styles.helpContent}>
+                  <div className={styles.helpStep}>
+                    <span className={styles.stepNumber}>1</span>
+                    <div className={styles.stepContent}>
+                      <strong>Buy a domain</strong>
+                      <p>
+                        Purchase from Namecheap, Google Domains, or any provider
+                      </p>
+                    </div>
+                  </div>
+                  <div className={styles.helpStep}>
+                    <span className={styles.stepNumber}>2</span>
+                    <div className={styles.stepContent}>
+                      <strong>Configure DNS</strong>
+                      <p>In your domain provider, add these DNS records:</p>
+                      <code>A record: 76.76.21.21</code>
+                      <code>or CNAME: cname.vercel-dns.com</code>
+                    </div>
+                  </div>
+                  <div className={styles.helpStep}>
+                    <span className={styles.stepNumber}>3</span>
+                    <div className={styles.stepContent}>
+                      <strong>Add to hosting</strong>
+                      <p>Add your domain in your hosting provider dashboard</p>
+                    </div>
+                  </div>
+                  <div className={styles.helpStep}>
+                    <span className={styles.stepNumber}>4</span>
+                    <div className={styles.stepContent}>
+                      <strong>Add here</strong>
+                      <p>Enter your domain above and click Add Domain</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       ) : (
         <Link href="/pricing" className={styles.domainPromo}>

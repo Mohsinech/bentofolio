@@ -15,58 +15,40 @@ export function CareerBlock({ data }: CareerBlockProps) {
 
   return (
     <div className={styles.container}>
-      <h3 className={styles.title}>{data.title || "Career Trajectory"}</h3>
+      <h3 className={styles.title}>{data.title || "Career Journey"}</h3>
 
-      <div className={styles.avatars}>
+      <div className={styles.timeline}>
         {data.milestones.map((milestone, index) => (
           <div
             key={index}
-            className={styles.avatarWrapper}
-            title={milestone.label}
-          >
-            {milestone.icon ? (
-              <img
-                src={milestone.icon}
-                alt={milestone.label}
-                className={styles.avatar}
-              />
-            ) : (
-              <div className={styles.avatarPlaceholder}>
-                {milestone.label.charAt(0)}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.progressBar}>
-        {data.milestones.map((milestone, index) => (
-          <div
-            key={index}
-            className={styles.segment}
+            className={styles.milestone}
             style={{
-              width: `${(milestone.percentage / totalPercentage) * 100}%`,
+              flex: `${milestone.percentage} 1 0%`,
               animationDelay: `${index * 0.1}s`,
             }}
           >
-            <span className={styles.percentage}>{milestone.percentage}%</span>
-          </div>
-        ))}
-      </div>
-
-      <div className={styles.labels}>
-        {data.milestones.map((milestone, index) => (
-          <div
-            key={index}
-            className={styles.label}
-            style={{
-              width: `${(milestone.percentage / totalPercentage) * 100}%`,
-            }}
-          >
-            <span className={styles.labelText}>{milestone.label}</span>
-            {milestone.company && (
-              <span className={styles.company}>{milestone.company}</span>
-            )}
+            <div className={styles.milestoneIcon}>
+              {milestone.icon ? (
+                <img
+                  src={milestone.icon}
+                  alt={milestone.label}
+                  className={styles.avatar}
+                />
+              ) : (
+                <div className={styles.avatarPlaceholder}>
+                  {milestone.label.charAt(0)}
+                </div>
+              )}
+            </div>
+            <div className={styles.milestoneBar}>
+              <span className={styles.percentage}>{milestone.percentage}%</span>
+            </div>
+            <div className={styles.milestoneInfo}>
+              <span className={styles.labelText}>{milestone.label}</span>
+              {milestone.company && (
+                <span className={styles.company}>{milestone.company}</span>
+              )}
+            </div>
           </div>
         ))}
       </div>

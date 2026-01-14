@@ -1,19 +1,17 @@
 .container {
   display: flex;
   flex-direction: column;
-  padding: 0;
+  height: 100%;
   overflow: hidden;
-  border-radius: 12px;
 }
 
 /* Spotify embed iframe */
 .embed {
   width: 100%;
-  aspect-ratio: 1 / 1; /* Square for tracks, will adjust for playlists */
+  height: 100%;
   min-height: 152px;
-  max-height: 352px;
   border: none;
-  border-radius: 12px;
+  border-radius: inherit;
 }
 
 /* Empty state placeholder */
