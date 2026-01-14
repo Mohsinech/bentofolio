@@ -48,12 +48,13 @@ export const demoContent: Record<string, BlockContent> = {
     data: {
       status: "available",
       message: "Available for work",
+      forHire: true,
     },
   },
   social: {
     type: "social",
     data: {
-      links: [
+      items: [
         { platform: "github", url: "https://github.com" },
         { platform: "twitter", url: "https://twitter.com" },
       ],
