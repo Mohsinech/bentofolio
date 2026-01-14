@@ -44,11 +44,30 @@ export function useAuth(): UseAuthReturn {
     window.location.href = "/";
   };
 
-  // Get GitHub username from user metadata
-  const githubUsername =
-    user?.user_metadata?.user_name ||
-    user?.user_metadata?.preferred_username ||
-    null;
+  // Get GitHub username from identities or user metadata
+  const getGithubUsername = () => {
+    // First check if there's a GitHub identity
+    const githubIdentity = user?.identities?.find(
+      (identity) => identity.provider === "github"
+    );
+
+    if (githubIdentity?.identity_data?.user_name) {
+      return githubIdentity.identity_data.user_name as string;
+    }
+
+    if (githubIdentity?.identity_data?.preferred_username) {
+      return githubIdentity.identity_data.preferred_username as string;
+    }
+
+    // Fallback to user_metadata (for users who signed up directly with GitHub)
+    return (
+      user?.user_metadata?.user_name ||
+      user?.user_metadata?.preferred_username ||
+      null
+    );
+  };
+
+  const githubUsername = getGithubUsername();
 
   // Check if user is admin
   const userIsAdmin = isAdmin(user?.email, githubUsername);

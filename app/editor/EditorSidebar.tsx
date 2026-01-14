@@ -426,13 +426,13 @@ export function EditorSidebar({
         </div>
       ) : (
         <div className={styles.section}>
-          <Link
+          <a
             href="/api/auth/github"
             className={`${styles.actionButton} ${styles.githubConnectButton}`}
           >
             <Github size={16} />
             Connect GitHub
-          </Link>
+          </a>
           <span className={styles.githubHint}>
             Link your GitHub to import data
           </span>

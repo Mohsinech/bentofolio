@@ -25,12 +25,30 @@ function ErrorHandler({
   useEffect(() => {
     const error = searchParams.get("error");
     const message = searchParams.get("message");
+    const errorCode = searchParams.get("error_code");
+    const errorDescription = searchParams.get("error_description");
+
+    // Handle Supabase callback errors
+    if (error === "server_error" && errorCode === "identity_already_exists") {
+      onError(
+        "GitHub account is already connected! You can now use the Import from GitHub button."
+      );
+      return;
+    }
 
     if (error === "github_link_failed") {
-      onError(
-        message ||
-          "Failed to connect GitHub. Please check your Supabase GitHub OAuth settings and try again."
-      );
+      if (message?.includes("Manual linking is disabled")) {
+        onError(
+          "Manual linking is disabled. Go to Supabase Dashboard → Authentication → Providers → Enable Manual Linking, then try again."
+        );
+      } else if (message?.includes("already linked")) {
+        onError("GitHub account is already connected to your account!");
+      } else {
+        onError(
+          message ||
+            "Failed to connect GitHub. Please check your Supabase GitHub OAuth settings and try again."
+        );
+      }
     } else if (error === "github_already_linked") {
       onError("This GitHub account is already linked to another user.");
     } else if (error === "github_not_enabled") {
