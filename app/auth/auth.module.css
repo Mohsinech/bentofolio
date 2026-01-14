@@ -59,11 +59,31 @@
   gap: 6px;
 }
 
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .label {
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-secondary);
   font-family: var(--font-mori, system-ui);
+}
+
+.forgotLink {
+  font-size: 0.75rem;
+  color: #a855f7;
+  text-decoration: none;
+  font-weight: 500;
+  font-family: var(--font-mori, system-ui);
+  transition: opacity 0.2s ease;
+}
+
+.forgotLink:hover {
+  opacity: 0.8;
+  text-decoration: underline;
 }
 
 .input {

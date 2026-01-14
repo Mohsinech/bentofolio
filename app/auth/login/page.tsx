@@ -26,7 +26,18 @@ export default function LoginPage() {
     });
 
     if (error) {
-      setError(error.message);
+      // Friendly error messages
+      if (error.message.includes("Invalid login credentials")) {
+        setError(
+          "No account found with these credentials. Please check your email and password or sign up."
+        );
+      } else if (error.message.includes("Email not confirmed")) {
+        setError(
+          "Please check your email and click the confirmation link first."
+        );
+      } else {
+        setError(error.message);
+      }
       setLoading(false);
     } else {
       router.push("/editor");
@@ -76,7 +87,12 @@ export default function LoginPage() {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Password</label>
+            <div className={styles.labelRow}>
+              <label className={styles.label}>Password</label>
+              <Link href="/auth/reset-password" className={styles.forgotLink}>
+                Forgot password?
+              </Link>
+            </div>
             <input
               type="password"
               className={styles.input}
