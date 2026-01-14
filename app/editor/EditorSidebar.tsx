@@ -205,7 +205,12 @@ export function EditorSidebar({
     setDomainInput(customDomain || "");
   }, [customDomain]);
 
-  const profileUrl = username ? `https://bentofolio.dev/${username}` : "";
+  // Use custom domain if set, otherwise bentofolio.dev
+  const profileUrl = customDomain
+    ? `https://${customDomain}`
+    : username
+    ? `https://bentofolio.dev/${username}`
+    : "";
 
   const handleDomainSave = () => {
     if (onCustomDomainChange) {
@@ -242,7 +247,11 @@ export function EditorSidebar({
   };
 
   const handlePreview = () => {
-    if (username) {
+    if (customDomain) {
+      // Open custom domain in new tab
+      window.open(`https://${customDomain}`, "_blank");
+    } else if (username) {
+      // Open bentofolio subdomain
       window.open(`/${username}`, "_blank");
     }
   };
