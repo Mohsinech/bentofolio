@@ -531,12 +531,39 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
         </>
       );
 
+    case "resume":
+      return (
+        <>
+          <Field
+            label="Resume Title"
+            value={content.data.title || "My Resume"}
+            onChange={(v) => handleChange("title", v)}
+            placeholder="My Resume"
+          />
+          <Field
+            label="Resume URL"
+            value={content.data.fileUrl || ""}
+            onChange={(v) => handleChange("fileUrl", v)}
+            placeholder="https://drive.google.com/... or PDF URL"
+          />
+          <Field
+            label="Last Updated"
+            value={content.data.lastUpdated || ""}
+            onChange={(v) => handleChange("lastUpdated", v)}
+            placeholder="e.g. Jan 2026"
+          />
+          <p className={styles.fieldHint}>
+            Add a link to your resume (Google Drive, Dropbox, etc.)
+          </p>
+        </>
+      );
+
     case "career":
       return (
         <>
           <Field
             label="Title"
-            value={content.data.title || "Career Trajectory"}
+            value={content.data.title || "Career Journey"}
             onChange={(v) => handleChange("title", v)}
           />
           <ArrayField

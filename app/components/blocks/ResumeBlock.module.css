@@ -49,24 +49,29 @@
 .downloadButton {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  background: var(--accent);
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--accent, #a855f7);
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   color: white;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 160px;
 }
 
 .downloadButton:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px color-mix(in srgb, var(--accent), transparent 50%);
+  box-shadow: 0 4px 16px
+    color-mix(in srgb, var(--accent, #a855f7), transparent 40%);
+  background: color-mix(in srgb, var(--accent, #a855f7), white 10%);
 }
 
 .downloadButton:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  background: var(--text-muted, #666);
 }

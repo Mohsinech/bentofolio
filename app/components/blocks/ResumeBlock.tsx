@@ -37,7 +37,7 @@ export function ResumeBlock({ data }: ResumeBlockProps) {
         disabled={!data.fileUrl}
       >
         <Download size={16} />
-        <span>Download</span>
+        <span>{data.fileUrl ? "Download Resume" : "No Resume Yet"}</span>
       </button>
     </div>
   );
