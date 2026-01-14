@@ -11,7 +11,7 @@ import {
   Sparkles,
   Loader2,
 } from "lucide-react";
-import { useAuth } from "@/app/lib/hooks";
+import { useProfile } from "@/app/lib/hooks";
 import styles from "./analytics.module.css";
 
 interface AnalyticsData {
@@ -28,16 +28,16 @@ interface AnalyticsData {
 }
 
 export default function AnalyticsPage() {
-  const { user, hasProAccess } = useAuth();
+  const { profile, loading: profileLoading, hasProAccess } = useProfile();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "all">("7d");
 
   useEffect(() => {
-    if (user && hasProAccess) {
+    if (profile && hasProAccess) {
       fetchAnalytics();
     }
-  }, [user, hasProAccess, timeRange]);
+  }, [profile, hasProAccess, timeRange]);
 
   const fetchAnalytics = async () => {
     setLoading(true);
@@ -55,7 +55,18 @@ export default function AnalyticsPage() {
   };
 
   // Pro required screen
-  if (!user || !hasProAccess) {
+  if (profileLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingContainer}>
+          <Loader2 className={styles.spinner} size={32} />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile || !hasProAccess) {
     return (
       <div className={styles.container}>
         <header className={styles.header}>
