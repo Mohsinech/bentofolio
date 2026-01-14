@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { EditorProvider, useEditor } from "@/app/lib/editor-context";
 import { useProfile, useAuth } from "@/app/lib/hooks";
@@ -15,6 +15,25 @@ import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
 import { Monitor, X } from "lucide-react";
 import styles from "./editor.module.css";
 
+function ErrorHandler({
+  onError,
+}: {
+  onError: (message: string | null) => void;
+}) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "github_link_failed") {
+      onError(
+        "Failed to connect GitHub. Make sure GitHub OAuth is enabled in your Supabase settings."
+      );
+    }
+  }, [searchParams, onError]);
+
+  return null;
+}
+
 function EditorContent() {
   const { profile, loading, saveProfile, saving, hasProAccess } = useProfile();
   const { githubUsername } = useAuth();
@@ -22,17 +41,6 @@ function EditorContent() {
   const [currentTheme, setCurrentTheme] = useState<ThemeId>("dark");
   const [isMobile, setIsMobile] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-
-  // Check for GitHub connection errors
-  useEffect(() => {
-    const error = searchParams.get("error");
-    if (error === "github_link_failed") {
-      setErrorMessage(
-        "Failed to connect GitHub. Make sure GitHub OAuth is enabled in your Supabase settings."
-      );
-    }
-  }, [searchParams]);
 
   // Detect mobile device
   useEffect(() => {
@@ -179,6 +187,11 @@ function EditorContent() {
   return (
     <ThemeProvider theme={currentTheme}>
       <div className={styles.container}>
+        {/* Error handler with Suspense */}
+        <Suspense fallback={null}>
+          <ErrorHandler onError={setErrorMessage} />
+        </Suspense>
+
         {/* Fun interactive theme effects */}
         <ThemeEffectsWrapper
           particles={themes[currentTheme]?.particles}
