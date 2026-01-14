@@ -186,11 +186,13 @@ export interface NetworkContent {
 // NEW: Career Trajectory Block
 export interface CareerContent {
   title: string;
-  milestones: {
-    label: string;
-    percentage: number;
-    icon?: string;
-    company?: string;
+  positions: {
+    company: string;
+    role: string;
+    dateRange: string;
+    description?: string;
+    logo?: string;
+    current?: boolean;
   }[];
 }
 

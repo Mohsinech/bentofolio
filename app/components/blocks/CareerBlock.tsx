@@ -1,6 +1,7 @@
 "use client";
 
 import { CareerContent } from "@/app/lib/types";
+import { Briefcase } from "lucide-react";
 import styles from "./CareerBlock.module.css";
 
 interface CareerBlockProps {
@@ -8,45 +9,62 @@ interface CareerBlockProps {
 }
 
 export function CareerBlock({ data }: CareerBlockProps) {
-  const totalPercentage = data.milestones.reduce(
-    (sum, m) => sum + m.percentage,
-    0
-  );
+  if (!data.positions || data.positions.length === 0) {
+    return (
+      <div className={styles.container}>
+        <h3 className={styles.title}>{data.title || "Career Path"}</h3>
+        <div className={styles.empty}>
+          <Briefcase size={32} strokeWidth={1.5} />
+          <p>No positions added yet</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
-      <h3 className={styles.title}>{data.title || "Career Journey"}</h3>
+      <h3 className={styles.title}>{data.title || "Career Path"}</h3>
 
       <div className={styles.timeline}>
-        {data.milestones.map((milestone, index) => (
+        {data.positions.map((position, index) => (
           <div
             key={index}
-            className={styles.milestone}
-            style={{
-              flex: `${milestone.percentage} 1 0%`,
-              animationDelay: `${index * 0.1}s`,
-            }}
+            className={styles.position}
+            style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <div className={styles.milestoneIcon}>
-              {milestone.icon ? (
-                <img
-                  src={milestone.icon}
-                  alt={milestone.label}
-                  className={styles.avatar}
-                />
-              ) : (
-                <div className={styles.avatarPlaceholder}>
-                  {milestone.label.charAt(0)}
+            <div className={styles.timelineLine} />
+            <div className={styles.positionDot}>
+              {position.current && <div className={styles.currentPulse} />}
+            </div>
+
+            <div className={styles.positionContent}>
+              <div className={styles.positionHeader}>
+                {position.logo ? (
+                  <img
+                    src={position.logo}
+                    alt={position.company}
+                    className={styles.logo}
+                  />
+                ) : (
+                  <div className={styles.logoPlaceholder}>
+                    {position.company.charAt(0)}
+                  </div>
+                )}
+                <div className={styles.headerText}>
+                  <div className={styles.company}>
+                    {position.company}
+                    {position.current && (
+                      <span className={styles.currentBadge}>Current</span>
+                    )}
+                  </div>
+                  <div className={styles.role}>{position.role}</div>
                 </div>
-              )}
-            </div>
-            <div className={styles.milestoneBar}>
-              <span className={styles.percentage}>{milestone.percentage}%</span>
-            </div>
-            <div className={styles.milestoneInfo}>
-              <span className={styles.labelText}>{milestone.label}</span>
-              {milestone.company && (
-                <span className={styles.company}>{milestone.company}</span>
+              </div>
+
+              <div className={styles.dateRange}>{position.dateRange}</div>
+
+              {position.description && (
+                <p className={styles.description}>{position.description}</p>
               )}
             </div>
           </div>

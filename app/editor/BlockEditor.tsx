@@ -563,74 +563,109 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
         <>
           <Field
             label="Title"
-            value={content.data.title || "Career Journey"}
+            value={content.data.title || "Career Path"}
             onChange={(v) => handleChange("title", v)}
           />
           <ArrayField
-            label="Milestones"
-            items={content.data.milestones || []}
-            renderItem={(milestone, idx) => (
+            label="Positions"
+            items={content.data.positions || []}
+            renderItem={(position, idx) => (
               <div key={idx} className={styles.arrayItemFields}>
                 <input
                   className={styles.input}
-                  value={milestone.label}
+                  value={position.company}
                   onChange={(e) => {
-                    const newItems = [...(content.data.milestones || [])];
-                    newItems[idx] = { ...newItems[idx], label: e.target.value };
-                    handleChange("milestones", newItems);
-                  }}
-                  placeholder="Label (e.g. Junior)"
-                />
-                <input
-                  className={styles.input}
-                  type="number"
-                  value={milestone.percentage}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.milestones || [])];
-                    newItems[idx] = {
-                      ...newItems[idx],
-                      percentage: parseInt(e.target.value) || 0,
-                    };
-                    handleChange("milestones", newItems);
-                  }}
-                  placeholder="Percentage"
-                />
-                <input
-                  className={styles.input}
-                  value={milestone.company || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.milestones || [])];
+                    const newItems = [...(content.data.positions || [])];
                     newItems[idx] = {
                       ...newItems[idx],
                       company: e.target.value,
                     };
-                    handleChange("milestones", newItems);
+                    handleChange("positions", newItems);
                   }}
-                  placeholder="Company (optional)"
+                  placeholder="Company"
                 />
                 <input
                   className={styles.input}
-                  value={milestone.icon || ""}
+                  value={position.role}
                   onChange={(e) => {
-                    const newItems = [...(content.data.milestones || [])];
-                    newItems[idx] = { ...newItems[idx], icon: e.target.value };
-                    handleChange("milestones", newItems);
+                    const newItems = [...(content.data.positions || [])];
+                    newItems[idx] = { ...newItems[idx], role: e.target.value };
+                    handleChange("positions", newItems);
                   }}
-                  placeholder="Icon URL (optional)"
+                  placeholder="Role/Title"
                 />
+                <input
+                  className={styles.input}
+                  value={position.dateRange}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.positions || [])];
+                    newItems[idx] = {
+                      ...newItems[idx],
+                      dateRange: e.target.value,
+                    };
+                    handleChange("positions", newItems);
+                  }}
+                  placeholder="Date Range (e.g. 2021 - 2024)"
+                />
+                <textarea
+                  className={styles.textarea}
+                  value={position.description || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.positions || [])];
+                    newItems[idx] = {
+                      ...newItems[idx],
+                      description: e.target.value,
+                    };
+                    handleChange("positions", newItems);
+                  }}
+                  placeholder="Description (optional)"
+                  rows={2}
+                />
+                <input
+                  className={styles.input}
+                  value={position.logo || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.positions || [])];
+                    newItems[idx] = { ...newItems[idx], logo: e.target.value };
+                    handleChange("positions", newItems);
+                  }}
+                  placeholder="Logo URL (optional)"
+                />
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={position.current || false}
+                    onChange={(e) => {
+                      const newItems = [...(content.data.positions || [])];
+                      newItems[idx] = {
+                        ...newItems[idx],
+                        current: e.target.checked,
+                      };
+                      handleChange("positions", newItems);
+                    }}
+                  />
+                  <span>Current Position</span>
+                </label>
               </div>
             )}
             onAdd={() =>
-              handleChange("milestones", [
-                ...(content.data.milestones || []),
-                { label: "", percentage: 25, company: "", icon: "" },
+              handleChange("positions", [
+                ...(content.data.positions || []),
+                {
+                  company: "",
+                  role: "",
+                  dateRange: "",
+                  description: "",
+                  logo: "",
+                  current: false,
+                },
               ])
             }
             onRemove={(i) => {
-              const newItems = (content.data.milestones || []).filter(
+              const newItems = (content.data.positions || []).filter(
                 (_, idx) => idx !== i
               );
-              handleChange("milestones", newItems);
+              handleChange("positions", newItems);
             }}
           />
         </>
