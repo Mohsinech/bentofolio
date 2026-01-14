@@ -24,9 +24,22 @@ function ErrorHandler({
 
   useEffect(() => {
     const error = searchParams.get("error");
+    const message = searchParams.get("message");
+
     if (error === "github_link_failed") {
       onError(
-        "Failed to connect GitHub. Make sure GitHub OAuth is enabled in your Supabase settings."
+        message ||
+          "Failed to connect GitHub. Please check your Supabase GitHub OAuth settings and try again."
+      );
+    } else if (error === "github_already_linked") {
+      onError("This GitHub account is already linked to another user.");
+    } else if (error === "github_not_enabled") {
+      onError(
+        "GitHub provider is not enabled in Supabase. Please enable it in Authentication → Providers."
+      );
+    } else if (error === "github_link_exception") {
+      onError(
+        message || "An unexpected error occurred while connecting GitHub."
       );
     }
   }, [searchParams, onError]);
