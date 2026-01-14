@@ -408,7 +408,7 @@ export function EditorSidebar({
       )}
 
       {/* GitHub Import */}
-      {githubUsername && (
+      {githubUsername ? (
         <div className={styles.section}>
           <button
             className={`${styles.actionButton} ${styles.githubButton}`}
@@ -423,6 +423,19 @@ export function EditorSidebar({
             Import from GitHub
           </button>
           <span className={styles.githubHint}>@{githubUsername}</span>
+        </div>
+      ) : (
+        <div className={styles.section}>
+          <Link
+            href="/api/auth/github"
+            className={`${styles.actionButton} ${styles.githubConnectButton}`}
+          >
+            <Github size={16} />
+            Connect GitHub
+          </Link>
+          <span className={styles.githubHint}>
+            Link your GitHub to import data
+          </span>
         </div>
       )}
 

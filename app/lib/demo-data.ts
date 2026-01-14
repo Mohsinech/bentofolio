@@ -1,15 +1,14 @@
 import { BlockLayout, BlockContent } from "./types";
 
-// Demo layout for preview
+// Demo layout for preview (free tier only)
 export const demoLayout: BlockLayout[] = [
   { id: "identity", type: "identity", x: 0, y: 0, w: 2, h: 2 },
   { id: "map", type: "map", x: 2, y: 0, w: 2, h: 1 },
-  { id: "spotify", type: "spotify", x: 3, y: 1, w: 1, h: 1 },
   { id: "techstack", type: "techstack", x: 2, y: 1, w: 2, h: 1 },
-  { id: "experience", type: "experience", x: 0, y: 2, w: 2, h: 2 },
-  { id: "metrics", type: "metrics", x: 2, y: 2, w: 2, h: 1 },
-  { id: "link-github", type: "link", x: 2, y: 3, w: 1, h: 1 },
-  { id: "link-twitter", type: "link", x: 3, y: 3, w: 1, h: 1 },
+  { id: "availability", type: "availability", x: 0, y: 2, w: 2, h: 1 },
+  { id: "social", type: "social", x: 0, y: 3, w: 2, h: 1 },
+  { id: "link-github", type: "link", x: 2, y: 2, w: 1, h: 1 },
+  { id: "link-twitter", type: "link", x: 3, y: 2, w: 1, h: 1 },
 ];
 
 // Demo content for preview
@@ -31,16 +30,6 @@ export const demoContent: Record<string, BlockContent> = {
       lng: -122.4194,
     },
   },
-  spotify: {
-    type: "spotify",
-    data: {
-      type: "now-playing",
-      trackName: "Blinding Lights",
-      artistName: "The Weeknd",
-      albumArt:
-        "https://i.scdn.co/image/ab67616d0000b2738863bc11d2aa12b54f5aeb36",
-    },
-  },
   techstack: {
     type: "techstack",
     data: {
@@ -54,35 +43,19 @@ export const demoContent: Record<string, BlockContent> = {
       ],
     },
   },
-  experience: {
-    type: "experience",
+  availability: {
+    type: "availability",
     data: {
-      items: [
-        {
-          company: "Vercel",
-          role: "Senior Engineer",
-          period: "2023 - Present",
-        },
-        {
-          company: "Stripe",
-          role: "Software Engineer",
-          period: "2021 - 2023",
-        },
-        {
-          company: "Airbnb",
-          role: "Junior Developer",
-          period: "2019 - 2021",
-        },
-      ],
+      status: "available",
+      message: "Available for work",
     },
   },
-  metrics: {
-    type: "metrics",
+  social: {
+    type: "social",
     data: {
-      items: [
-        { value: "50+", label: "Projects" },
-        { value: "12K", label: "GitHub Stars" },
-        { value: "99%", label: "Uptime" },
+      links: [
+        { platform: "github", url: "https://github.com" },
+        { platform: "twitter", url: "https://twitter.com" },
       ],
     },
   },
