@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { EditorProvider, useEditor } from "@/app/lib/editor-context";
 import { useProfile, useAuth } from "@/app/lib/hooks";
 import { ThemeProvider } from "@/app/lib/theme-context";
@@ -11,7 +12,7 @@ import { PropertiesPanel } from "./PropertiesPanel";
 import { importFromGitHub } from "@/app/lib/github";
 import { generateId } from "@/app/lib/utils";
 import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
-import { Monitor } from "lucide-react";
+import { Monitor, X } from "lucide-react";
 import styles from "./editor.module.css";
 
 function EditorContent() {
@@ -20,6 +21,18 @@ function EditorContent() {
   const { setLayout, setContent, layout, content } = useEditor();
   const [currentTheme, setCurrentTheme] = useState<ThemeId>("dark");
   const [isMobile, setIsMobile] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+
+  // Check for GitHub connection errors
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error === "github_link_failed") {
+      setErrorMessage(
+        "Failed to connect GitHub. Make sure GitHub OAuth is enabled in your Supabase settings."
+      );
+    }
+  }, [searchParams]);
 
   // Detect mobile device
   useEffect(() => {
@@ -174,6 +187,21 @@ function EditorContent() {
           blobs={themes[currentTheme]?.blobs}
           blobColors={themes[currentTheme]?.blobColors}
         />
+
+        {/* Error notification */}
+        {errorMessage && (
+          <div className={styles.errorNotification}>
+            <div className={styles.errorContent}>
+              <span className={styles.errorText}>{errorMessage}</span>
+              <button
+                className={styles.errorClose}
+                onClick={() => setErrorMessage(null)}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Mobile overlay */}
         {isMobile && (

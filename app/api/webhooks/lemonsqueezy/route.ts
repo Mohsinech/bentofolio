@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import { sendEmail, emailTemplates } from "@/app/lib/email";
 
 // Initialize Supabase with service role for admin operations
 const supabase = createClient(
@@ -86,7 +87,22 @@ export async function POST(request: Request) {
 
         console.log(`User ${userId} upgraded to Pro successfully`);
 
-        // TODO: Send welcome email with Pro features
+        // Get user profile to send welcome email
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("user_id", userId)
+          .single();
+
+        if (profile && customerEmail) {
+          const emailTemplate = emailTemplates.welcomePro(profile.username);
+          await sendEmail({
+            to: customerEmail,
+            subject: emailTemplate.subject,
+            html: emailTemplate.html,
+          });
+          console.log(`Welcome email sent to ${customerEmail}`);
+        }
       }
     }
 

@@ -42,6 +42,24 @@ export default function UpdatePasswordPage() {
     } else {
       setSuccess(true);
       setLoading(false);
+
+      // Send password change notification
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        try {
+          await fetch("/api/auth/password-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: user.id }),
+          });
+        } catch (error) {
+          console.error("Failed to send password notification:", error);
+          // Don't block the user, just log the error
+        }
+      }
+
       setTimeout(() => {
         router.push("/editor");
       }, 2000);
