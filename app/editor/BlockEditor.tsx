@@ -1,7 +1,14 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { X, Plus, Trash2, Upload, Image as ImageIcon } from "lucide-react";
+import {
+  X,
+  Plus,
+  Trash2,
+  Upload,
+  Image as ImageIcon,
+  FileText,
+} from "lucide-react";
 import NextImage from "next/image";
 import { useEditor } from "@/app/lib/editor-context";
 import { BlockContent } from "@/app/lib/types";
@@ -456,13 +463,19 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
       return (
         <>
           <Field
-            label="Instagram URL"
-            value={content.data.postUrl || ""}
-            onChange={(v) => handleChange("postUrl", v)}
-            placeholder="https://instagram.com/p/... or /reel/..."
+            label="Instagram Profile URL"
+            value={content.data.profileUrl || ""}
+            onChange={(v) => handleChange("profileUrl", v)}
+            placeholder="https://instagram.com/username or @username"
+          />
+          <Field
+            label="Username (optional)"
+            value={content.data.username || ""}
+            onChange={(v) => handleChange("username", v)}
+            placeholder="@username"
           />
           <p className={styles.fieldHint}>
-            Paste any Instagram post or reel link
+            Paste your Instagram profile URL or username
           </p>
         </>
       );
@@ -501,7 +514,20 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                     };
                     handleChange("connections", newItems);
                   }}
-                  placeholder="Avatar URL"
+                  placeholder="Photo URL (or upload)"
+                />
+                <input
+                  className={styles.input}
+                  value={conn.linkedinUrl || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.connections || [])];
+                    newItems[idx] = {
+                      ...newItems[idx],
+                      linkedinUrl: e.target.value,
+                    };
+                    handleChange("connections", newItems);
+                  }}
+                  placeholder="LinkedIn URL"
                 />
                 <input
                   className={styles.input}
@@ -511,7 +537,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                     newItems[idx] = { ...newItems[idx], url: e.target.value };
                     handleChange("connections", newItems);
                   }}
-                  placeholder="Profile URL (optional)"
+                  placeholder="Other URL (optional)"
                 />
               </div>
             )}
@@ -540,11 +566,12 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             onChange={(v) => handleChange("title", v)}
             placeholder="My Resume"
           />
-          <Field
-            label="Resume URL"
+          <FileUploadField
+            label="Upload Resume (PDF)"
             value={content.data.fileUrl || ""}
             onChange={(v) => handleChange("fileUrl", v)}
-            placeholder="https://drive.google.com/... or PDF URL"
+            accept=".pdf,.doc,.docx"
+            hint="Upload your resume file or paste a URL"
           />
           <Field
             label="Last Updated"
@@ -553,7 +580,8 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             placeholder="e.g. Jan 2026"
           />
           <p className={styles.fieldHint}>
-            Add a link to your resume (Google Drive, Dropbox, etc.)
+            Upload your resume file (PDF, DOC, DOCX) or paste a link (Google
+            Drive, Dropbox, etc.)
           </p>
         </>
       );
@@ -888,6 +916,92 @@ function ImageUploadField({
         placeholder="Or paste image URL"
         style={{ marginTop: 8 }}
       />
+    </div>
+  );
+}
+
+// File Upload Field (for PDFs, documents, etc.)
+interface FileUploadFieldProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  accept?: string;
+  hint?: string;
+}
+
+function FileUploadField({
+  label,
+  value,
+  onChange,
+  accept = ".pdf,.doc,.docx",
+  hint,
+}: FileUploadFieldProps) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Convert file to base64 data URL
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      onChange(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleUrlPaste = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onChange(e.target.value);
+  };
+
+  const fileName = value.startsWith("data:")
+    ? "Uploaded file"
+    : value
+    ? value.split("/").pop() || "File"
+    : "";
+
+  return (
+    <div className={styles.fieldWrapper}>
+      <label className={styles.label}>{label}</label>
+      <div className={styles.fileUploadContainer}>
+        {value ? (
+          <div className={styles.filePreview}>
+            <FileText size={20} />
+            <span className={styles.fileName}>{fileName}</span>
+            <button
+              className={styles.imageRemoveButton}
+              onClick={() => onChange("")}
+              type="button"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        ) : (
+          <div
+            className={styles.fileDropzone}
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <Upload size={20} />
+            <span>Click to upload file</span>
+          </div>
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={accept}
+          onChange={handleFileChange}
+          className={styles.hiddenInput}
+        />
+      </div>
+      <input
+        className={styles.smallInput}
+        value={value.startsWith("data:") ? "" : value}
+        onChange={handleUrlPaste}
+        placeholder="Or paste file URL (Google Drive, Dropbox, etc.)"
+        style={{ marginTop: 8 }}
+      />
+      {hint && <p className={styles.fieldHint}>{hint}</p>}
     </div>
   );
 }

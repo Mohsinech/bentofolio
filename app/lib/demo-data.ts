@@ -3,8 +3,8 @@ import { BlockLayout, BlockContent } from "./types";
 // Demo layout for preview
 export const demoLayout: BlockLayout[] = [
   { id: "identity", type: "identity", x: 0, y: 0, w: 2, h: 2 },
-  { id: "map", type: "map", x: 2, y: 0, w: 1, h: 1 },
-  { id: "spotify", type: "spotify", x: 3, y: 0, w: 1, h: 1 },
+  { id: "map", type: "map", x: 2, y: 0, w: 2, h: 1 },
+  { id: "spotify", type: "spotify", x: 3, y: 1, w: 1, h: 1 },
   { id: "techstack", type: "techstack", x: 2, y: 1, w: 2, h: 1 },
   { id: "experience", type: "experience", x: 0, y: 2, w: 2, h: 2 },
   { id: "metrics", type: "metrics", x: 2, y: 2, w: 2, h: 1 },

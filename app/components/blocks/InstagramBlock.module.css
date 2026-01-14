@@ -1,18 +1,72 @@
 .container {
   display: flex;
   flex-direction: column;
-  padding: 0;
+  padding: 20px;
   overflow: hidden;
   border-radius: 12px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  font-family: var(--font-mori, system-ui);
 }
 
-/* Instagram embed iframe */
-.embed {
-  width: 100%;
-  aspect-ratio: 4 / 5;
-  border: none;
+.container:hover {
+  transform: translateY(-2px);
+}
+
+/* Profile link content */
+.content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.iconWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: linear-gradient(
+    45deg,
+    #f09433,
+    #e6683c,
+    #dc2743,
+    #cc2366,
+    #bc1888
+  );
   border-radius: 12px;
-  background: transparent;
+  color: white;
+  flex-shrink: 0;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.username {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-montreal, system-ui);
+}
+
+.platform {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.arrow {
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  transition: transform 0.2s ease;
+}
+
+.container:hover .arrow {
+  transform: translateX(4px);
 }
 
 /* Empty state placeholder */
@@ -35,9 +89,11 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--text-primary);
+  font-family: var(--font-montreal, system-ui);
 }
 
 .placeholderHint {
   font-size: 0.75rem;
   color: var(--text-secondary);
+  font-family: var(--font-mori, system-ui);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Users, Linkedin } from "lucide-react";
 import { NetworkContent } from "@/app/lib/types";
 import styles from "./NetworkBlock.module.css";
 
@@ -12,17 +12,23 @@ export function NetworkBlock({ data }: NetworkBlockProps) {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
+        <Users size={16} />
         <h3 className={styles.title}>{data.title || "Network"}</h3>
-        <Pencil size={14} className={styles.editIcon} />
       </div>
 
       <div className={styles.avatars}>
         {data.connections.slice(0, 8).map((connection, index) => (
           <a
             key={index}
-            href={connection.url || "#"}
-            target={connection.url ? "_blank" : undefined}
-            rel={connection.url ? "noopener noreferrer" : undefined}
+            href={connection.linkedinUrl || connection.url || "#"}
+            target={
+              connection.linkedinUrl || connection.url ? "_blank" : undefined
+            }
+            rel={
+              connection.linkedinUrl || connection.url
+                ? "noopener noreferrer"
+                : undefined
+            }
             className={styles.avatarWrapper}
             style={{ zIndex: data.connections.length - index }}
             title={connection.name}
@@ -32,6 +38,11 @@ export function NetworkBlock({ data }: NetworkBlockProps) {
               alt={connection.name}
               className={styles.avatar}
             />
+            {connection.linkedinUrl && (
+              <div className={styles.linkedinBadge}>
+                <Linkedin size={10} />
+              </div>
+            )}
           </a>
         ))}
         {data.connections.length > 8 && (

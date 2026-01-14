@@ -209,7 +209,8 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       instagram: {
         type: "instagram",
         data: {
-          postUrl: "", // User will paste Instagram URL
+          profileUrl: "", // User will paste Instagram profile URL
+          username: "",
         },
       },
       network: {

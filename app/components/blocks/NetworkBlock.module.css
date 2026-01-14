@@ -8,7 +8,7 @@
 .header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 8px;
 }
 
 .title {
@@ -16,17 +16,7 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
-}
-
-.editIcon {
-  color: var(--text-muted);
-  opacity: 0.5;
-  cursor: pointer;
-  transition: opacity 0.2s ease;
-}
-
-.editIcon:hover {
-  opacity: 1;
+  font-family: var(--font-montreal, system-ui);
 }
 
 .avatars {
@@ -60,6 +50,21 @@
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
+.linkedinBadge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: #0077b5;
+  border-radius: 50%;
+  border: 2px solid var(--bg-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
 .more {
   width: 44px;
   height: 44px;
@@ -72,4 +77,5 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-muted);
+  font-family: var(--font-mori, system-ui);
 }

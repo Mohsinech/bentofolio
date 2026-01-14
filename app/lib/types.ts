@@ -168,9 +168,10 @@ export interface YouTubeContent {
   videoUrl?: string; // YouTube video URL for embed
 }
 
-// NEW: Instagram Block - Simple URL-based embed
+// NEW: Instagram Block - Profile link
 export interface InstagramContent {
-  postUrl: string; // Instagram post URL
+  profileUrl: string; // Instagram profile URL (@username or full URL)
+  username?: string;
 }
 
 // NEW: Network/Connections Block
@@ -178,8 +179,9 @@ export interface NetworkContent {
   title: string;
   connections: {
     name: string;
-    avatar: string;
-    url?: string;
+    avatar: string; // Photo URL or uploaded file
+    linkedinUrl?: string; // LinkedIn profile URL
+    url?: string; // Other URL (optional)
   }[];
 }
 

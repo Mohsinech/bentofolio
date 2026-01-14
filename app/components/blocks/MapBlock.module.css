@@ -1,8 +1,8 @@
 .container {
   display: flex;
   flex-direction: column;
-  padding: 16px;
-  gap: 8px;
+  padding: 20px;
+  gap: 12px;
 }
 
 .header {
@@ -13,6 +13,8 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-family: var(--font-montreal, system-ui);
+  font-weight: 600;
 }
 
 .icon {
@@ -87,13 +89,15 @@
 }
 
 .location {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 500;
+  font-family: var(--font-mori, system-ui);
 }
 
 .emptyText {
   font-size: 0.85rem;
   color: var(--text-muted);
   font-style: italic;
+  font-family: var(--font-mori, system-ui);
 }
