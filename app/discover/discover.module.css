@@ -198,6 +198,19 @@
   }
 }
 
+@media (max-width: 768px) {
+  .ctaButton {
+    padding: 10px 20px;
+    font-size: 0.85rem;
+    border-radius: 35px;
+  }
+
+  .ctaButton::before,
+  .ctaButton::after {
+    width: 100px;
+  }
+}
+
 /* Grid */
 .grid {
   display: grid;

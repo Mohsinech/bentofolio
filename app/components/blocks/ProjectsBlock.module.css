@@ -130,3 +130,30 @@
   color: var(--text-muted);
   font-size: 0.8rem;
 }
+
+@media (max-width: 768px) {
+  .wrapper {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .title {
+    font-size: 0.8rem;
+  }
+
+  .project {
+    padding: 8px 10px;
+  }
+
+  .name {
+    font-size: 0.8rem;
+  }
+
+  .description {
+    font-size: 0.65rem;
+  }
+
+  .stat {
+    font-size: 0.65rem;
+  }
+}

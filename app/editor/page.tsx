@@ -11,6 +11,7 @@ import { PropertiesPanel } from "./PropertiesPanel";
 import { importFromGitHub } from "@/app/lib/github";
 import { generateId } from "@/app/lib/utils";
 import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
+import { Monitor } from "lucide-react";
 import styles from "./editor.module.css";
 
 function EditorContent() {
@@ -18,6 +19,19 @@ function EditorContent() {
   const { githubUsername } = useAuth();
   const { setLayout, setContent, layout, content } = useEditor();
   const [currentTheme, setCurrentTheme] = useState<ThemeId>("dark");
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile device
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // Load profile data into editor
   useEffect(() => {
@@ -160,6 +174,20 @@ function EditorContent() {
           blobs={themes[currentTheme]?.blobs}
           blobColors={themes[currentTheme]?.blobColors}
         />
+
+        {/* Mobile overlay */}
+        {isMobile && (
+          <div className={styles.mobileOverlay}>
+            <div className={styles.mobileMessage}>
+              <Monitor size={48} strokeWidth={1.5} />
+              <h2>Editor Unavailable on Mobile</h2>
+              <p>
+                The editor requires a desktop browser for the best experience.
+                Please switch to a desktop device to edit your portfolio.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Left sidebar - Block palette & actions */}
         <EditorDndWrapper>

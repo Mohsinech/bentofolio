@@ -179,43 +179,115 @@
 
 /* Buttons */
 .freeButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 14px 24px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  color: var(--text-primary);
+  background-color: #1a1a1a;
+  border: none;
+  border-radius: 45px;
+  color: white;
   font-size: 0.95rem;
   font-weight: 600;
-  transition: all 0.2s ease;
+  box-shadow: 0px 10px 10px rgba(40, 40, 40, 0.8) inset,
+    0px 5px 10px rgba(5, 5, 5, 0.4), 0px -10px 10px rgba(10, 10, 10, 0.6) inset;
+  overflow: hidden;
+}
+
+.freeButton::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.06) 70%,
+    rgba(255, 255, 255, 0.1)
+  );
+  left: -20%;
+  top: -60%;
+  border-radius: 100%;
+}
+
+.freeButton::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.06) 70%,
+    rgba(255, 255, 255, 0.1)
+  );
+  right: -20%;
+  bottom: -60%;
+  border-radius: 100%;
 }
 
 .freeButton:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--border-hover);
+  animation: jello-horizontal 0.9s both;
 }
 
 .proButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 14px 24px;
-  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+  background-color: rgb(151, 95, 255);
   border: none;
-  border-radius: 12px;
+  border-radius: 45px;
   color: white;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
+    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
+  overflow: hidden;
+}
+
+.proButton::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  left: -20%;
+  top: -60%;
+  border-radius: 100%;
+}
+
+.proButton::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  right: -20%;
+  bottom: -60%;
+  border-radius: 100%;
 }
 
 .proButton:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+  animation: jello-horizontal 0.9s both;
 }
 
 .guarantee {
@@ -521,6 +593,30 @@
   .pricing {
     flex-direction: column;
     align-items: center;
+  }
+
+  .ctaFree,
+  .ctaPro {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    border-radius: 35px;
+  }
+
+  .ctaFree::before,
+  .ctaFree::after,
+  .ctaPro::before,
+  .ctaPro::after {
+    width: 100px;
+  }
+
+  .ctaButtons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ctaFree,
+  .ctaPro {
+    width: 100%;
   }
 }
 

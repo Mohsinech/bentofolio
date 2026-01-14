@@ -22,6 +22,7 @@
   font-weight: 800;
   letter-spacing: -0.03em;
   margin-bottom: 8px;
+  font-family: var(--font-montreal, system-ui);
 }
 
 .logoAccent {
@@ -36,12 +37,14 @@
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 0 8px;
+  font-family: var(--font-montreal, system-ui);
 }
 
 .subtitle {
   font-size: 0.9rem;
   color: var(--text-muted);
   margin: 0;
+  font-family: var(--font-mori, system-ui);
 }
 
 .form {
@@ -60,6 +63,7 @@
   font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-secondary);
+  font-family: var(--font-mori, system-ui);
 }
 
 .input {
@@ -70,6 +74,7 @@
   color: var(--text-primary);
   font-size: 0.95rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: var(--font-mori, system-ui);
 }
 
 .input:focus {
@@ -166,6 +171,19 @@
   }
 }
 
+@media (max-width: 768px) {
+  .submitButton {
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    border-radius: 35px;
+  }
+
+  .submitButton::before,
+  .submitButton::after {
+    width: 100px;
+  }
+}
+
 .divider {
   display: flex;
   align-items: center;
@@ -190,24 +208,62 @@
 }
 
 .socialButton {
+  position: relative;
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
-  color: var(--text-secondary);
+  background-color: #1a1a1a;
+  border: none;
+  border-radius: 45px;
+  color: white;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.2s ease;
+  font-family: var(--font-mori, system-ui);
+  font-weight: 600;
+  box-shadow: 0px 10px 10px rgba(40, 40, 40, 0.8) inset,
+    0px 5px 10px rgba(5, 5, 5, 0.4), 0px -10px 10px rgba(10, 10, 10, 0.6) inset;
+  overflow: hidden;
+}
+
+.socialButton::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.06) 70%,
+    rgba(255, 255, 255, 0.1)
+  );
+  left: -20%;
+  top: -60%;
+  border-radius: 100%;
+}
+
+.socialButton::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.02) 50%,
+    rgba(255, 255, 255, 0.06) 70%,
+    rgba(255, 255, 255, 0.1)
+  );
+  right: -20%;
+  bottom: -60%;
+  border-radius: 100%;
 }
 
 .socialButton:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: var(--border-hover);
+  animation: jello-horizontal 0.9s both;
 }
 
 .footer {

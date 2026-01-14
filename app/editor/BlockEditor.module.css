@@ -634,3 +634,36 @@
   height: 16px;
   object-fit: contain;
 }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .editor {
+    gap: 8px;
+  }
+
+  .fieldsOnly {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .title {
+    font-size: 0.8rem;
+  }
+
+  .addButton,
+  .removeButton {
+    padding: 6px 10px;
+    font-size: 0.7rem;
+  }
+
+  .field label {
+    font-size: 0.75rem;
+  }
+
+  .field input,
+  .field textarea,
+  .field select {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+  }
+}

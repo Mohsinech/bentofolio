@@ -869,6 +869,49 @@
   text-transform: capitalize;
 }
 
+/* Mobile overlay */
+.mobileOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 32px;
+}
+
+.mobileMessage {
+  text-align: center;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  color: var(--text-primary);
+}
+
+.mobileMessage svg {
+  color: #a855f7;
+  opacity: 0.8;
+}
+
+.mobileMessage h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  font-family: var(--font-montreal, system-ui);
+}
+
+.mobileMessage p {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+  font-family: var(--font-mori, system-ui);
+}
+
 /* Mobile responsive */
 @media (max-width: 1024px) {
   .main {
@@ -884,5 +927,33 @@
   .main {
     margin-left: 0;
     margin-right: 0;
+    padding: 16px 12px;
+  }
+
+  .actionButton {
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    border-radius: 35px;
+  }
+
+  .actionButton::before,
+  .actionButton::after {
+    width: 100px;
+  }
+
+  .actions {
+    gap: 6px;
+  }
+
+  .domainAddButton,
+  .domainChangeButton {
+    padding: 8px 12px;
+    font-size: 0.75rem;
+    border-radius: 35px;
+  }
+
+  .domainInput {
+    font-size: 0.8rem;
+    padding: 8px 10px;
   }
 }

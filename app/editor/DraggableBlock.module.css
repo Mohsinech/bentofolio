@@ -138,3 +138,20 @@
   pointer-events: none;
   opacity: 1 !important;
 }
+
+@media (max-width: 768px) {
+  .controls {
+    gap: 3px;
+  }
+
+  .dragHandle,
+  .deleteButton,
+  .editButton {
+    width: 32px;
+    height: 32px;
+  }
+
+  .dragging {
+    transform: scale(1.02);
+  }
+}
