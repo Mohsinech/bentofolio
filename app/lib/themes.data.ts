@@ -235,15 +235,12 @@ export const themes: Record<ThemeId, ThemeConfig> = {
 // Premium blocks that require Pro subscription
 export const premiumBlocks: BlockType[] = [
   "github",
-  "projects",
   "saas",
   "metrics",
   "experience",
   "spotify",
   "quote",
-  "resume",
   "youtube",
-  "instagram",
   "network",
   "career",
 ];
@@ -256,4 +253,7 @@ export const freeBlocks: BlockType[] = [
   "text",
   "techstack",
   "availability",
+  "projects",
+  "instagram",
+  "resume",
 ];

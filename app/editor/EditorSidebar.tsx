@@ -34,6 +34,7 @@ import {
   Globe,
   Info,
   X,
+  BarChart3,
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
@@ -423,6 +424,20 @@ export function EditorSidebar({
           </button>
           <span className={styles.githubHint}>@{githubUsername}</span>
         </div>
+      )}
+
+      {/* Analytics Link - Pro Feature */}
+      {isPro ? (
+        <Link href="/editor/analytics" className={styles.analyticsLink}>
+          <BarChart3 size={14} />
+          <span>View Analytics</span>
+        </Link>
+      ) : (
+        <Link href="/pricing" className={styles.domainPromo}>
+          <BarChart3 size={14} />
+          <span>Profile Analytics</span>
+          <Sparkles size={12} className={styles.proIcon} />
+        </Link>
       )}
 
       {/* Theme Selector */}
