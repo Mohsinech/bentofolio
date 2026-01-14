@@ -377,38 +377,135 @@
 }
 
 .ctaFree {
+  position: relative;
   padding: 14px 32px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  border-radius: 12px;
-  color: var(--text-primary);
+  background-color: rgb(151, 95, 255);
+  border: none;
+  border-radius: 45px;
+  color: white;
   font-size: 0.95rem;
   font-weight: 600;
-  transition: all 0.2s ease;
+  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
+    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
+  overflow: hidden;
+}
+
+.ctaFree::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  left: -20%;
+  top: -60%;
+  border-radius: 100%;
+}
+
+.ctaFree::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  right: -20%;
+  bottom: -60%;
+  border-radius: 100%;
 }
 
 .ctaFree:hover {
-  background: rgba(255, 255, 255, 0.08);
+  animation: jello-horizontal 0.9s both;
 }
 
 .ctaPro {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 14px 32px;
-  background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%);
+  background-color: rgb(151, 95, 255);
   border: none;
-  border-radius: 12px;
+  border-radius: 45px;
   color: white;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
+    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
+  overflow: hidden;
+}
+
+.ctaPro::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  left: -20%;
+  top: -60%;
+  border-radius: 100%;
+}
+
+.ctaPro::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  right: -20%;
+  bottom: -60%;
+  border-radius: 100%;
 }
 
 .ctaPro:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.4);
+  animation: jello-horizontal 0.9s both;
+}
+
+@keyframes jello-horizontal {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
 }
 
 /* Responsive */

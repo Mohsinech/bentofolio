@@ -305,22 +305,20 @@ export function EditorSidebar({
                 Buy a domain (e.g., from Namecheap) and point it to your
                 portfolio
               </p>
-              <div className={styles.domainInputWrapper}>
-                <input
-                  type="text"
-                  className={styles.domainInput}
-                  placeholder="yourname.dev"
-                  value={domainInput}
-                  onChange={(e) => setDomainInput(e.target.value)}
-                />
-                <button
-                  className={styles.domainAddButton}
-                  onClick={handleDomainSave}
-                  disabled={!domainInput.trim()}
-                >
-                  Add Domain
-                </button>
-              </div>
+              <input
+                type="text"
+                className={styles.domainInput}
+                placeholder="yourname.dev"
+                value={domainInput}
+                onChange={(e) => setDomainInput(e.target.value)}
+              />
+              <button
+                className={styles.domainAddButton}
+                onClick={handleDomainSave}
+                disabled={!domainInput.trim()}
+              >
+                Add Domain
+              </button>
               <span className={styles.domainHint}>
                 After adding, configure DNS in your domain provider
               </span>

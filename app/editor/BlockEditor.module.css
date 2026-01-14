@@ -173,44 +173,141 @@
 }
 
 .removeButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 24px;
   height: 24px;
-  background: rgba(239, 68, 68, 0.1);
+  background-color: rgb(151, 95, 255);
   border: none;
-  border-radius: 4px;
-  color: #ef4444;
+  border-radius: 45px;
+  color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
   flex-shrink: 0;
+  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
+    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
+  overflow: hidden;
+}
+
+.removeButton::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  left: -20%;
+  top: -60%;
+  border-radius: 100%;
+}
+
+.removeButton::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  right: -20%;
+  bottom: -60%;
+  border-radius: 100%;
 }
 
 .removeButton:hover {
-  background: rgba(239, 68, 68, 0.2);
+  animation: jello-horizontal 0.9s both;
 }
 
 .addButton {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 8px 12px;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px dashed rgba(139, 92, 246, 0.3);
-  border-radius: 6px;
-  color: #a855f7;
+  background-color: rgb(151, 95, 255);
+  border: none;
+  border-radius: 45px;
+  color: white;
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
   margin-top: 4px;
+  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
+    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
+  overflow: hidden;
+}
+
+.addButton::before {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  left: -20%;
+  top: -60%;
+  border-radius: 100%;
+}
+
+.addButton::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150%;
+  background: linear-gradient(
+    0deg,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(255, 255, 255, 0.042) 50%,
+    rgba(255, 255, 255, 0.112) 70%,
+    rgba(255, 255, 255, 0.199)
+  );
+  right: -20%;
+  bottom: -60%;
+  border-radius: 100%;
 }
 
 .addButton:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.5);
+  animation: jello-horizontal 0.9s both;
+}
+
+@keyframes jello-horizontal {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  30% {
+    transform: scale3d(1.25, 0.75, 1);
+  }
+  40% {
+    transform: scale3d(0.75, 1.25, 1);
+  }
+  50% {
+    transform: scale3d(1.15, 0.85, 1);
+  }
+  65% {
+    transform: scale3d(0.95, 1.05, 1);
+  }
+  75% {
+    transform: scale3d(1.05, 0.95, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
 }
 
 /* Empty state */
