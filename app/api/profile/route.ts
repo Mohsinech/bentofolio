@@ -65,7 +65,7 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
-  const { layout, content, theme, username } = body;
+  const { layout, content, theme, username, customDomain } = body;
 
   // Build update object (only include fields that were provided)
   const updates: Record<string, unknown> = {
@@ -84,6 +84,19 @@ export async function PUT(request: Request) {
       );
     }
     updates.username = username;
+  }
+  if (customDomain !== undefined) {
+    // Validate custom domain format (allow null to remove)
+    if (customDomain !== null && customDomain !== "") {
+      const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/;
+      if (!domainRegex.test(customDomain)) {
+        return NextResponse.json(
+          { error: "Invalid domain format (e.g., john.dev)" },
+          { status: 400 }
+        );
+      }
+    }
+    updates.custom_domain = customDomain || null;
   }
 
   const { error } = await supabase

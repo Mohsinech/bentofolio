@@ -11,6 +11,7 @@ interface ProfileData {
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
   isPro: boolean;
+  customDomain?: string | null;
 }
 
 interface UseProfileReturn {
@@ -18,7 +19,9 @@ interface UseProfileReturn {
   loading: boolean;
   error: string | null;
   saveProfile: (
-    updates: Partial<Pick<ProfileData, "layout" | "content" | "theme">>
+    updates: Partial<
+      Pick<ProfileData, "layout" | "content" | "theme" | "customDomain">
+    >
   ) => Promise<void>;
   saving: boolean;
   // Combined pro access (DB isPro OR admin status)
@@ -55,6 +58,7 @@ export function useProfile(): UseProfileReturn {
           layout: data.layout || [],
           content: data.content || {},
           isPro: data.is_pro || false,
+          customDomain: data.custom_domain || null,
         });
       } catch {
         setError("Failed to load profile");
@@ -68,7 +72,9 @@ export function useProfile(): UseProfileReturn {
 
   const saveProfile = useCallback(
     async (
-      updates: Partial<Pick<ProfileData, "layout" | "content" | "theme">>
+      updates: Partial<
+        Pick<ProfileData, "layout" | "content" | "theme" | "customDomain">
+      >
     ) => {
       setSaving(true);
       setError(null);

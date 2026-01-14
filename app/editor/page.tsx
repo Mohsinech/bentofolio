@@ -38,6 +38,10 @@ function EditorContent() {
     setCurrentTheme(theme);
   };
 
+  const handleCustomDomainChange = async (domain: string) => {
+    await saveProfile({ customDomain: domain });
+  };
+
   const handleGitHubImport = async () => {
     if (!githubUsername) return;
 
@@ -167,6 +171,8 @@ function EditorContent() {
             currentTheme={currentTheme}
             onThemeChange={handleThemeChange}
             isPro={hasProAccess}
+            customDomain={profile?.customDomain}
+            onCustomDomainChange={handleCustomDomainChange}
           />
         </EditorDndWrapper>
 

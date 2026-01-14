@@ -230,6 +230,7 @@ export interface Profile {
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
   isPro: boolean;
+  customDomain?: string | null;
   createdAt: string;
   updatedAt: string;
 }

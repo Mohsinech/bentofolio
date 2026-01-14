@@ -325,6 +325,79 @@
   font-weight: 500;
 }
 
+/* Custom Domain Section */
+.domainInputWrapper {
+  display: flex;
+  gap: 6px;
+}
+
+.domainInput {
+  flex: 1;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  transition: all 0.2s ease;
+}
+
+.domainInput:focus {
+  outline: none;
+  border-color: #a855f7;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.domainInput::placeholder {
+  color: var(--text-muted);
+  opacity: 0.5;
+}
+
+.domainActive {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: #10b981;
+  margin-top: -4px;
+}
+
+.domainHint {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  margin-top: -6px;
+}
+
+.domainPromo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.12) 0%,
+    rgba(99, 102, 241, 0.12) 100%
+  );
+  border: 1px dashed rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  color: #a855f7;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.domainPromo:hover {
+  background: rgba(139, 92, 246, 0.18);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+.proIcon {
+  margin-left: auto;
+}
+
 /* GitHub Import */
 .githubButton {
   background: linear-gradient(135deg, #24292e 0%, #1a1e22 100%);

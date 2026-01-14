@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   User,
@@ -31,6 +31,7 @@ import {
   Instagram,
   Users,
   TrendingUp as Career,
+  Globe,
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
@@ -174,6 +175,8 @@ interface EditorSidebarProps {
   currentTheme?: ThemeId;
   onThemeChange?: (theme: ThemeId) => void;
   isPro?: boolean;
+  customDomain?: string | null;
+  onCustomDomainChange?: (domain: string) => void;
 }
 
 export function EditorSidebar({
@@ -184,14 +187,28 @@ export function EditorSidebar({
   currentTheme = "dark",
   onThemeChange,
   isPro = false,
+  customDomain,
+  onCustomDomainChange,
 }: EditorSidebarProps) {
   const { isEditMode, toggleEditMode, addBlock } = useEditor();
   const { signOut, githubUsername } = useAuth();
   const [saved, setSaved] = useState(false);
   const [importing, setImporting] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [domainInput, setDomainInput] = useState(customDomain || "");
+
+  // Sync domain input with prop
+  useEffect(() => {
+    setDomainInput(customDomain || "");
+  }, [customDomain]);
 
   const profileUrl = username ? `https://bentofolio.dev/${username}` : "";
+
+  const handleDomainSave = () => {
+    if (onCustomDomainChange) {
+      onCustomDomainChange(domainInput);
+    }
+  };
 
   const handleSave = async () => {
     if (onSave) {
@@ -252,6 +269,44 @@ export function EditorSidebar({
             bentofolio.dev/{username}
           </span>
         </div>
+      )}
+
+      {/* Custom Domain - Pro Feature */}
+      {isPro ? (
+        <div className={styles.section}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.sectionTitle}>
+              <Globe size={14} />
+              Custom Domain
+            </span>
+          </div>
+          <div className={styles.domainInputWrapper}>
+            <input
+              type="text"
+              className={styles.domainInput}
+              placeholder="yourname.dev"
+              value={domainInput}
+              onChange={(e) => setDomainInput(e.target.value)}
+              onBlur={handleDomainSave}
+              onKeyDown={(e) => e.key === "Enter" && handleDomainSave()}
+            />
+          </div>
+          {customDomain && (
+            <span className={styles.domainActive}>
+              <Check size={12} />
+              Active: {customDomain}
+            </span>
+          )}
+          <span className={styles.domainHint}>
+            Point your domain&apos;s DNS to Vercel
+          </span>
+        </div>
+      ) : (
+        <Link href="/pricing" className={styles.domainPromo}>
+          <Globe size={14} />
+          <span>Use your own domain</span>
+          <Sparkles size={12} className={styles.proIcon} />
+        </Link>
       )}
 
       {/* GitHub Import */}
