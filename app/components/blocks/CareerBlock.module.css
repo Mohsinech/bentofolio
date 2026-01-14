@@ -243,17 +243,3 @@
     font-size: 0.7rem;
   }
 }
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .milestone {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  .milestoneBar {
-    width: 60px;
-    height: auto;
-  }
-}

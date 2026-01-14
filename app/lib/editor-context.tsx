@@ -236,11 +236,26 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         type: "career",
         data: {
           title: "Career Journey",
-          milestones: [
-            { label: "Started Coding", percentage: 20 },
-            { label: "First Job", percentage: 40 },
-            { label: "Senior Dev", percentage: 70 },
-            { label: "Tech Lead", percentage: 90 },
+          positions: [
+            {
+              company: "Tech Startup",
+              role: "Frontend Developer",
+              dateRange: "2020 - 2022",
+              description: "Built responsive web applications",
+            },
+            {
+              company: "Big Tech Co",
+              role: "Senior Developer",
+              dateRange: "2022 - 2024",
+              description: "Led frontend architecture",
+            },
+            {
+              company: "Innovation Labs",
+              role: "Tech Lead",
+              dateRange: "2024 - Present",
+              description: "Managing engineering team",
+              current: true,
+            },
           ],
         },
       },
