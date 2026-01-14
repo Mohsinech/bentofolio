@@ -40,9 +40,13 @@ export default function AnalyticsPage() {
   }, [profile, hasProAccess, timeRange]);
 
   const fetchAnalytics = async () => {
+    if (!profile?.username) return;
+
     setLoading(true);
     try {
-      const response = await fetch(`/api/analytics?range=${timeRange}`);
+      const response = await fetch(
+        `/api/analytics?username=${profile.username}&period=${timeRange}`
+      );
       if (response.ok) {
         const data = await response.json();
         setAnalytics(data);
