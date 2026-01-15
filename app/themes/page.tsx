@@ -64,17 +64,17 @@ export default function ThemesPage() {
   const premiumThemes = themeEntries.filter(([, t]) => t.isPremium);
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ fontFamily: 'var(--font-mori), sans-serif' }}>
       {/* Header */}
       <header className={styles.header}>
         <Link href="/" className={styles.backLink}>
           <ArrowLeft size={20} />
           Back
         </Link>
-        <h1 className={styles.title}>
+        <h1 className={styles.title} style={{ fontFamily: 'var(--font-montreal), sans-serif' }}>
           Choose Your <span className={styles.accent}>Theme</span>
         </h1>
-        <p className={styles.subtitle}>
+        <p className={styles.subtitle} style={{ fontFamily: 'var(--font-mori), sans-serif' }}>
           Preview all themes and find the perfect look for your portfolio
         </p>
       </header>

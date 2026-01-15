@@ -101,7 +101,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ fontFamily: 'var(--font-mori), sans-serif' }}>
       {/* Header */}
       <header className={styles.header}>
         <Link href="/" className={styles.backLink}>
@@ -117,12 +117,12 @@ export default function PricingPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className={styles.title}>
+          <h1 className={styles.title} style={{ fontFamily: 'var(--font-montreal), sans-serif' }}>
             Simple pricing,
             <br />
             <span className={styles.accent}>powerful portfolio</span>
           </h1>
-          <p className={styles.subtitle}>
+          <p className={styles.subtitle} style={{ fontFamily: 'var(--font-mori), sans-serif' }}>
             One-time payment. Lifetime access. No subscriptions.
           </p>
         </motion.div>
