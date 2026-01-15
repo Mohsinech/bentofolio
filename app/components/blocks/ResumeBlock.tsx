@@ -11,7 +11,15 @@ interface ResumeBlockProps {
 export function ResumeBlock({ data }: ResumeBlockProps) {
   const handleDownload = () => {
     if (data.fileUrl) {
-      window.open(data.fileUrl, "_blank");
+      // Create a temporary anchor element to trigger download
+      const link = document.createElement("a");
+      link.href = data.fileUrl;
+      link.download = data.title || "resume.pdf";
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 

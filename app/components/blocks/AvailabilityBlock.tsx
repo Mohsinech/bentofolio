@@ -67,6 +67,10 @@ export function AvailabilityBlock({ data }: AvailabilityBlockProps) {
               : preferredContact
           }
           className={styles.contactButton}
+          target={preferredContact.includes("@") ? undefined : "_blank"}
+          rel={
+            preferredContact.includes("@") ? undefined : "noopener noreferrer"
+          }
         >
           <Mail size={14} />
           Get in touch
