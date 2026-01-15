@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, type Variants } from "framer-motion";
 import {
   ArrowRight,
   TrendingUp,
@@ -12,13 +12,13 @@ import {
 } from "lucide-react";
 
 // Floating animation variants with different durations
-const floatVariants = {
+const floatVariants: Variants = {
   float1: {
     y: [-8, 8, -8],
     transition: {
       duration: 3,
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
     },
   },
   float2: {
@@ -26,7 +26,7 @@ const floatVariants = {
     transition: {
       duration: 4,
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
     },
   },
   float3: {
@@ -34,7 +34,7 @@ const floatVariants = {
     transition: {
       duration: 2.5,
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
     },
   },
   float4: {
@@ -42,7 +42,7 @@ const floatVariants = {
     transition: {
       duration: 3.5,
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
     },
   },
   float5: {
@@ -50,7 +50,7 @@ const floatVariants = {
     transition: {
       duration: 2.8,
       repeat: Infinity,
-      ease: "easeInOut",
+      ease: "easeInOut" as const,
     },
   },
 };
