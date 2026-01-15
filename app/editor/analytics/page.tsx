@@ -180,7 +180,7 @@ export default function AnalyticsPage() {
           <div className={styles.statContent}>
             <span className={styles.statLabel}>Total Views</span>
             <span className={styles.statValue}>
-              {analytics?.totalViews.toLocaleString() || 0}
+              {(analytics?.totalViews || 0).toLocaleString()}
             </span>
           </div>
         </div>
@@ -192,7 +192,7 @@ export default function AnalyticsPage() {
           <div className={styles.statContent}>
             <span className={styles.statLabel}>Total Clicks</span>
             <span className={styles.statValue}>
-              {analytics?.totalClicks.toLocaleString() || 0}
+              {(analytics?.totalClicks || 0).toLocaleString()}
             </span>
           </div>
         </div>
