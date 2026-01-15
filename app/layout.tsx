@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script"; // 1. Import Script for Analytics
 import "./globals.css";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#09090b",
+  themeColor: "#5F5FFF",
 };
 
 export const metadata: Metadata = {
@@ -29,6 +30,10 @@ export const metadata: Metadata = {
   authors: [{ name: "BentoFolio" }],
   creator: "BentoFolio",
   publisher: "BentoFolio",
+  // 2. Add Google Search Console Verification (Get this code from GSC)
+  verification: {
+    google: "__l-ONwyc07s3za9EkP-3PiWoD014U2g8zVzc9Dd12I",
+  },
   robots: {
     index: true,
     follow: true,
@@ -62,12 +67,29 @@ export const metadata: Metadata = {
     description:
       "Build stunning bento-style portfolio pages in minutes. Showcase your projects, tech stack, and experience.",
     images: ["/og-image.png"],
+    creator: "@muhsench", // Add your actual Twitter handle here if you have one
   },
   icons: {
     icon: [{ url: "/favicon.ico", sizes: "any" }],
     apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
+};
+
+// 3. Schema Markup Data (Structured Data for SEO)
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "BentoFolio",
+  applicationCategory: "DeveloperApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
+  },
+  description: "Build stunning bento-style portfolio pages in minutes.",
+  image: "/icon.png", // Ensure this path matches your icon
 };
 
 export default function RootLayout({
@@ -77,7 +99,30 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">{children}</body>
+      <head>
+        {/* 4. Inject Schema Markup */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
+      <body className="antialiased">
+        {/* 5. Google Analytics (Replace G-XXXXXXXXXX with your ID) */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-9XSZH2R67Q');
+          `}
+        </Script>
+
+        {children}
+      </body>
     </html>
   );
 }
