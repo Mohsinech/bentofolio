@@ -172,6 +172,7 @@ export interface YouTubeContent {
 export interface InstagramContent {
   profileUrl: string; // Instagram profile URL (@username or full URL)
   username?: string;
+  postUrl?: string; // Instagram post URL for embedding
 }
 
 // NEW: Network/Connections Block
