@@ -46,7 +46,10 @@ export default function DiscoverPage() {
   );
 
   return (
-      <div className={styles.container} style={{ fontFamily: 'var(--font-mori), sans-serif' }}>
+    <div
+      className={styles.container}
+      style={{ fontFamily: "var(--font-mori), sans-serif" }}
+    >
       {/* Header */}
       <header className={styles.header}>
         <Link href="/" className={styles.backLink}>
@@ -54,10 +57,13 @@ export default function DiscoverPage() {
           Back
         </Link>
         <div className={styles.headerContent}>
-            <h1 className={styles.title} style={{ fontFamily: 'var(--font-montreal), sans-serif' }}>
-              <Users size={32} />
-              Discover
-            </h1>
+          <h1
+            className={styles.title}
+            style={{ fontFamily: "var(--font-montreal), sans-serif" }}
+          >
+            <Users size={32} />
+            Discover
+          </h1>
           <p className={styles.subtitle}>
             Browse portfolios from our community
           </p>

@@ -59,14 +59,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className={styles.container} style={{ fontFamily: 'var(--font-mori), sans-serif' }}>
+    <div
+      className={styles.container}
+      style={{ fontFamily: "var(--font-mori), sans-serif" }}
+    >
       <div className={`glass ${styles.card}`}>
         <div className={styles.header}>
-          <h1 className={styles.logo} style={{ fontFamily: 'var(--font-achiko), sans-serif' }}>
+          <h1
+            className={styles.logo}
+            style={{ fontFamily: "var(--font-achiko), sans-serif" }}
+          >
             Bento<span className={styles.logoAccent}>Folio</span>
           </h1>
-          <h2 className={styles.title} style={{ fontFamily: 'var(--font-montreal), sans-serif' }}>Welcome back</h2>
-          <p className={styles.subtitle} style={{ fontFamily: 'var(--font-mori), sans-serif' }}>
+          <h2
+            className={styles.title}
+            style={{ fontFamily: "var(--font-montreal), sans-serif" }}
+          >
+            Welcome back
+          </h2>
+          <p
+            className={styles.subtitle}
+            style={{ fontFamily: "var(--font-mori), sans-serif" }}
+          >
             Sign in to continue building your portfolio
           </p>
         </div>

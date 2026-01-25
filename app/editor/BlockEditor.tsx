@@ -373,7 +373,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           }
           onRemove={(i) => {
             const newItems = (content.data.items || []).filter(
-              (_, idx) => idx !== i
+              (_, idx) => idx !== i,
             );
             handleChange("items", newItems);
           }}
@@ -417,7 +417,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           }
           onRemove={(i) => {
             const newItems = (content.data.items || []).filter(
-              (_, idx) => idx !== i
+              (_, idx) => idx !== i,
             );
             handleChange("items", newItems);
           }}
@@ -549,7 +549,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             }
             onRemove={(i) => {
               const newItems = (content.data.connections || []).filter(
-                (_, idx) => idx !== i
+                (_, idx) => idx !== i,
               );
               handleChange("connections", newItems);
             }}
@@ -601,6 +601,10 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
               <div key={idx} className={styles.arrayItemFields}>
                 <input
                   className={styles.input}
+                  style={{
+                    fontFamily: "var(--font-montreal), system-ui",
+                    marginBottom: 6,
+                  }}
                   value={position.company}
                   onChange={(e) => {
                     const newItems = [...(content.data.positions || [])];
@@ -614,6 +618,10 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 />
                 <input
                   className={styles.input}
+                  style={{
+                    fontFamily: "var(--font-mori), system-ui",
+                    marginBottom: 6,
+                  }}
                   value={position.role}
                   onChange={(e) => {
                     const newItems = [...(content.data.positions || [])];
@@ -624,6 +632,10 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 />
                 <input
                   className={styles.input}
+                  style={{
+                    fontFamily: "var(--font-mori), system-ui",
+                    marginBottom: 6,
+                  }}
                   value={position.dateRange}
                   onChange={(e) => {
                     const newItems = [...(content.data.positions || [])];
@@ -637,6 +649,10 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 />
                 <textarea
                   className={styles.textarea}
+                  style={{
+                    fontFamily: "var(--font-mori), system-ui",
+                    marginBottom: 6,
+                  }}
                   value={position.description || ""}
                   onChange={(e) => {
                     const newItems = [...(content.data.positions || [])];
@@ -649,15 +665,15 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                   placeholder="Description (optional)"
                   rows={2}
                 />
-                <input
-                  className={styles.input}
+                <ImageUploadField
+                  label="Logo"
                   value={position.logo || ""}
-                  onChange={(e) => {
+                  onChange={(v) => {
                     const newItems = [...(content.data.positions || [])];
-                    newItems[idx] = { ...newItems[idx], logo: e.target.value };
+                    newItems[idx] = { ...newItems[idx], logo: v };
                     handleChange("positions", newItems);
                   }}
-                  placeholder="Logo URL (optional)"
+                  small
                 />
                 <label className={styles.checkboxLabel}>
                   <input
@@ -691,7 +707,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             }
             onRemove={(i) => {
               const newItems = (content.data.positions || []).filter(
-                (_, idx) => idx !== i
+                (_, idx) => idx !== i,
               );
               handleChange("positions", newItems);
             }}
@@ -958,8 +974,8 @@ function FileUploadField({
   const fileName = value.startsWith("data:")
     ? "Uploaded file"
     : value
-    ? value.split("/").pop() || "File"
-    : "";
+      ? value.split("/").pop() || "File"
+      : "";
 
   return (
     <div className={styles.fieldWrapper}>
@@ -1045,8 +1061,8 @@ function TechStackEditor({ items, onChange }: TechStackEditorProps) {
   const suggestions = searchQuery
     ? getTechSuggestions(searchQuery)
     : selectedCategory === "all"
-    ? techStack.slice(0, 12)
-    : getTechsByCategory(selectedCategory as TechItem["category"]);
+      ? techStack.slice(0, 12)
+      : getTechsByCategory(selectedCategory as TechItem["category"]);
 
   const handleAddTech = (tech: TechItem) => {
     // Check if already added
@@ -1124,7 +1140,7 @@ function TechStackEditor({ items, onChange }: TechStackEditorProps) {
       <div className={styles.techSuggestions}>
         {suggestions.slice(0, 12).map((tech) => {
           const isAdded = items.some(
-            (item) => item.name.toLowerCase() === tech.name.toLowerCase()
+            (item) => item.name.toLowerCase() === tech.name.toLowerCase(),
           );
           return (
             <button
@@ -1174,7 +1190,7 @@ function ProjectsEditor({ items, onChange }: ProjectsEditorProps) {
   const handleUpdate = (
     index: number,
     field: keyof ProjectItem,
-    value: string | number
+    value: string | number,
   ) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
@@ -1244,12 +1260,12 @@ function LanguageAutocomplete({ value, onChange }: LanguageAutocompleteProps) {
     (tech) =>
       tech.category === "language" ||
       tech.category === "frontend" ||
-      tech.name.toLowerCase().includes(search.toLowerCase())
+      tech.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   const filtered = search
     ? languages.filter((tech) =>
-        tech.name.toLowerCase().includes(search.toLowerCase())
+        tech.name.toLowerCase().includes(search.toLowerCase()),
       )
     : languages;
 
