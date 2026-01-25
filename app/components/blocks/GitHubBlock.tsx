@@ -25,7 +25,10 @@ export function GitHubBlock({ data }: GitHubBlockProps) {
   // Fallback for no username
   if (!username) {
     return (
-      <div className={styles.wrapper}>
+      <div
+        className={styles.wrapper}
+        style={{ fontFamily: "var(--font-montreal), system-ui" }}
+      >
         <div className={styles.empty}>
           <Github size={32} />
           <span>Add your GitHub username</span>
@@ -48,6 +51,7 @@ export function GitHubBlock({ data }: GitHubBlockProps) {
       className={styles.wrapper}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      style={{ fontFamily: "var(--font-mori), system-ui" }}
     >
       <div className={styles.header}>
         <div className={styles.avatar}>

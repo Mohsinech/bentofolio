@@ -29,7 +29,10 @@ export function LinkBlock({ data }: LinkBlockProps) {
   // Empty state
   if (!data.url && !data.title) {
     return (
-      <div className={cn(styles.container, styles.default, styles.empty)}>
+      <div
+        className={cn(styles.container, styles.default, styles.empty)}
+        style={{ fontFamily: "var(--font-montreal), system-ui" }}
+      >
         <div className={styles.content}>
           <span className={styles.icon}>
             <ExternalLink size={28} />
@@ -57,6 +60,7 @@ export function LinkBlock({ data }: LinkBlockProps) {
       className={cn(styles.container, colorClass)}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
+      style={{ fontFamily: "var(--font-mori), system-ui" }}
     >
       <div className={styles.content}>
         <span className={styles.icon}>{icon}</span>

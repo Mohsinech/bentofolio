@@ -435,22 +435,34 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
     case "youtube":
       return (
         <>
-          <Field
-            label="Channel Name"
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-montreal), system-ui",
+              marginBottom: 6,
+            }}
             value={content.data.channelName || ""}
-            onChange={(v) => handleChange("channelName", v)}
+            onChange={(e) => handleChange("channelName", e.target.value)}
             placeholder="Your channel name"
           />
-          <Field
-            label="Subscribers"
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-mori), system-ui",
+              marginBottom: 6,
+            }}
             value={content.data.subscribers || ""}
-            onChange={(v) => handleChange("subscribers", v)}
+            onChange={(e) => handleChange("subscribers", e.target.value)}
             placeholder="e.g. 100K"
           />
-          <Field
-            label="Video URL"
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-mori), system-ui",
+              marginBottom: 6,
+            }}
             value={content.data.videoUrl || ""}
-            onChange={(v) => handleChange("videoUrl", v)}
+            onChange={(e) => handleChange("videoUrl", e.target.value)}
             placeholder="https://youtube.com/watch?v=..."
           />
           <p className={styles.fieldHint}>
@@ -462,20 +474,28 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
     case "instagram":
       return (
         <>
-          <Field
-            label="Instagram Profile URL"
-            value={content.data.profileUrl || ""}
-            onChange={(v) => handleChange("profileUrl", v)}
-            placeholder="https://instagram.com/username or @username"
-          />
-          <Field
-            label="Username (optional)"
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-montreal), system-ui",
+              marginBottom: 6,
+            }}
             value={content.data.username || ""}
-            onChange={(v) => handleChange("username", v)}
-            placeholder="@username"
+            onChange={(e) => handleChange("username", e.target.value)}
+            placeholder="Instagram username"
+          />
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-mori), system-ui",
+              marginBottom: 6,
+            }}
+            value={content.data.postUrl || ""}
+            onChange={(e) => handleChange("postUrl", e.target.value)}
+            placeholder="Instagram post URL (e.g. https://instagram.com/p/...)"
           />
           <p className={styles.fieldHint}>
-            Paste your Instagram profile URL or username
+            Add your Instagram username and post URL to embed a post preview.
           </p>
         </>
       );
@@ -560,10 +580,14 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
     case "resume":
       return (
         <>
-          <Field
-            label="Resume Title"
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-montreal), system-ui",
+              marginBottom: 6,
+            }}
             value={content.data.title || "My Resume"}
-            onChange={(v) => handleChange("title", v)}
+            onChange={(e) => handleChange("title", e.target.value)}
             placeholder="My Resume"
           />
           <FileUploadField
@@ -571,18 +595,70 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             value={content.data.fileUrl || ""}
             onChange={(v) => handleChange("fileUrl", v)}
             accept=".pdf,.doc,.docx"
-            hint="Upload your resume file or paste a URL"
+            hint="Upload your resume file"
           />
-          <Field
-            label="Last Updated"
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-mori), system-ui",
+              marginBottom: 6,
+            }}
             value={content.data.lastUpdated || ""}
-            onChange={(v) => handleChange("lastUpdated", v)}
+            onChange={(e) => handleChange("lastUpdated", e.target.value)}
             placeholder="e.g. Jan 2026"
           />
-          <p className={styles.fieldHint}>
-            Upload your resume file (PDF, DOC, DOCX) or paste a link (Google
-            Drive, Dropbox, etc.)
-          </p>
+        </>
+      );
+    case "quote":
+      return (
+        <>
+          <textarea
+            className={styles.textarea}
+            style={{
+              fontFamily: "var(--font-mori), system-ui",
+              marginBottom: 6,
+            }}
+            value={content.data.quote || ""}
+            onChange={(e) => handleChange("quote", e.target.value)}
+            placeholder="Enter quote..."
+            rows={3}
+          />
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-montreal), system-ui",
+              marginBottom: 6,
+            }}
+            value={content.data.author || ""}
+            onChange={(e) => handleChange("author", e.target.value)}
+            placeholder="Author name"
+          />
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-mori), system-ui",
+              marginBottom: 6,
+            }}
+            value={content.data.role || ""}
+            onChange={(e) => handleChange("role", e.target.value)}
+            placeholder="Author role (optional)"
+          />
+          <input
+            className={styles.input}
+            style={{
+              fontFamily: "var(--font-mori), system-ui",
+              marginBottom: 6,
+            }}
+            value={content.data.company || ""}
+            onChange={(e) => handleChange("company", e.target.value)}
+            placeholder="Author company (optional)"
+          />
+          <ImageUploadField
+            label="Avatar"
+            value={content.data.avatar || ""}
+            onChange={(v) => handleChange("avatar", v)}
+            small
+          />
         </>
       );
 

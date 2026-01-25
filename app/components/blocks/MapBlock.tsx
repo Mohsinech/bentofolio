@@ -11,7 +11,7 @@ interface MapBlockProps {
 
 export function MapBlock({ data }: MapBlockProps) {
   const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(
-    null
+    null,
   );
 
   // Geocode location to get coordinates
@@ -23,9 +23,9 @@ export function MapBlock({ data }: MapBlockProps) {
       try {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            data.location
+            data.location,
           )}&limit=1`,
-          { headers: { "User-Agent": "BentoFolio/1.0" } }
+          { headers: { "User-Agent": "BentoFolio/1.0" } },
         );
         const results = await response.json();
         if (results && results.length > 0) {
@@ -45,7 +45,10 @@ export function MapBlock({ data }: MapBlockProps) {
   // Empty state
   if (!data.location) {
     return (
-      <div className={styles.container}>
+      <div
+        className={styles.container}
+        style={{ fontFamily: "var(--font-montreal), system-ui" }}
+      >
         <div className={styles.header}>
           <MapPin size={14} />
           <span>Location</span>
@@ -76,7 +79,10 @@ export function MapBlock({ data }: MapBlockProps) {
   };
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      style={{ fontFamily: "var(--font-mori), system-ui" }}
+    >
       <div className={styles.header}>
         <MapPin size={14} />
         <span>Location</span>

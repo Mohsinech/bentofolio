@@ -75,7 +75,10 @@ export function ProjectsBlock({ data }: ProjectsBlockProps) {
   // Fallback for empty state
   if (!items || items.length === 0) {
     return (
-      <div className={styles.wrapper}>
+      <div
+        className={styles.wrapper}
+        style={{ fontFamily: "var(--font-montreal), system-ui" }}
+      >
         <div className={styles.header}>
           <span className={styles.title}>Projects</span>
         </div>
@@ -88,7 +91,10 @@ export function ProjectsBlock({ data }: ProjectsBlockProps) {
   }
 
   return (
-    <div className={styles.wrapper}>
+    <div
+      className={styles.wrapper}
+      style={{ fontFamily: "var(--font-mori), system-ui" }}
+    >
       <div className={styles.header}>
         <span className={styles.title}>Projects</span>
       </div>

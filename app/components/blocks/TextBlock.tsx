@@ -19,7 +19,12 @@ export function TextBlock({ data }: TextBlockProps) {
 
   return (
     <div className={styles.container}>
-      <p className={styles.text}>{data.text}</p>
+      <p
+        className={styles.text}
+        style={{ fontFamily: "var(--font-mori), system-ui" }}
+      >
+        {data.text}
+      </p>
     </div>
   );
 }

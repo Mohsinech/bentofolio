@@ -13,7 +13,10 @@ export function MetricsBlock({ data }: MetricsBlockProps) {
   // Fallback for empty state
   if (!data.items || data.items.length === 0) {
     return (
-      <div className={styles.container}>
+      <div
+        className={styles.container}
+        style={{ fontFamily: "var(--font-montreal), system-ui" }}
+      >
         <div className={styles.header}>
           <TrendingUp size={14} />
           <span>Metrics</span>
@@ -27,7 +30,10 @@ export function MetricsBlock({ data }: MetricsBlockProps) {
   }
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      style={{ fontFamily: "var(--font-mori), system-ui" }}
+    >
       <div className={styles.header}>
         <TrendingUp size={14} />
         <span>Metrics</span>

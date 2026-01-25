@@ -35,7 +35,10 @@ export function AvailabilityBlock({ data }: AvailabilityBlockProps) {
   const config = statusConfig[validStatus];
 
   return (
-    <div className={styles.wrapper}>
+    <div
+      className={styles.wrapper}
+      style={{ fontFamily: "var(--font-mori), system-ui" }}
+    >
       <div className={styles.statusRow}>
         <motion.div
           className={styles.statusIndicator}

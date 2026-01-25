@@ -25,7 +25,7 @@ function getEmbedUrl(url: string): string | null {
   // https://open.spotify.com/show/xxx (podcasts)
   // https://open.spotify.com/episode/xxx
   const match = trimmedUrl.match(
-    /spotify\.com\/(track|playlist|album|artist|show|episode)\/([a-zA-Z0-9]+)/
+    /spotify\.com\/(track|playlist|album|artist|show|episode)\/([a-zA-Z0-9]+)/,
   );
   if (match) {
     const [, type, id] = match;
@@ -34,7 +34,7 @@ function getEmbedUrl(url: string): string | null {
 
   // Spotify URI format: spotify:track:xxx
   const uriMatch = trimmedUrl.match(
-    /spotify:(track|playlist|album|artist|show|episode):([a-zA-Z0-9]+)/
+    /spotify:(track|playlist|album|artist|show|episode):([a-zA-Z0-9]+)/,
   );
   if (uriMatch) {
     const [, type, id] = uriMatch;
@@ -57,7 +57,10 @@ export function SpotifyBlock({ data }: SpotifyBlockProps) {
   // If we have a valid Spotify URL, show the embed player
   if (embedUrl) {
     return (
-      <div className={styles.container}>
+      <div
+        className={styles.container}
+        style={{ fontFamily: "var(--font-mori), system-ui" }}
+      >
         <iframe
           src={embedUrl}
           className={styles.embed}
@@ -71,7 +74,10 @@ export function SpotifyBlock({ data }: SpotifyBlockProps) {
 
   // Empty state or invalid URL - show placeholder with instructions
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      style={{ fontFamily: "var(--font-montreal), system-ui" }}
+    >
       <div className={styles.placeholder}>
         <Music2 size={32} className={styles.placeholderIcon} />
         <span className={styles.placeholderText}>

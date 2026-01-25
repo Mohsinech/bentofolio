@@ -57,33 +57,43 @@ export function TechStackBlock({ data }: TechStackBlockProps) {
   // Empty state
   if (!data.items || data.items.length === 0) {
     return (
-      <div className={styles.container}>
-        <div className={styles.header}>
-          <Code2 size={14} />
-          <span>Tech Stack</span>
-        </div>
-        <div className={styles.empty}>
-          <span>Add your technologies...</span>
+      <div
+        className={styles.wrapper}
+        style={{ fontFamily: "var(--font-montreal), system-ui" }}
+      >
+        <div className={styles.container}>
+          <div className={styles.header}>
+            <Code2 size={14} />
+            <span>Tech Stack</span>
+          </div>
+          <div className={styles.empty}>
+            <span>Add your technologies...</span>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <Code2 size={14} />
-        <span>Tech Stack</span>
-      </div>
-      <div className={styles.grid}>
-        {data.items.map((tech, index) => (
-          <TechItem
-            key={tech.name}
-            name={tech.name}
-            icon={tech.icon}
-            index={index}
-          />
-        ))}
+    <div
+      className={styles.wrapper}
+      style={{ fontFamily: "var(--font-mori), system-ui" }}
+    >
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <Code2 size={14} />
+          <span>Tech Stack</span>
+        </div>
+        <div className={styles.grid}>
+          {data.items.map((tech, index) => (
+            <TechItem
+              key={tech.name}
+              name={tech.name}
+              icon={tech.icon}
+              index={index}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
