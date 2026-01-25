@@ -1,14 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import {
-  X,
-  Plus,
-  Trash2,
-  Upload,
-  Image as ImageIcon,
-  FileText,
-} from "lucide-react";
+import { X, Plus, Trash2, Upload, FileText } from "lucide-react";
 import NextImage from "next/image";
 import { useEditor } from "@/app/lib/editor-context";
 import { BlockContent } from "@/app/lib/types";
@@ -98,41 +91,22 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="Name"
             value={content.data.name}
             onChange={(v) => handleChange("name", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <Field
             label="Title"
             value={content.data.title}
             onChange={(v) => handleChange("title", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-mori), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <ImageUploadField
             label="Avatar"
             value={content.data.avatar}
             onChange={(v) => handleChange("avatar", v)}
-            style={{ marginBottom: 6 }}
           />
           <Field
             label="Bio"
             value={content.data.bio || ""}
             onChange={(v) => handleChange("bio", v)}
             multiline
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
         </>
       );
@@ -144,12 +118,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="Location"
             value={content.data.location}
             onChange={(v) => handleChange("location", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
         </>
       );
@@ -161,48 +129,24 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="GitHub Username"
             value={content.data.username}
             onChange={(v) => handleChange("username", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <Field
             label="Followers"
             value={String(content.data.followers)}
             onChange={(v) => handleChange("followers", Number(v))}
             type="number"
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-mori), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <Field
             label="Repos"
             value={String(content.data.publicRepos)}
             onChange={(v) => handleChange("publicRepos", Number(v))}
             type="number"
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <Field
             label="Stars"
             value={String(content.data.totalStars || 0)}
             onChange={(v) => handleChange("totalStars", Number(v))}
             type="number"
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-mori), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
         </>
       );
@@ -214,23 +158,11 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="Title"
             value={content.data.title}
             onChange={(v) => handleChange("title", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <Field
             label="URL"
             value={content.data.url}
             onChange={(v) => handleChange("url", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-mori), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
         </>
       );
@@ -242,12 +174,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           value={content.data.text}
           onChange={(v) => handleChange("text", v)}
           multiline
-          inputProps={{
-            style: {
-              fontFamily: "var(--font-montreal), system-ui",
-              marginBottom: 6,
-            },
-          }}
         />
       );
 
@@ -258,53 +184,28 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="Name"
             value={content.data.name}
             onChange={(v) => handleChange("name", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <Field
             label="Tagline"
             value={content.data.tagline}
             onChange={(v) => handleChange("tagline", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-mori), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <Field
             label="URL"
             value={content.data.url}
             onChange={(v) => handleChange("url", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <ImageUploadField
             label="Logo"
             value={content.data.logo || ""}
             onChange={(v) => handleChange("logo", v)}
             small
-            style={{ marginBottom: 6 }}
           />
           <Field
             label="MRR"
             value={String(content.data.mrr)}
             onChange={(v) => handleChange("mrr", Number(v))}
             type="number"
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-mori), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
         </>
       );
@@ -599,12 +500,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="Title"
             value={content.data.title || "Network"}
             onChange={(v) => handleChange("title", v)}
-            inputProps={{
-              style: {
-                fontFamily: "var(--font-montreal), system-ui",
-                marginBottom: 6,
-              },
-            }}
           />
           <ArrayField
             label="Connections"
@@ -633,7 +528,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                     handleChange("connections", newItems);
                   }}
                   label="Photo"
-                  style={{ marginBottom: 6 }}
                 />
                 <input
                   className={styles.input}
@@ -689,10 +583,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
         <>
           <input
             className={styles.input}
-            style={{
-              fontFamily: "var(--font-montreal), system-ui",
-              marginBottom: 6,
-            }}
             value={content.data.title || "My Resume"}
             onChange={(e) => handleChange("title", e.target.value)}
             placeholder="My Resume"
@@ -1079,9 +969,11 @@ function ImageUploadField({
       <div className={styles.imageUploadWrapper}>
         {value ? (
           <div className={styles.imagePreviewWrapper}>
-            <img
+            <NextImage
               src={value}
               alt="Preview"
+              width={small ? 40 : 80}
+              height={small ? 40 : 80}
               className={small ? styles.imagePreviewSmall : styles.imagePreview}
             />
             <button
