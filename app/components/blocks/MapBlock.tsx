@@ -103,7 +103,6 @@ export function MapBlock({ data }: MapBlockProps) {
           </div>
         )}
       </div>
-      <span className={styles.location}>{data.location}</span>
     </div>
   );
 }

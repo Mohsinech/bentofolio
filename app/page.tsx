@@ -307,7 +307,7 @@ const MusicBlock = () => (
             }}
             style={{ height: h * 3 }}
           />
-        )
+        ),
       )}
     </div>
   </motion.div>
@@ -389,10 +389,11 @@ export default function Home() {
         <div className="flex md:hidden">
           <Link
             href="/editor"
-            className="px-4 py-2 rounded-full bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors"
-            style={{ fontFamily: "var(--font-mori), sans-serif" }}
+            className="relative px-4 py-2 rounded-lg bg-violet-600/10 border border-violet-600/30 text-white text-sm font-medium transition-all duration-300 hover:bg-violet-600/20 hover:border-violet-600/50 overflow-hidden group"
+            style={{ fontFamily: "var(--font-montreal), sans-serif" }}
           >
-            Get Started
+            <span className="relative z-10">Get Started</span>
+            <span className="absolute inset-[-2px] bg-gradient-to-r from-transparent via-violet-500/50 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-[border-rotate_3s_linear_infinite] -z-10 rounded-lg" />
           </Link>
         </div>
         {/* Desktop navigation */}
@@ -427,10 +428,11 @@ export default function Home() {
           </Link>
           <Link
             href="/editor"
-            className="px-4 py-2 rounded-full bg-violet-600 hover:bg-violet-500 text-white text-sm font-medium transition-colors"
-            style={{ fontFamily: "var(--font-mori), sans-serif" }}
+            className="relative px-4 py-2 rounded-lg bg-violet-600/10 border border-violet-600/30 text-white text-sm font-medium transition-all duration-300 hover:bg-violet-600/20 hover:border-violet-600/50 overflow-hidden group"
+            style={{ fontFamily: "var(--font-montreal), sans-serif" }}
           >
-            Get Started
+            <span className="relative z-10">Get Started</span>
+            <span className="absolute inset-[-2px] bg-gradient-to-r from-transparent via-violet-500/50 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-[border-rotate_3s_linear_infinite] -z-10 rounded-lg" />
           </Link>
         </div>
       </nav>
@@ -494,11 +496,16 @@ export default function Home() {
             >
               <Link
                 href="/editor"
-                className="group inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white font-semibold text-base sm:text-lg transition-all duration-300 shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:scale-105"
+                className="relative group inline-flex items-center gap-2 sm:gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-xl bg-violet-600/10 border border-violet-600/30 text-white font-semibold text-base sm:text-lg transition-all duration-300 hover:bg-violet-600/20 hover:border-violet-600/50 hover:-translate-y-0.5 shadow-lg shadow-violet-500/10 hover:shadow-violet-500/30 overflow-hidden"
                 style={{ fontFamily: "var(--font-montreal), sans-serif" }}
               >
-                Create My Profile
-                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                <span
+                  className="absolute inset-[-2px] bg-gradient-to-r from-transparent via-violet-500/60 via-50% to-transparent opacity-0 group-hover:opacity-100 animate-[border-move_3s_ease-in-out_infinite] -z-10 rounded-xl"
+                  style={{ backgroundSize: "200% 100%" }}
+                />
+                <span className="absolute inset-[1px] bg-[#09090b] -z-10 rounded-[10px]" />
+                <span className="relative z-10">Create My Profile</span>
+                <ArrowRight className="relative z-10 w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
             </motion.div>
 

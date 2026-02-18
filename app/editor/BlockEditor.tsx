@@ -256,9 +256,9 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           label="Social Links"
           items={content.data.items}
           renderItem={(item, i) => (
-            <div className={styles.arrayItemRow}>
+            <div className={styles.arrayItemColumn}>
               <select
-                className={styles.smallSelect}
+                className={styles.select}
                 value={item.platform}
                 onChange={(e) => {
                   const newItems = [...content.data.items];
@@ -280,7 +280,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 <option value="email">Email</option>
               </select>
               <input
-                className={styles.smallInput}
+                className={styles.input}
                 value={item.url}
                 onChange={(e) => {
                   const newItems = [...content.data.items];
@@ -379,7 +379,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           label="Metrics"
           items={content.data.items || []}
           renderItem={(item, i) => (
-            <div className={styles.arrayItemRow}>
+            <div className={styles.arrayItemColumn}>
               <input
                 className={styles.smallInput}
                 value={item.label || ""}
@@ -505,13 +505,9 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="Connections"
             items={content.data.connections || []}
             renderItem={(conn, idx) => (
-              <div key={idx} className={styles.arrayItemFields}>
+              <div key={idx} className={styles.arrayItemColumn}>
                 <input
                   className={styles.input}
-                  style={{
-                    fontFamily: "var(--font-mori), system-ui",
-                    marginBottom: 6,
-                  }}
                   value={conn.name}
                   onChange={(e) => {
                     const newItems = [...(content.data.connections || [])];
@@ -531,10 +527,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 />
                 <input
                   className={styles.input}
-                  style={{
-                    fontFamily: "var(--font-montreal), system-ui",
-                    marginBottom: 6,
-                  }}
                   value={conn.linkedinUrl || ""}
                   onChange={(e) => {
                     const newItems = [...(content.data.connections || [])];
@@ -548,10 +540,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 />
                 <input
                   className={styles.input}
-                  style={{
-                    fontFamily: "var(--font-montreal), system-ui",
-                    marginBottom: 6,
-                  }}
                   value={conn.url || ""}
                   onChange={(e) => {
                     const newItems = [...(content.data.connections || [])];
@@ -1000,13 +988,6 @@ function ImageUploadField({
           className={styles.hiddenInput}
         />
       </div>
-      <input
-        className={styles.smallInput}
-        value={value.startsWith("data:") ? "" : value}
-        onChange={handleUrlPaste}
-        placeholder="Or paste image URL"
-        style={{ marginTop: 8 }}
-      />
     </div>
   );
 }
@@ -1086,11 +1067,10 @@ function FileUploadField({
         />
       </div>
       <input
-        className={styles.smallInput}
+        className={styles.urlInput}
         value={value.startsWith("data:") ? "" : value}
         onChange={handleUrlPaste}
         placeholder="Or paste file URL (Google Drive, Dropbox, etc.)"
-        style={{ marginTop: 8 }}
       />
       {hint && <p className={styles.fieldHint}>{hint}</p>}
     </div>

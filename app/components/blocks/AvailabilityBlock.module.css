@@ -60,77 +60,66 @@
   justify-content: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: rgb(151, 95, 255);
-  border-radius: 45px;
-  color: white;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  color: var(--text-primary);
   font-size: 0.8rem;
   font-weight: 600;
+  font-family: var(--font-montreal);
   text-decoration: none;
   margin-top: auto;
-  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
-    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
+  cursor: pointer;
   overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
 }
 
 .contactButton::before {
   content: "";
   position: absolute;
-  width: 150px;
-  height: 150%;
+  inset: -2px;
   background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.042) 50%,
-    rgba(255, 255, 255, 0.112) 70%,
-    rgba(255, 255, 255, 0.199)
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.8),
+    rgba(168, 85, 247, 0.8),
+    rgba(139, 92, 246, 0.8),
+    transparent
   );
-  left: -20%;
-  top: -60%;
-  border-radius: 100%;
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: borderRotate 3s linear infinite;
+  z-index: -1;
 }
 
 .contactButton::after {
   content: "";
   position: absolute;
-  width: 150px;
-  height: 150%;
-  background: linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.042) 50%,
-    rgba(255, 255, 255, 0.112) 70%,
-    rgba(255, 255, 255, 0.199)
-  );
-  right: -20%;
-  bottom: -60%;
-  border-radius: 100%;
+  inset: 1px;
+  background: var(--bg-secondary);
+  border-radius: 9px;
+  z-index: -1;
 }
 
 .contactButton:hover {
-  animation: jello-horizontal 0.9s both;
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 
-@keyframes jello-horizontal {
+.contactButton:hover::before {
+  opacity: 1;
+}
+
+@keyframes borderRotate {
   0% {
-    transform: scale3d(1, 1, 1);
-  }
-  30% {
-    transform: scale3d(1.25, 0.75, 1);
-  }
-  40% {
-    transform: scale3d(0.75, 1.25, 1);
-  }
-  50% {
-    transform: scale3d(1.15, 0.85, 1);
-  }
-  65% {
-    transform: scale3d(0.95, 1.05, 1);
-  }
-  75% {
-    transform: scale3d(1.05, 0.95, 1);
+    transform: rotate(0deg);
   }
   100% {
-    transform: scale3d(1, 1, 1);
+    transform: rotate(360deg);
   }
 }
 

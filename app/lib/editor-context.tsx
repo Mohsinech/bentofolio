@@ -51,11 +51,11 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         case "saas":
         case "github":
         case "youtube":
-        case "instagram":
           return { w: 2, h: 1 };
         case "experience":
         case "projects":
         case "career":
+        case "techstack":
           return { w: 2, h: 2 };
         case "social":
         case "network":
@@ -164,9 +164,14 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         type: "social",
         data: {
           items: [
-            { platform: "github", url: "https://github.com" },
-            { platform: "twitter", url: "https://twitter.com" },
-            { platform: "linkedin", url: "https://linkedin.com" },
+            { platform: "github", url: "https://github.com/yourusername" },
+            { platform: "twitter", url: "https://twitter.com/yourusername" },
+            {
+              platform: "linkedin",
+              url: "https://linkedin.com/in/yourusername",
+            },
+            { platform: "dribbble", url: "https://dribbble.com/yourusername" },
+            { platform: "website", url: "https://yourwebsite.com" },
           ],
         },
       },

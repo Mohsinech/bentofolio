@@ -27,7 +27,9 @@
 
 .avatarWrapper {
   position: relative;
-  transition: transform 0.2s var(--ease-bounce), z-index 0s;
+  transition:
+    transform 0.2s var(--ease-bounce),
+    z-index 0s;
 }
 
 .avatarWrapper:hover {
@@ -42,7 +44,25 @@
   object-fit: cover;
   border: 2px solid var(--bg-primary);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.avatarPlaceholder {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.2);
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 1rem;
+  color: rgb(139, 92, 246);
+  font-family: var(--font-montreal, system-ui);
 }
 
 .avatarWrapper:hover .avatar {

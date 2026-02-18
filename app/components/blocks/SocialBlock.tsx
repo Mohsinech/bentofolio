@@ -33,7 +33,7 @@ const platformIcons: Record<string, React.ReactNode> = {
 const platformColors: Record<string, string> = {
   twitter: "#1DA1F2",
   linkedin: "#0A66C2",
-  github: "#ffffff",
+  github: "currentColor",
   youtube: "#FF0000",
   instagram: "#E4405F",
   dribbble: "#EA4C89",
@@ -45,24 +45,12 @@ const platformColors: Record<string, string> = {
 export function SocialBlock({ data }: SocialBlockProps) {
   const { items } = data;
 
-  // Empty state
-  if (!items || items.length === 0) {
-    return (
-      <div className={styles.wrapper}>
-        <div className={styles.empty}>
-          <Globe size={24} />
-          <span>Add your social links...</span>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.wrapper}>
       <div className={styles.links}>
         {items.map((item, i) => (
           <motion.a
-            key={item.platform}
+            key={`${item.platform}-${i}`}
             href={item.platform === "email" ? `mailto:${item.url}` : item.url}
             target={item.platform === "email" ? undefined : "_blank"}
             rel="noopener noreferrer"

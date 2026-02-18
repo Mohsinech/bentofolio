@@ -84,6 +84,14 @@ export function PublicGrid({
   const { theme } = useTheme();
   const themeConfig = themes[theme];
   const cardEffect = isPro ? themeConfig?.cardEffect : "none";
+  console.log(
+    "PublicGrid - isPro from DB:",
+    isPro,
+    "Theme:",
+    theme,
+    "cardEffect:",
+    cardEffect,
+  );
 
   return (
     <BentoGrid isPro={isPro}>

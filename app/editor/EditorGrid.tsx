@@ -22,10 +22,23 @@ import { BentoGrid } from "@/app/components/grid";
 import { useEditor } from "@/app/lib/editor-context";
 import { DraggableBlock, BlockPreview } from "./DraggableBlock";
 import { BlockLayout } from "@/app/lib/types";
+import { useTheme } from "@/app/lib/theme-context";
+import { themes } from "@/app/lib/types";
 
 export function EditorGrid() {
   const { layout, content, reorderBlocks, selectBlock, isEditMode } =
     useEditor();
+  const { theme } = useTheme();
+  const themeConfig = themes[theme];
+  const isPro = themeConfig?.isPremium || false;
+  console.log(
+    "EditorGrid - Theme:",
+    theme,
+    "isPremium:",
+    themeConfig?.isPremium,
+    "isPro:",
+    isPro,
+  );
   const [activeBlock, setActiveBlock] = useState<BlockLayout | null>(null);
 
   const sensors = useSensors(
@@ -36,7 +49,7 @@ export function EditorGrid() {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragStart = useCallback(
@@ -48,7 +61,7 @@ export function EditorGrid() {
         selectBlock(null);
       }
     },
-    [layout, selectBlock]
+    [layout, selectBlock],
   );
 
   const handleDragEnd = useCallback(
@@ -60,7 +73,7 @@ export function EditorGrid() {
         reorderBlocks(active.id as string, over.id as string);
       }
     },
-    [reorderBlocks]
+    [reorderBlocks],
   );
 
   const handleBackgroundClick = useCallback(() => {
@@ -84,7 +97,7 @@ export function EditorGrid() {
           items={layout.map((block) => block.id)}
           strategy={rectSortingStrategy}
         >
-          <BentoGrid isEditing={isEditMode}>
+          <BentoGrid isEditing={isEditMode} isPro={isPro}>
             {layout.map((block, index) => {
               const blockContent = content[block.id];
               if (!blockContent) return null;
@@ -96,6 +109,10 @@ export function EditorGrid() {
                   content={blockContent}
                   index={index}
                   isDragActive={activeBlock !== null}
+                  enableMagnetic={isPro}
+                  cardEffect={
+                    isPro ? themeConfig?.cardEffect || "none" : "none"
+                  }
                 />
               );
             })}

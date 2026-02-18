@@ -132,12 +132,6 @@ const blockTypes: {
     category: "social",
   },
   {
-    type: "instagram",
-    icon: <Instagram size={18} />,
-    label: "Instagram",
-    category: "social",
-  },
-  {
     type: "network",
     icon: <Users size={18} />,
     label: "Network",
@@ -210,8 +204,8 @@ export function EditorSidebar({
   const profileUrl = customDomain
     ? `https://${customDomain}`
     : username
-    ? `https://bentofolio.dev/${username}`
-    : "";
+      ? `https://bentofolio.dev/${username}`
+      : "";
 
   const handleDomainSave = () => {
     if (onCustomDomainChange) {

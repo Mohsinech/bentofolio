@@ -51,31 +51,36 @@ export function BentoItem({
   const colClass = styles[`col${colSpan}`];
   const rowClass = styles[`row${rowSpan}`];
 
-  // Magnetic effect state
+  // 3D Tilt effect state
   const ref = useRef<HTMLDivElement>(null);
-  const [magneticPos, setMagneticPos] = useState({ x: 0, y: 0 });
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
+  const [isHovering, setIsHovering] = useState(false);
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (!ref.current || !enableMagnetic) return;
 
       const rect = ref.current.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
 
-      const distanceX = e.clientX - centerX;
-      const distanceY = e.clientY - centerY;
+      // Calculate tilt (inverted for natural feel)
+      const intensity = 15; // More noticeable tilt for premium effect
+      const rotateY = (x - 0.5) * intensity;
+      const rotateX = (0.5 - y) * intensity;
 
-      setMagneticPos({
-        x: distanceX * 0.08,
-        y: distanceY * 0.08,
-      });
+      setTilt({ rotateX, rotateY });
     },
-    [enableMagnetic]
+    [enableMagnetic],
   );
 
+  const handleMouseEnter = useCallback(() => {
+    setIsHovering(true);
+  }, []);
+
   const handleMouseLeave = useCallback(() => {
-    setMagneticPos({ x: 0, y: 0 });
+    setIsHovering(false);
+    setTilt({ rotateX: 0, rotateY: 0 });
   }, []);
 
   // Card effect-specific hover animations
@@ -138,20 +143,26 @@ export function BentoItem({
       animate={{
         opacity: 1,
         y: 0,
-        scale: 1,
-        x: magneticPos.x,
-        ...(enableMagnetic && { y: magneticPos.y }),
+        scale: isHovering && enableMagnetic ? 1.02 : 1,
+        rotateX: enableMagnetic ? tilt.rotateX : 0,
+        rotateY: enableMagnetic ? tilt.rotateY : 0,
       }}
       transition={{
         duration: 0.5,
         delay: index * 0.06,
-        x: { type: "spring", stiffness: 400, damping: 30 },
-        y: { type: "spring", stiffness: 400, damping: 30 },
+        scale: { type: "spring", stiffness: 300, damping: 20 },
+        rotateX: { type: "spring", stiffness: 300, damping: 20 },
+        rotateY: { type: "spring", stiffness: 300, damping: 20 },
       }}
       whileHover={getHoverAnimation()}
       whileTap={getTapAnimation()}
       onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      style={{
+        perspective: enableMagnetic ? "1200px" : undefined,
+        transformStyle: enableMagnetic ? "preserve-3d" : undefined,
+      }}
     >
       {children}
     </motion.div>

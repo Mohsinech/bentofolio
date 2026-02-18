@@ -4,12 +4,24 @@
   gap: 12px;
 }
 
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
+  text-align: center;
+}
+
 /* Embedded mode - used in PropertiesPanel */
 .fieldsOnly {
   padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .header {
@@ -23,6 +35,7 @@
 .title {
   font-size: 0.85rem;
   font-weight: 600;
+  font-family: var(--font-montreal);
   color: var(--text-primary);
   text-transform: capitalize;
 }
@@ -49,7 +62,7 @@
 .fields {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
   max-height: 400px;
   overflow-y: auto;
   padding-right: 4px;
@@ -58,7 +71,21 @@
 .field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+}
+
+.fieldWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fieldHint {
+  font-size: 0.75rem;
+  font-family: var(--font-montreal);
+  color: var(--text-muted);
+  margin: 4px 0 0 0;
+  line-height: 1.4;
 }
 
 .label {
@@ -67,55 +94,81 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-family: var(--font-montreal);
 }
 
 .input,
 .textarea,
 .select {
-  padding: 10px 12px;
+  padding: 12px 14px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  border-radius: 10px;
   color: var(--text-primary);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-family: var(--font-montreal);
+  font-weight: 400;
   outline: none;
   transition: all 0.2s ease;
+  line-height: 1.5;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: rgba(139, 92, 246, 0.6);
   background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
 .textarea {
   resize: vertical;
-  min-height: 80px;
-  font-family: inherit;
+  min-height: 100px;
+  font-family: var(--font-montreal);
+  line-height: 1.6;
 }
 
 .select {
   cursor: pointer;
+  font-weight: 500;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4L6 8L10 4' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
 }
 
-/* Checkbox field */
+.select option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 10px;
+}
+
 .checkboxField {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 0;
+  gap: 12px;
+  padding: 12px 0;
 }
 
 .checkbox {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   accent-color: #a855f7;
   cursor: pointer;
+  border-radius: 4px;
 }
 
 .checkboxLabel {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
 }
@@ -124,52 +177,89 @@
 .arrayItems {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
 .arrayItem {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  width: 100%;
 }
 
 .arrayItemRow {
   display: flex;
-  gap: 6px;
-  flex: 1;
+
+  gap: 12px;
+  flex: 1 1 0%;
+  align-items: center;
+  min-width: 0;
+  margin-bottom: 0;
 }
 
 .arrayItemColumn {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
   flex: 1;
 }
 
 .smallInput {
   flex: 1;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: 8px;
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
+  font-family: var(--font-montreal);
+  font-weight: 400;
   outline: none;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.smallInput::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
 }
 
 .smallInput:focus {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: var(--accent, rgba(139, 92, 246, 0.8));
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 0 0 2px var(--accent, rgba(139, 92, 246, 0.15));
 }
 
 .smallSelect {
-  padding: 8px 10px;
+  padding: 10px 14px;
+  padding-right: 36px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  border-radius: 8px;
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
   cursor: pointer;
   outline: none;
+  transition: all 0.2s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4L6 8L10 4' stroke='%23a1a1aa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.smallSelect option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 10px;
+}
+
+.smallSelect:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
 .removeButton {
@@ -177,55 +267,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  background-color: rgb(151, 95, 255);
+  width: 32px;
+  height: 32px;
+  background: #ef4444;
   border: none;
-  border-radius: 45px;
+  border-radius: 8px;
   color: white;
   cursor: pointer;
   flex-shrink: 0;
-  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
-    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
-  overflow: hidden;
-}
-
-.removeButton::before {
-  content: "";
-  position: absolute;
-  width: 150px;
-  height: 150%;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.042) 50%,
-    rgba(255, 255, 255, 0.112) 70%,
-    rgba(255, 255, 255, 0.199)
-  );
-  left: -20%;
-  top: -60%;
-  border-radius: 100%;
-}
-
-.removeButton::after {
-  content: "";
-  position: absolute;
-  width: 150px;
-  height: 150%;
-  background: linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.042) 50%,
-    rgba(255, 255, 255, 0.112) 70%,
-    rgba(255, 255, 255, 0.199)
-  );
-  right: -20%;
-  bottom: -60%;
-  border-radius: 100%;
+  transition: all 0.2s ease;
 }
 
 .removeButton:hover {
-  animation: jello-horizontal 0.9s both;
+  background: #dc2626;
+  transform: scale(1.05);
 }
 
 .addButton {
@@ -233,109 +288,61 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 8px 12px;
-  background-color: rgb(151, 95, 255);
-  border: none;
-  border-radius: 45px;
-  color: white;
-  font-size: 0.75rem;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 20px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
   font-weight: 600;
+  font-family: var(--font-montreal);
   cursor: pointer;
-  margin-top: 4px;
-  box-shadow: 0px 10px 10px rgb(210, 187, 253) inset,
-    0px 5px 10px rgba(5, 5, 5, 0.212), 0px -10px 10px rgb(124, 54, 255) inset;
-  overflow: hidden;
-}
-
-.addButton::before {
-  content: "";
-  position: absolute;
-  width: 150px;
-  height: 150%;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.042) 50%,
-    rgba(255, 255, 255, 0.112) 70%,
-    rgba(255, 255, 255, 0.199)
-  );
-  left: -20%;
-  top: -60%;
-  border-radius: 100%;
-}
-
-.addButton::after {
-  content: "";
-  position: absolute;
-  width: 150px;
-  height: 150%;
-  background: linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0) 30%,
-    rgba(255, 255, 255, 0.042) 50%,
-    rgba(255, 255, 255, 0.112) 70%,
-    rgba(255, 255, 255, 0.199)
-  );
-  right: -20%;
-  bottom: -60%;
-  border-radius: 100%;
+  margin-top: 12px;
+  transition: all 0.2s ease;
 }
 
 .addButton:hover {
-  animation: jello-horizontal 0.9s both;
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-1px);
 }
 
-@keyframes jello-horizontal {
-  0% {
-    transform: scale3d(1, 1, 1);
-  }
-  30% {
-    transform: scale3d(1.25, 0.75, 1);
-  }
-  40% {
-    transform: scale3d(0.75, 1.25, 1);
-  }
-  50% {
-    transform: scale3d(1.15, 0.85, 1);
-  }
-  65% {
-    transform: scale3d(0.95, 1.05, 1);
-  }
-  75% {
-    transform: scale3d(1.05, 0.95, 1);
-  }
-  100% {
-    transform: scale3d(1, 1, 1);
-  }
+.addButton:active {
+  transform: translateY(0);
 }
 
-/* Empty state */
-.empty {
-  padding: 20px;
-  text-align: center;
-  color: var(--text-muted);
+.urlInput {
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-primary);
   font-size: 0.85rem;
+  font-family: var(--font-montreal);
+  font-weight: 400;
+  outline: none;
+  transition: all 0.2s ease;
+  margin-top: 10px;
 }
 
-.noFields {
+.urlInput::placeholder {
   color: var(--text-muted);
-  font-size: 0.85rem;
-  text-align: center;
-  padding: 12px;
+  opacity: 0.6;
+  font-size: 0.8rem;
 }
 
-.fieldHint {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: -4px;
+.urlInput:focus {
+  border-color: rgba(139, 92, 246, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
 }
 
-/* Image Upload */
 .imageUploadWrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .imageDropzone {
@@ -343,14 +350,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 24px;
+  gap: 10px;
+  padding: 28px;
   border: 2px dashed var(--border-subtle);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
 }
 
 .imageDropzone:hover {
@@ -410,14 +419,16 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 24px;
+  gap: 10px;
+  padding: 28px;
   border: 2px dashed var(--border-subtle);
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   color: var(--text-muted);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
   background: var(--bg-tertiary);
 }
 
@@ -440,6 +451,8 @@
 .fileName {
   flex: 1;
   font-size: 0.85rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
   color: var(--text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -482,12 +495,12 @@
 .techChip {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 8px 14px;
   background: rgba(139, 92, 246, 0.15);
   border: 1px solid rgba(139, 92, 246, 0.3);
   border-radius: 20px;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
 
 .techChipIcon {
@@ -498,13 +511,15 @@
 }
 
 .techChipIcon img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 
 .techChipName {
   color: var(--text-primary);
+  font-family: var(--font-montreal);
+  font-weight: 500;
 }
 
 .techChipRemove {
@@ -534,12 +549,14 @@
 }
 
 .techCategoryBtn {
-  padding: 4px 10px;
+  padding: 6px 12px;
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
   background: transparent;
   color: var(--text-muted);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -547,12 +564,14 @@
 .techCategoryBtn:hover {
   border-color: rgba(139, 92, 246, 0.5);
   color: var(--text-secondary);
+  background: rgba(139, 92, 246, 0.05);
 }
 
 .techCategoryBtn.active {
   background: rgba(139, 92, 246, 0.2);
   border-color: rgba(139, 92, 246, 0.5);
   color: var(--text-primary);
+  font-weight: 600;
 }
 
 .techSearchWrapper {
@@ -570,8 +589,8 @@
 .techSuggestion {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 10px 14px;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
@@ -583,6 +602,7 @@
 .techSuggestion:hover:not(.added) {
   border-color: rgba(139, 92, 246, 0.5);
   background: rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
 }
 
 .techSuggestion.added {
@@ -598,13 +618,15 @@
 }
 
 .techIconSvg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 
 .techSuggestionName {
-  font-size: 0.75rem;
+  font-size: 0.8rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
@@ -626,20 +648,20 @@
 
 .autocompleteInput .smallInput {
   flex: 1;
-  padding-left: 8px;
+  padding-left: 10px;
 }
 
 .autocompleteIcon {
   position: absolute;
-  left: 10px;
-  width: 14px;
-  height: 14px;
+  left: 12px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   z-index: 1;
 }
 
 .autocompleteInput:has(.autocompleteIcon) .smallInput {
-  padding-left: 32px;
+  padding-left: 38px;
 }
 
 .autocompleteDropdown {
@@ -660,16 +682,18 @@
 .autocompleteOption {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px 14px;
   border: none;
   background: transparent;
   color: var(--text-primary);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-family: var(--font-montreal);
+  font-weight: 500;
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .autocompleteOption:hover {
@@ -677,8 +701,8 @@
 }
 
 .autocompleteOption img {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   object-fit: contain;
 }
 

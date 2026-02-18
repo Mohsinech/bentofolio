@@ -1,0 +1,120 @@
+/* Animated Border Button */
+.animatedButton {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: var(--font-montreal);
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  z-index: 1;
+}
+
+.animatedButton::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(139, 92, 246, 0.8),
+    rgba(168, 85, 247, 0.8),
+    rgba(139, 92, 246, 0.8),
+    transparent
+  );
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: borderRotate 3s linear infinite;
+  z-index: -1;
+}
+
+.animatedButton::after {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--bg-secondary);
+  border-radius: 9px;
+  z-index: -1;
+}
+
+.animatedButton:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.animatedButton:hover::before {
+  opacity: 1;
+}
+
+.animatedButton:active {
+  transform: translateY(0);
+}
+
+.animatedButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Full width variant */
+.animatedButton.fullWidth {
+  width: 100%;
+}
+
+/* Small variant */
+.animatedButton.small {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+}
+
+/* Large variant */
+.animatedButton.large {
+  padding: 14px 28px;
+  font-size: 1rem;
+}
+
+/* Secondary variant */
+.animatedButton.secondary {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border-subtle);
+}
+
+.animatedButton.secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--border-hover);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+@keyframes borderRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Alternative animation: moving gradient */
+@keyframes borderMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

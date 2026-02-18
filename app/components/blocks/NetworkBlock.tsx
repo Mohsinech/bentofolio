@@ -33,11 +33,17 @@ export function NetworkBlock({ data }: NetworkBlockProps) {
             style={{ zIndex: data.connections.length - index }}
             title={connection.name}
           >
-            <img
-              src={connection.avatar}
-              alt={connection.name}
-              className={styles.avatar}
-            />
+            {connection.avatar ? (
+              <img
+                src={connection.avatar}
+                alt={connection.name}
+                className={styles.avatar}
+              />
+            ) : (
+              <div className={styles.avatarPlaceholder}>
+                {connection.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             {connection.linkedinUrl && (
               <div className={styles.linkedinBadge}>
                 <Linkedin size={10} />

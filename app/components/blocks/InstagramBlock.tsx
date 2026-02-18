@@ -42,9 +42,26 @@ export function InstagramBlock({ data }: InstagramBlockProps) {
   if (username && postUrl) {
     return (
       <div className={styles.container}>
+        {/* Instagram Embed */}
+        <div className={styles.embedWrapper}>
+          <iframe
+            src={`https://www.instagram.com/p/${getInstagramPostId(postUrl)}/embed`}
+            width="1000"
+            height="1000"
+            frameBorder="0"
+            scrolling="no"
+            allow="encrypted-media"
+            title="Instagram Post"
+            style={{
+              border: 0,
+              width: "100%",
+              height: "100%",
+            }}
+          ></iframe>
+        </div>
         <div className={styles.content}>
           <div className={styles.iconWrapper}>
-            <Instagram size={32} />
+            <Instagram size={20} />
           </div>
           <div className={styles.info}>
             <span className={styles.username}>@{username}</span>
@@ -58,26 +75,6 @@ export function InstagramBlock({ data }: InstagramBlockProps) {
           >
             View Post
           </a>
-        </div>
-        {/* Instagram Embed */}
-        <div className={styles.embedWrapper}>
-          <iframe
-            src={`https://www.instagram.com/p/${getInstagramPostId(postUrl)}/embed`}
-            width="400"
-            height="480"
-            frameBorder="0"
-            scrolling="no"
-            allowTransparency={true}
-            allow="encrypted-media"
-            title="Instagram Post"
-            style={{
-              border: 0,
-              borderRadius: 8,
-              width: "100%",
-              maxWidth: 400,
-              minHeight: 480,
-            }}
-          ></iframe>
         </div>
       </div>
     );

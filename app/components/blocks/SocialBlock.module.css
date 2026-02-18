@@ -3,15 +3,17 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 20px 16px;
+  height: 100%;
+  padding: 20px;
 }
 
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   align-items: center;
+  max-width: 100%;
 }
 
 .link {
@@ -20,19 +22,40 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--bg-card, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--border-subtle, rgba(0, 0, 0, 0.1));
   border-radius: 12px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   text-decoration: none;
   transition: all 0.2s ease;
 }
 
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+  .link {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-secondary);
+  }
+
+  .link:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* Light theme - force dark icons on light backgrounds */
+.link {
+  background: var(--bg-card);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+}
+
 .link:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-hover, rgba(0, 0, 0, 0.08));
   border-color: var(--platform-color);
   color: var(--platform-color);
   box-shadow: 0 0 20px rgba(var(--platform-color), 0.2);
+  transform: translateY(-2px);
 }
 
 .icon {

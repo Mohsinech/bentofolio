@@ -4,6 +4,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { motion } from "framer-motion";
 import { Trash2, GripVertical, Pencil } from "lucide-react";
+import { useRef, useState, useCallback } from "react";
 import styles from "./DraggableBlock.module.css";
 import gridStyles from "../components/grid/BentoGrid.module.css";
 import { cn } from "@/app/lib/utils";
@@ -36,6 +37,8 @@ interface DraggableBlockProps {
   content: BlockContent;
   index: number;
   isDragActive?: boolean;
+  enableMagnetic?: boolean;
+  cardEffect?: "wiggle" | "bounce" | "jelly" | "none";
 }
 
 interface BlockPreviewProps {
@@ -100,7 +103,7 @@ export function BlockPreview({ layout, content }: BlockPreviewProps) {
         colClass,
         rowClass,
         "glass",
-        styles.preview
+        styles.preview,
       )}
     >
       <div className={styles.content}>{renderBlock(content)}</div>
@@ -113,8 +116,41 @@ export function DraggableBlock({
   content,
   index,
   isDragActive,
+  enableMagnetic = false,
+  cardEffect = "none",
 }: DraggableBlockProps) {
   const { isEditMode, selectedBlockId, selectBlock, removeBlock } = useEditor();
+
+  // 3D Tilt effect state
+  const tiltRef = useRef<HTMLDivElement>(null);
+  const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0 });
+  const [isHovering, setIsHovering] = useState(false);
+
+  const handleTiltMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (!tiltRef.current || !enableMagnetic || isEditMode) return;
+
+      const rect = tiltRef.current.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+
+      const intensity = 15; // Increased for more noticeable effect
+      const rotateY = (x - 0.5) * intensity;
+      const rotateX = (0.5 - y) * intensity;
+
+      setTilt({ rotateX, rotateY });
+    },
+    [enableMagnetic, isEditMode],
+  );
+
+  const handleTiltEnter = useCallback(() => {
+    if (enableMagnetic && !isEditMode) setIsHovering(true);
+  }, [enableMagnetic, isEditMode]);
+
+  const handleTiltLeave = useCallback(() => {
+    setIsHovering(false);
+    setTilt({ rotateX: 0, rotateY: 0 });
+  }, []);
 
   const {
     attributes,
@@ -163,8 +199,16 @@ export function DraggableBlock({
 
   return (
     <motion.div
-      ref={setNodeRef}
-      style={style}
+      ref={(node) => {
+        setNodeRef(node);
+        (tiltRef as any).current = node;
+      }}
+      style={{
+        ...style,
+        perspective: enableMagnetic && !isEditMode ? "1200px" : undefined,
+        transformStyle:
+          enableMagnetic && !isEditMode ? "preserve-3d" : undefined,
+      }}
       className={cn(
         gridStyles.item,
         colClass,
@@ -174,20 +218,27 @@ export function DraggableBlock({
         isEditMode && styles.editable,
         isSelected && styles.selected,
         isDragging && styles.dragging,
-        isDragActive && !isDragging && styles.shifting
+        isDragActive && !isDragging && styles.shifting,
       )}
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{
         opacity: isDragging ? 0.5 : 1,
         y: 0,
-        scale: isDragging ? 1.03 : 1,
+        scale: isDragging ? 1.03 : isHovering && enableMagnetic ? 1.02 : 1,
+        rotateX: enableMagnetic && !isEditMode ? tilt.rotateX : 0,
+        rotateY: enableMagnetic && !isEditMode ? tilt.rotateY : 0,
       }}
       transition={{
         duration: 0.25,
         delay: index * 0.02,
         ease: [0.2, 0, 0, 1],
+        rotateX: { type: "spring", stiffness: 300, damping: 20 },
+        rotateY: { type: "spring", stiffness: 300, damping: 20 },
       }}
       onClick={handleClick}
+      onMouseMove={handleTiltMove}
+      onMouseEnter={handleTiltEnter}
+      onMouseLeave={handleTiltLeave}
       whileHover={
         !isEditMode && !isDragging ? { y: -4, scale: 1.01 } : undefined
       }
