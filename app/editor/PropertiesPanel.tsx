@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Layers } from "lucide-react";
 import { useEditor } from "@/app/lib/editor-context";
-import { BlockContent } from "@/app/lib/types";
 import { BlockEditor } from "./BlockEditor";
 import styles from "./PropertiesPanel.module.css";
 

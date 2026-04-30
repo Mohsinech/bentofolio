@@ -6,9 +6,10 @@ export const demoLayout: BlockLayout[] = [
   { id: "map", type: "map", x: 2, y: 0, w: 2, h: 1 },
   { id: "techstack", type: "techstack", x: 2, y: 1, w: 2, h: 1 },
   { id: "availability", type: "availability", x: 0, y: 2, w: 2, h: 1 },
-  { id: "social", type: "social", x: 0, y: 3, w: 2, h: 1 },
+  { id: "creative", type: "creative", x: 0, y: 3, w: 2, h: 2 },
   { id: "link-github", type: "link", x: 2, y: 2, w: 1, h: 1 },
   { id: "link-twitter", type: "link", x: 3, y: 2, w: 1, h: 1 },
+  { id: "social", type: "social", x: 2, y: 3, w: 2, h: 1 },
 ];
 
 // Demo content for preview
@@ -57,6 +58,37 @@ export const demoContent: Record<string, BlockContent> = {
       items: [
         { platform: "github", url: "https://github.com" },
         { platform: "twitter", url: "https://twitter.com" },
+      ],
+    },
+  },
+  creative: {
+    type: "creative",
+    data: {
+      title: "Creative Desk",
+      description:
+        "A public workspace for case studies, process notes, and things I am learning.",
+      notionUrl: "",
+      ctaLabel: "Explore my notes",
+      ctaUrl: "",
+      items: [
+        {
+          title: "Design systems notes",
+          type: "Notion page",
+          status: "Public",
+          url: "",
+        },
+        {
+          title: "Landing page teardown",
+          type: "Case study",
+          status: "Updated",
+          url: "",
+        },
+        {
+          title: "Product ideas board",
+          type: "Workspace",
+          status: "Live",
+          url: "",
+        },
       ],
     },
   },

@@ -24,8 +24,7 @@ export function ProfileClientWrapper({
   return (
     <ThemeProvider theme={theme}>
       <AnalyticsTracker username={username} isPro={isPro} />
-      {/* Fun interactive theme effects for Pro users */}
-      {isPro && themeConfig && (
+      {themeConfig && (
         <ThemeEffectsWrapper
           particles={themeConfig.particles}
           particleColor={themeConfig.particleColor}

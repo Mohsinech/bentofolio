@@ -107,8 +107,7 @@ export default async function ProfilePage({ params }: PageProps) {
           />
         </div>
 
-        {/* Show watermark for free users */}
-        <Watermark show={!profile.isPro} />
+        <Watermark show={false} />
       </div>
     </ProfileClientWrapper>
   );

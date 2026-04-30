@@ -17,7 +17,14 @@ function verifyWebhookSignature(
 ): boolean {
   const hmac = crypto.createHmac("sha256", secret);
   const digest = hmac.update(payload).digest("hex");
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest));
+  const signatureBuffer = Buffer.from(signature, "hex");
+  const digestBuffer = Buffer.from(digest, "hex");
+
+  if (signatureBuffer.length !== digestBuffer.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(signatureBuffer, digestBuffer);
 }
 
 export async function POST(request: Request) {
@@ -75,7 +82,7 @@ export async function POST(request: Request) {
             upgraded_at: new Date().toISOString(),
             lemon_squeezy_order_id: orderId,
           })
-          .eq("user_id", userId);
+          .eq("id", userId);
 
         if (error) {
           console.error("Error updating profile:", error);
@@ -91,7 +98,7 @@ export async function POST(request: Request) {
         const { data: profile } = await supabase
           .from("profiles")
           .select("username")
-          .eq("user_id", userId)
+          .eq("id", userId)
           .single();
 
         if (profile && customerEmail) {
@@ -120,7 +127,7 @@ export async function POST(request: Request) {
             upgraded_at: null,
             lemon_squeezy_order_id: null,
           })
-          .eq("user_id", userId);
+          .eq("id", userId);
 
         if (error) {
           console.error("Error downgrading profile:", error);

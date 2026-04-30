@@ -18,7 +18,8 @@ export type BlockType =
   | "youtube"
   | "instagram"
   | "network"
-  | "career";
+  | "career"
+  | "creative";
 
 // Position and size of a block in the grid
 export interface BlockLayout {
@@ -199,6 +200,20 @@ export interface CareerContent {
   }[];
 }
 
+export interface CreativeContent {
+  title: string;
+  description: string;
+  notionUrl?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  items: {
+    title: string;
+    type: string;
+    status?: string;
+    url?: string;
+  }[];
+}
+
 // Union type for all content
 export type BlockContent =
   | { type: "identity"; data: IdentityContent }
@@ -219,7 +234,8 @@ export type BlockContent =
   | { type: "youtube"; data: YouTubeContent }
   | { type: "instagram"; data: InstagramContent }
   | { type: "network"; data: NetworkContent }
-  | { type: "career"; data: CareerContent };
+  | { type: "career"; data: CareerContent }
+  | { type: "creative"; data: CreativeContent };
 
 // Full block with layout + content
 export interface Block {

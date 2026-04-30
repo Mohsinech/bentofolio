@@ -8,10 +8,13 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   username TEXT UNIQUE NOT NULL,
-  theme TEXT DEFAULT 'dark' CHECK (theme IN ('dark', 'cyberpunk', 'lofi')),
+  theme TEXT DEFAULT 'dark' CHECK (theme IN ('dark', 'cyberpunk', 'lofi', 'ocean', 'forest', 'sunset', 'monochrome', 'neon', 'minimal', 'nord')),
   layout JSONB DEFAULT '[]'::jsonb,
   content JSONB DEFAULT '{}'::jsonb,
   is_pro BOOLEAN DEFAULT false,
+  custom_domain TEXT UNIQUE DEFAULT NULL,
+  upgraded_at TIMESTAMPTZ,
+  lemon_squeezy_order_id TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );

@@ -29,6 +29,34 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  const host = request.headers.get("host")?.split(":")[0].toLowerCase();
+  const appHost = (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000")
+    .replace(/^https?:\/\//, "")
+    .split("/")[0]
+    .split(":")[0]
+    .toLowerCase();
+  const isAppHost =
+    !host ||
+    host === appHost ||
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host.endsWith(".vercel.app");
+
+  if (!isAppHost && request.nextUrl.pathname === "/") {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("custom_domain", host)
+      .eq("is_pro", true)
+      .single();
+
+    if (profile?.username) {
+      const url = request.nextUrl.clone();
+      url.pathname = `/${profile.username}`;
+      return NextResponse.rewrite(url);
+    }
+  }
+
   // Refresh session if expired
   const {
     data: { user },

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Check, Lock } from "lucide-react";
+import { Check } from "lucide-react";
 import { themes, ThemeId } from "@/app/lib/types";
 import styles from "./ThemeSelector.module.css";
 
@@ -14,7 +14,6 @@ interface ThemeSelectorProps {
 
 export function ThemeSelector({
   currentTheme,
-  isPro,
   onSelect,
   compact = false,
 }: ThemeSelectorProps) {
@@ -23,11 +22,7 @@ export function ThemeSelector({
     (typeof themes)[ThemeId]
   ][];
 
-  const handleSelect = (themeId: ThemeId, isPremium: boolean) => {
-    if (isPremium && !isPro) {
-      // Could open upgrade modal here
-      return;
-    }
+  const handleSelect = (themeId: ThemeId) => {
     onSelect(themeId);
   };
 
@@ -36,22 +31,20 @@ export function ThemeSelector({
       <div className={styles.compactGrid}>
         {themeEntries.map(([id, theme]) => {
           const isSelected = currentTheme === id;
-          const isLocked = theme.isPremium && !isPro;
 
           return (
             <motion.button
               key={id}
               className={`${styles.compactItem} ${
                 isSelected ? styles.selected : ""
-              } ${isLocked ? styles.locked : ""}`}
-              onClick={() => handleSelect(id, theme.isPremium)}
+              }`}
+              onClick={() => handleSelect(id)}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               style={{ background: theme.preview }}
               title={theme.name}
             >
               {isSelected && <Check size={14} className={styles.checkIcon} />}
-              {isLocked && <Lock size={10} className={styles.lockIcon} />}
             </motion.button>
           );
         })}
@@ -63,15 +56,14 @@ export function ThemeSelector({
     <div className={styles.grid}>
       {themeEntries.map(([id, theme]) => {
         const isSelected = currentTheme === id;
-        const isLocked = theme.isPremium && !isPro;
 
         return (
           <motion.button
             key={id}
             className={`${styles.themeCard} ${
               isSelected ? styles.selected : ""
-            } ${isLocked ? styles.locked : ""}`}
-            onClick={() => handleSelect(id, theme.isPremium)}
+            }`}
+            onClick={() => handleSelect(id)}
             whileHover={{ scale: 1.02, y: -4 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -103,13 +95,7 @@ export function ThemeSelector({
                   Active
                 </div>
               )}
-              {isLocked && (
-                <div className={styles.lockedBadge}>
-                  <Lock size={12} />
-                  Pro
-                </div>
-              )}
-              {!theme.isPremium && <div className={styles.freeBadge}>Free</div>}
+              <div className={styles.freeBadge}>Included</div>
             </div>
 
             {/* Info */}

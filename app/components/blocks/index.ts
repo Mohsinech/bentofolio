@@ -17,3 +17,4 @@ export { YouTubeBlock } from "./YouTubeBlock";
 export { InstagramBlock } from "./InstagramBlock";
 export { NetworkBlock } from "./NetworkBlock";
 export { CareerBlock } from "./CareerBlock";
+export { CreativeBlock } from "./CreativeBlock";

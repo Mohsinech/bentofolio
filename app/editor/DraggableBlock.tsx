@@ -30,6 +30,7 @@ import {
   InstagramBlock,
   NetworkBlock,
   CareerBlock,
+  CreativeBlock,
 } from "@/app/components/blocks";
 
 interface DraggableBlockProps {
@@ -86,6 +87,8 @@ function renderBlock(content: BlockContent) {
       return <NetworkBlock data={content.data} />;
     case "career":
       return <CareerBlock data={content.data} />;
+    case "creative":
+      return <CreativeBlock data={content.data} />;
     default:
       return <div>Unknown block</div>;
   }
@@ -117,7 +120,6 @@ export function DraggableBlock({
   index,
   isDragActive,
   enableMagnetic = false,
-  cardEffect = "none",
 }: DraggableBlockProps) {
   const { isEditMode, selectedBlockId, selectBlock, removeBlock } = useEditor();
 
@@ -201,7 +203,7 @@ export function DraggableBlock({
     <motion.div
       ref={(node) => {
         setNodeRef(node);
-        (tiltRef as any).current = node;
+        tiltRef.current = node;
       }}
       style={{
         ...style,

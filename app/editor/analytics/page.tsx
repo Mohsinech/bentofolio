@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -33,13 +33,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<"7d" | "30d" | "all">("7d");
 
-  useEffect(() => {
-    if (profile && hasProAccess) {
-      fetchAnalytics();
-    }
-  }, [profile, hasProAccess, timeRange]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     if (!profile?.username) return;
 
     setLoading(true);
@@ -56,7 +50,13 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?.username, timeRange]);
+
+  useEffect(() => {
+    if (profile && hasProAccess) {
+      fetchAnalytics();
+    }
+  }, [profile, hasProAccess, fetchAnalytics]);
 
   // Pro required screen
   if (profileLoading) {
@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
           </div>
           <Link href="/pricing" className={styles.upgradeButton}>
             <Sparkles size={16} />
-            Upgrade to Pro — $29
+            Get Pro — $9
           </Link>
         </div>
       </div>

@@ -14,11 +14,12 @@ export async function GET() {
   }
 
   // Try to get existing profile
-  let { data, error } = await supabase
+  const { data: existingProfile, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .single();
+  let data = existingProfile;
 
   // If profile doesn't exist, create one
   if (error && error.code === "PGRST116") {
@@ -86,6 +87,28 @@ export async function PUT(request: Request) {
     updates.username = username;
   }
   if (customDomain !== undefined) {
+    const { data: profileAccess, error: accessError } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (accessError) {
+      return NextResponse.json(
+        { error: accessError.message },
+        { status: 500 }
+      );
+    }
+
+    const hasCustomDomainAccess = Boolean(profileAccess?.is_pro);
+
+    if (!hasCustomDomainAccess) {
+      return NextResponse.json(
+        { error: "Custom domains require Pro" },
+        { status: 403 }
+      );
+    }
+
     // Validate custom domain format (allow null to remove)
     if (customDomain !== null && customDomain !== "") {
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/;

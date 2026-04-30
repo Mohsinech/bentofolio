@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ArrowLeft, Check, Lock, Sparkles, Zap } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { themes, ThemeId, ThemeConfig } from "@/app/lib/types";
 import styles from "./themes.module.css";
 
@@ -60,9 +60,6 @@ export default function ThemesPage() {
   const themeEntries = Object.entries(themes) as [ThemeId, ThemeConfig][];
   const currentTheme = themes[selectedTheme];
 
-  const freeThemes = themeEntries.filter(([, t]) => !t.isPremium);
-  const premiumThemes = themeEntries.filter(([, t]) => t.isPremium);
-
   return (
     <div
       className={styles.container}
@@ -91,10 +88,9 @@ export default function ThemesPage() {
       <div className={styles.content}>
         {/* Theme List */}
         <aside className={styles.themeList}>
-          {/* Free Themes */}
           <div className={styles.themeSection}>
-            <span className={styles.sectionLabel}>Free</span>
-            {freeThemes.map(([id, theme]) => (
+            <span className={styles.sectionLabel}>Included</span>
+            {themeEntries.map(([id, theme]) => (
               <button
                 key={id}
                 className={`${styles.themeButton} ${
@@ -116,49 +112,6 @@ export default function ThemesPage() {
               </button>
             ))}
           </div>
-
-          {/* Premium Themes */}
-          <div className={styles.themeSection}>
-            <span className={styles.sectionLabel}>
-              <Sparkles size={14} />
-              Premium
-            </span>
-            {premiumThemes.map(([id, theme]) => (
-              <button
-                key={id}
-                className={`${styles.themeButton} ${
-                  selectedTheme === id ? styles.active : ""
-                }`}
-                onClick={() => setSelectedTheme(id)}
-              >
-                <div
-                  className={styles.themePreviewDot}
-                  style={{ background: theme.preview }}
-                />
-                <div className={styles.themeInfo}>
-                  <span className={styles.themeName}>{theme.name}</span>
-                  <span className={styles.themeDesc}>{theme.description}</span>
-                </div>
-                {selectedTheme === id ? (
-                  <Check size={16} className={styles.checkMark} />
-                ) : (
-                  <Lock size={14} className={styles.lockMark} />
-                )}
-              </button>
-            ))}
-          </div>
-
-          {/* Upgrade CTA */}
-          <div className={styles.upgradeCta}>
-            <Zap size={20} />
-            <div>
-              <strong>Unlock all themes</strong>
-              <p>Get Pro for $29 one-time</p>
-            </div>
-            <Link href="/pricing" className={styles.upgradeButton}>
-              Upgrade
-            </Link>
-          </div>
         </aside>
 
         {/* Live Preview */}
@@ -168,12 +121,6 @@ export default function ThemesPage() {
             <span className={styles.previewSubtitle}>
               {currentTheme.description}
             </span>
-            {currentTheme.isPremium && (
-              <span className={styles.proBadge}>
-                <Sparkles size={12} />
-                Pro
-              </span>
-            )}
           </div>
           <ThemePreview theme={currentTheme} />
         </main>

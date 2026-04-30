@@ -8,6 +8,7 @@ export interface ProfileData {
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
   isPro: boolean;
+  customDomain?: string | null;
 }
 
 export async function getProfileByUsername(
@@ -32,6 +33,7 @@ export async function getProfileByUsername(
     layout: data.layout || [],
     content: data.content || {},
     isPro: data.is_pro || false,
+    customDomain: data.custom_domain || null,
   };
 }
 
@@ -63,6 +65,7 @@ export async function getCurrentUserProfile(): Promise<ProfileData | null> {
     layout: data.layout || [],
     content: data.content || {},
     isPro: data.is_pro || false,
+    customDomain: data.custom_domain || null,
   };
 }
 

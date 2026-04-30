@@ -1,11 +1,33 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createClient } from "@/app/lib/supabase/server";
+import { isAdmin } from "@/app/lib/config";
 
 // Initialize Supabase with service role for admin operations
-const supabase = createClient(
+const supabase = createServiceClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
+function getGithubUsername(user: {
+  identities?: Array<{
+    provider?: string;
+    identity_data?: Record<string, unknown>;
+  }>;
+  user_metadata?: Record<string, unknown>;
+}) {
+  const githubIdentity = user.identities?.find(
+    (identity) => identity.provider === "github"
+  );
+
+  return (
+    githubIdentity?.identity_data?.user_name ||
+    githubIdentity?.identity_data?.preferred_username ||
+    user.user_metadata?.user_name ||
+    user.user_metadata?.preferred_username ||
+    null
+  );
+}
 
 export async function POST(request: Request) {
   try {
@@ -14,6 +36,13 @@ export async function POST(request: Request) {
     if (!username || !event) {
       return NextResponse.json(
         { error: "Username and event are required" },
+        { status: 400 }
+      );
+    }
+
+    if (!["view", "link_click"].includes(event)) {
+      return NextResponse.json(
+        { error: "Unsupported analytics event" },
         { status: 400 }
       );
     }
@@ -29,7 +58,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     }
 
-    // Only track analytics for Pro users
+    // Analytics remains tied to upgraded profiles while the product is simplified.
     if (!profile.is_pro) {
       return NextResponse.json({ tracked: false, reason: "free_user" });
     }
@@ -63,6 +92,15 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const authSupabase = await createClient();
+    const {
+      data: { user },
+    } = await authSupabase.auth.getUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const username = searchParams.get("username");
     const period = searchParams.get("period") || "7d"; // 7d, 30d, 90d, all
@@ -83,6 +121,14 @@ export async function GET(request: Request) {
 
     if (!profile) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+    }
+
+    const githubUsername = getGithubUsername(user) as string | null;
+    const canReadAnalytics =
+      profile.id === user.id || isAdmin(user.email, githubUsername);
+
+    if (!canReadAnalytics) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     if (!profile.is_pro) {
@@ -127,6 +173,9 @@ export async function GET(request: Request) {
 
     // Aggregate data
     const totalViews = analytics.filter((a) => a.event_type === "view").length;
+    const totalClicks = analytics.filter(
+      (a) => a.event_type === "link_click"
+    ).length;
     const uniqueReferrers = [
       ...new Set(analytics.map((a) => a.referrer).filter(Boolean)),
     ];
@@ -149,10 +198,18 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       totalViews,
+      totalClicks,
       uniqueReferrers,
       viewsByDate,
+      recentViews: Object.entries(viewsByDate)
+        .map(([date, count]) => ({ date, count }))
+        .sort((a, b) => a.date.localeCompare(b.date)),
       referrerBreakdown: Object.entries(referrerCounts)
         .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10),
+      topReferrers: Object.entries(referrerCounts)
+        .map(([source, count]) => ({ source, count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 10),
     });

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Circle, Mail, MessageSquare } from "lucide-react";
+import { Mail } from "lucide-react";
 import styles from "./AvailabilityBlock.module.css";
 import { AvailabilityContent } from "@/app/lib/types";
 

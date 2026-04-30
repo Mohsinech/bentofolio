@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAuth } from "./useAuth";
 
 export function useCheckout() {
-  const { user, githubUsername } = useAuth();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,11 +23,7 @@ export function useCheckout() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          userId: user.id,
-          email: user.email,
-          username: githubUsername,
-        }),
+        body: JSON.stringify({}),
       });
 
       if (!response.ok) {

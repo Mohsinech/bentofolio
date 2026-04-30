@@ -1,26 +1,37 @@
 import { NextResponse } from "next/server";
 import { PREMIUM_PRICE } from "@/app/lib/config";
+import { createClient } from "@/app/lib/supabase/server";
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
-    const { userId, email, username } = await request.json();
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!userId || !email) {
+    if (!user?.id || !user.email) {
       return NextResponse.json(
-        { error: "User ID and email are required" },
-        { status: 400 }
+        { error: "You must be signed in to upgrade" },
+        { status: 401 }
       );
     }
 
     const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
     const variantId = process.env.LEMON_SQUEEZY_VARIANT_ID;
+    const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
 
-    if (!storeId || !variantId) {
+    if (!storeId || !variantId || !apiKey) {
       return NextResponse.json(
         { error: "Lemon Squeezy not configured" },
         { status: 500 }
       );
     }
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", user.id)
+      .single();
 
     // Create checkout URL with Lemon Squeezy API
     const response = await fetch("https://api.lemonsqueezy.com/v1/checkouts", {
@@ -28,17 +39,17 @@ export async function POST(request: Request) {
       headers: {
         Accept: "application/vnd.api+json",
         "Content-Type": "application/vnd.api+json",
-        Authorization: `Bearer ${process.env.LEMON_SQUEEZY_API_KEY}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         data: {
           type: "checkouts",
           attributes: {
             checkout_data: {
-              email,
+              email: user.email,
               custom: {
-                user_id: userId,
-                username: username || "",
+                user_id: user.id,
+                username: profile?.username || "",
               },
             },
             checkout_options: {
@@ -50,10 +61,10 @@ export async function POST(request: Request) {
             },
             product_options: {
               name: "BentoFolio Pro",
-              description: `One-time payment of $${PREMIUM_PRICE} for lifetime access`,
+              description: `One-time payment of $${PREMIUM_PRICE} for lifetime custom domain access`,
               receipt_button_text: "Go to Dashboard",
               receipt_thank_you_note:
-                "Thanks for upgrading to Pro! Enjoy all premium features.",
+                "Thanks for upgrading to Pro! You can now connect your custom domain.",
               redirect_url: `${
                 process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
               }/editor?upgraded=true`,

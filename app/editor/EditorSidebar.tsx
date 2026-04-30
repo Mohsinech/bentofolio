@@ -10,7 +10,6 @@ import {
   TrendingUp,
   Link as LinkIcon,
   FileText,
-  Eye,
   Save,
   LogOut,
   Check,
@@ -28,13 +27,12 @@ import {
   Copy,
   ExternalLink,
   Youtube,
-  Instagram,
   Users,
   TrendingUp as Career,
   Globe,
   Info,
   X,
-  BarChart3,
+  BookOpen,
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
@@ -160,6 +158,12 @@ const blockTypes: {
     type: "career",
     icon: <Career size={18} />,
     label: "Career",
+    category: "content",
+  },
+  {
+    type: "creative",
+    icon: <BookOpen size={18} />,
+    label: "Creative",
     category: "content",
   },
 ];
@@ -396,7 +400,7 @@ export function EditorSidebar({
       ) : (
         <Link href="/pricing" className={styles.domainPromo}>
           <Globe size={14} />
-          <span>Use your own domain</span>
+          <span>Custom domain - $9 lifetime</span>
           <Sparkles size={12} className={styles.proIcon} />
         </Link>
       )}
@@ -420,31 +424,17 @@ export function EditorSidebar({
         </div>
       ) : (
         <div className={styles.section}>
-          <a
+          <Link
             href="/api/auth/github"
             className={`${styles.actionButton} ${styles.githubConnectButton}`}
           >
             <Github size={16} />
             Connect GitHub
-          </a>
+          </Link>
           <span className={styles.githubHint}>
             Link your GitHub to import data
           </span>
         </div>
-      )}
-
-      {/* Analytics Link - Pro Feature */}
-      {isPro ? (
-        <Link href="/editor/analytics" className={styles.analyticsLink}>
-          <BarChart3 size={14} />
-          <span>View Analytics</span>
-        </Link>
-      ) : (
-        <Link href="/pricing" className={styles.domainPromo}>
-          <BarChart3 size={14} />
-          <span>Profile Analytics</span>
-          <Sparkles size={12} className={styles.proIcon} />
-        </Link>
       )}
 
       {/* Theme Selector */}
@@ -460,16 +450,10 @@ export function EditorSidebar({
         </div>
         <ThemeSelector
           currentTheme={currentTheme}
-          isPro={isPro}
+          isPro
           onSelect={(theme) => onThemeChange?.(theme)}
           compact
         />
-        {!isPro && (
-          <Link href="/pricing" className={styles.proHint}>
-            <Sparkles size={12} />
-            Unlock 9 more themes
-          </Link>
-        )}
       </div>
 
       {/* Edit mode toggle */}

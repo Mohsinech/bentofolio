@@ -80,12 +80,12 @@ export const emailTemplates = {
                 Hey <strong style="color: #ffffff;">${username}</strong>,
               </p>
               <p style="font-size: 16px; line-height: 1.6; color: #d1d5db; margin: 0 0 24px;">
-                Thank you for upgrading to BentoFolio Pro! Your account has been upgraded and you now have access to all premium features.
+                Thank you for upgrading to BentoFolio Pro! Your account can now use a custom domain for your portfolio.
               </p>
 
               <!-- Features List -->
               <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 24px; margin: 32px 0;">
-                <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 600; color: #ffffff;">✨ Your Pro Features</h2>
+                <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 600; color: #ffffff;">✨ Your Pro Feature</h2>
                 
                 <div style="margin-bottom: 16px;">
                   <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
@@ -97,45 +97,7 @@ export const emailTemplates = {
                   </div>
                 </div>
 
-                <div style="margin-bottom: 16px;">
-                  <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                    <span style="color: #8b5cf6; margin-right: 12px; font-size: 20px;">📊</span>
-                    <div>
-                      <strong style="color: #ffffff; font-size: 16px;">Profile Analytics</strong>
-                      <p style="margin: 4px 0 0; color: #9ca3af; font-size: 14px;">Track views, clicks, and referrers with detailed insights</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div style="margin-bottom: 16px;">
-                  <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                    <span style="color: #8b5cf6; margin-right: 12px; font-size: 20px;">🎨</span>
-                    <div>
-                      <strong style="color: #ffffff; font-size: 16px;">9 Premium Blocks</strong>
-                      <p style="margin: 4px 0 0; color: #9ca3af; font-size: 14px;">GitHub, Spotify, Experience, Metrics, and more</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div style="margin-bottom: 16px;">
-                  <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
-                    <span style="color: #8b5cf6; margin-right: 12px; font-size: 20px;">🎭</span>
-                    <div>
-                      <strong style="color: #ffffff; font-size: 16px;">9 Premium Themes</strong>
-                      <p style="margin: 4px 0 0; color: #9ca3af; font-size: 14px;">Unlock all color schemes and visual styles</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div style="display: flex; align-items: flex-start;">
-                    <span style="color: #8b5cf6; margin-right: 12px; font-size: 20px;">⚡</span>
-                    <div>
-                      <strong style="color: #ffffff; font-size: 16px;">Priority Support</strong>
-                      <p style="margin: 4px 0 0; color: #9ca3af; font-size: 14px;">Get help faster when you need it</p>
-                    </div>
-                  </div>
-                </div>
+                <p style="margin: 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">All blocks, themes, and the Creative tab are available on the free plan while the product evolves. Pro is intentionally simple: connect your own domain.</p>
               </div>
 
               <!-- CTA Button -->

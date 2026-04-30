@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useRef, useCallback, useEffect, useState } from "react";
+import { ReactNode, useRef, useCallback, useState } from "react";
 import { motion } from "framer-motion";
 
 interface MagneticCardProps {

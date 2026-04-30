@@ -16,7 +16,7 @@ export function useMagnetic(options: MagneticOptions = {}) {
   const targetRef = useRef({ x: 0, y: 0 });
   const currentRef = useRef({ x: 0, y: 0 });
 
-  const animate = useCallback(() => {
+  const animate = useCallback(function frame() {
     // Lerp towards target
     currentRef.current.x += (targetRef.current.x - currentRef.current.x) * ease;
     currentRef.current.y += (targetRef.current.y - currentRef.current.y) * ease;
@@ -31,7 +31,9 @@ export function useMagnetic(options: MagneticOptions = {}) {
       Math.abs(targetRef.current.x - currentRef.current.x) > 0.01 ||
       Math.abs(targetRef.current.y - currentRef.current.y) > 0.01
     ) {
-      animationRef.current = requestAnimationFrame(animate);
+      animationRef.current = requestAnimationFrame(frame);
+    } else {
+      animationRef.current = null;
     }
   }, [ease]);
 

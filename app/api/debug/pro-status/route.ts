@@ -1,5 +1,26 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/app/lib/supabase/server";
+import { isAdmin } from "@/app/lib/config";
+
+function getGithubUsername(user: {
+  identities?: Array<{
+    provider?: string;
+    identity_data?: Record<string, unknown>;
+  }>;
+  user_metadata?: Record<string, unknown>;
+}) {
+  const githubIdentity = user.identities?.find(
+    (identity) => identity.provider === "github"
+  );
+
+  return (
+    githubIdentity?.identity_data?.user_name ||
+    githubIdentity?.identity_data?.preferred_username ||
+    user.user_metadata?.user_name ||
+    user.user_metadata?.preferred_username ||
+    null
+  );
+}
 
 export async function GET() {
   const supabase = await createClient();
@@ -37,6 +58,18 @@ export async function POST(request: Request) {
 
   const body = await request.json();
   const { is_pro } = body;
+  const githubUsername = getGithubUsername(user) as string | null;
+
+  if (!isAdmin(user.email, githubUsername)) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  if (typeof is_pro !== "boolean") {
+    return NextResponse.json(
+      { error: "is_pro must be a boolean" },
+      { status: 400 }
+    );
+  }
 
   const { error } = await supabase
     .from("profiles")

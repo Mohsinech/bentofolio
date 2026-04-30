@@ -21,6 +21,7 @@ import {
   InstagramBlock,
   NetworkBlock,
   CareerBlock,
+  CreativeBlock,
 } from "@/app/components/blocks";
 import { demoLayout, demoContent } from "@/app/lib/demo-data";
 import { BlockLayout, BlockContent } from "@/app/lib/types";
@@ -66,6 +67,8 @@ function renderBlock(layout: BlockLayout, content: BlockContent) {
       return <NetworkBlock data={content.data} />;
     case "career":
       return <CareerBlock data={content.data} />;
+    case "creative":
+      return <CreativeBlock data={content.data} />;
     default:
       return null;
   }

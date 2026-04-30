@@ -3,7 +3,7 @@ import { createClient } from "@/app/lib/supabase/server";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
-  const { origin, searchParams } = new URL(request.url);
+  const { origin } = new URL(request.url);
 
   // Get the current user to check if they're logged in
   const {
@@ -52,11 +52,12 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.redirect(`${origin}/editor`);
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Unknown error";
     console.error("GitHub linking exception:", error);
     return NextResponse.redirect(
       `${origin}/editor?error=github_link_exception&message=${encodeURIComponent(
-        error.message || "Unknown error"
+        message
       )}`
     );
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Share2,
   Check,
@@ -17,16 +17,9 @@ interface ShareButtonProps {
 export function ShareButton({ username }: ShareButtonProps) {
   const [showMenu, setShowMenu] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [canNativeShare, setCanNativeShare] = useState(false);
 
   const profileUrl = `https://bentofolio.dev/${username}`;
   const shareText = `Check out my portfolio on BentoFolio!`;
-
-  useEffect(() => {
-    setCanNativeShare(
-      typeof navigator !== "undefined" && typeof navigator.share === "function"
-    );
-  }, []);
 
   const handleCopyLink = async () => {
     try {
@@ -69,6 +62,9 @@ export function ShareButton({ username }: ShareButtonProps) {
   };
 
   const handleNativeShare = async () => {
+    const canNativeShare =
+      typeof navigator !== "undefined" && typeof navigator.share === "function";
+
     if (canNativeShare) {
       try {
         await navigator.share({
@@ -84,6 +80,9 @@ export function ShareButton({ username }: ShareButtonProps) {
   };
 
   const handleButtonClick = () => {
+    const canNativeShare =
+      typeof navigator !== "undefined" && typeof navigator.share === "function";
+
     if (canNativeShare) {
       handleNativeShare();
     } else {

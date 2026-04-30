@@ -21,8 +21,9 @@ import {
   InstagramBlock,
   NetworkBlock,
   CareerBlock,
+  CreativeBlock,
 } from "@/app/components/blocks";
-import { BlockLayout, BlockContent, ThemeId, themes } from "@/app/lib/types";
+import { BlockLayout, BlockContent, themes } from "@/app/lib/types";
 import { useTheme } from "@/app/lib/theme-context";
 
 interface PublicGridProps {
@@ -71,6 +72,8 @@ function renderBlock(blockContent: BlockContent, isPro: boolean = false) {
       return <NetworkBlock data={blockContent.data} />;
     case "career":
       return <CareerBlock data={blockContent.data} />;
+    case "creative":
+      return <CreativeBlock data={blockContent.data} />;
     default:
       return null;
   }
@@ -83,18 +86,11 @@ export function PublicGrid({
 }: PublicGridProps) {
   const { theme } = useTheme();
   const themeConfig = themes[theme];
-  const cardEffect = isPro ? themeConfig?.cardEffect : "none";
-  console.log(
-    "PublicGrid - isPro from DB:",
-    isPro,
-    "Theme:",
-    theme,
-    "cardEffect:",
-    cardEffect,
-  );
+  const cardEffect = themeConfig?.cardEffect || "none";
+  const enableEffects = cardEffect !== "none";
 
   return (
-    <BentoGrid isPro={isPro}>
+    <BentoGrid isPro={enableEffects}>
       {layout.map((block, index) => {
         const blockContent = content[block.id];
         if (!blockContent) return null;
@@ -105,7 +101,7 @@ export function PublicGrid({
             colSpan={block.w as 1 | 2 | 3 | 4}
             rowSpan={block.h as 1 | 2 | 3 | 4}
             index={index}
-            enableMagnetic={isPro}
+            enableMagnetic={enableEffects}
             cardEffect={cardEffect}
           >
             {renderBlock(blockContent, isPro)}

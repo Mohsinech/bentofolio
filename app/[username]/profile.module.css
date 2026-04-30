@@ -1,13 +1,13 @@
 .page {
   min-height: 100vh;
-  padding: 40px 16px;
+  padding: 34px 16px 64px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .header {
-  margin-bottom: 28px;
+  margin-bottom: 18px;
   text-align: center;
   display: flex;
   align-items: center;
@@ -19,7 +19,7 @@
   font-family: var(--font-montreal), system-ui, sans-serif;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   margin: 0;
 }
 
@@ -62,7 +62,7 @@
 
 .grid {
   width: 100%;
-  max-width: 1100px;
+  max-width: 920px;
 }
 
 .footer {
@@ -139,7 +139,7 @@
   padding: 8px 14px;
   border: 1px solid var(--border-subtle);
   background: transparent;
-  border-radius: 20px;
+  border-radius: 999px;
   color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s var(--ease-out);

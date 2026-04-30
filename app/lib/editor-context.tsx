@@ -56,6 +56,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         case "projects":
         case "career":
         case "techstack":
+        case "creative":
           return { w: 2, h: 2 };
         case "social":
         case "network":
@@ -261,6 +262,31 @@ export function EditorProvider({ children }: { children: ReactNode }) {
               dateRange: "2024 - Present",
               description: "Managing engineering team",
               current: true,
+            },
+          ],
+        },
+      },
+      creative: {
+        type: "creative",
+        data: {
+          title: "Creative OS",
+          description:
+            "A live desk for case studies, notes, experiments, and public Notion pages.",
+          notionUrl: "",
+          ctaLabel: "Open my workspace",
+          ctaUrl: "",
+          items: [
+            {
+              title: "Brand direction notes",
+              type: "Notion page",
+              status: "Public",
+              url: "",
+            },
+            {
+              title: "Recent case study",
+              type: "Project",
+              status: "Updated",
+              url: "",
             },
           ],
         },

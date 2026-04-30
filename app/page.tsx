@@ -301,7 +301,7 @@ const MusicBlock = () => (
               height: [h * 2, h * 4, h * 2],
             }}
             transition={{
-              duration: 0.5 + Math.random() * 0.5,
+              duration: 0.5 + (i % 5) * 0.1,
               repeat: Infinity,
               ease: "easeInOut",
             }}

@@ -26,7 +26,7 @@ export function isAdmin(
 }
 
 // Premium features config
-export const PREMIUM_PRICE = 29; // USD, one-time
+export const PREMIUM_PRICE = 9; // USD, lifetime
 export const LEMON_SQUEEZY_STORE_ID = process.env.LEMON_SQUEEZY_STORE_ID || "";
 export const LEMON_SQUEEZY_PRODUCT_ID =
   process.env.LEMON_SQUEEZY_PRODUCT_ID || "";

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { GitFork, Star, Users, BookOpen, Github } from "lucide-react";
+import { Star, Users, BookOpen, Github } from "lucide-react";
 import styles from "./GitHubBlock.module.css";
 import { GitHubContent } from "@/app/lib/types";
 
@@ -19,8 +19,7 @@ function formatNumber(num: number): string {
 
 export function GitHubBlock({ data }: GitHubBlockProps) {
   const [imgError, setImgError] = useState(false);
-  const { username, avatarUrl, followers, following, publicRepos, totalStars } =
-    data;
+  const { username, avatarUrl, followers, publicRepos, totalStars } = data;
 
   // Fallback for no username
   if (!username) {

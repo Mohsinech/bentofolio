@@ -776,6 +776,106 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
         </>
       );
 
+    case "creative":
+      return (
+        <>
+          <Field
+            label="Tab Title"
+            value={content.data.title || ""}
+            onChange={(v) => handleChange("title", v)}
+            placeholder="Creative OS"
+          />
+          <Field
+            label="Intro"
+            value={content.data.description || ""}
+            onChange={(v) => handleChange("description", v)}
+            placeholder="What audience will find here"
+            multiline
+          />
+          <Field
+            label="Notion URL"
+            value={content.data.notionUrl || ""}
+            onChange={(v) => handleChange("notionUrl", v)}
+            placeholder="https://notion.site/..."
+          />
+          <Field
+            label="CTA Label"
+            value={content.data.ctaLabel || ""}
+            onChange={(v) => handleChange("ctaLabel", v)}
+            placeholder="Open my workspace"
+          />
+          <Field
+            label="CTA URL"
+            value={content.data.ctaUrl || ""}
+            onChange={(v) => handleChange("ctaUrl", v)}
+            placeholder="https://..."
+          />
+          <ArrayField
+            label="Creative Pages"
+            items={content.data.items || []}
+            renderItem={(item, idx) => (
+              <div key={idx} className={styles.arrayItemColumn}>
+                <input
+                  className={styles.input}
+                  value={item.title || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], title: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Page title"
+                />
+                <input
+                  className={styles.input}
+                  value={item.type || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], type: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Case study, Notion page, Moodboard..."
+                />
+                <input
+                  className={styles.input}
+                  value={item.status || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = {
+                      ...newItems[idx],
+                      status: e.target.value,
+                    };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Public, Updated, Draft..."
+                />
+                <input
+                  className={styles.input}
+                  value={item.url || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], url: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Optional URL"
+                />
+              </div>
+            )}
+            onAdd={() =>
+              handleChange("items", [
+                ...(content.data.items || []),
+                { title: "", type: "Notion page", status: "Public", url: "" },
+              ])
+            }
+            onRemove={(i) => {
+              const newItems = (content.data.items || []).filter(
+                (_, idx) => idx !== i,
+              );
+              handleChange("items", newItems);
+            }}
+          />
+        </>
+      );
+
     default:
       return (
         <p className={styles.noFields}>
@@ -945,10 +1045,6 @@ function ImageUploadField({
       onChange(base64);
     };
     reader.readAsDataURL(file);
-  };
-
-  const handleUrlPaste = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
   };
 
   return (

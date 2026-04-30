@@ -30,15 +30,7 @@ export function EditorGrid() {
     useEditor();
   const { theme } = useTheme();
   const themeConfig = themes[theme];
-  const isPro = themeConfig?.isPremium || false;
-  console.log(
-    "EditorGrid - Theme:",
-    theme,
-    "isPremium:",
-    themeConfig?.isPremium,
-    "isPro:",
-    isPro,
-  );
+  const enableEffects = Boolean(themeConfig?.cardEffect);
   const [activeBlock, setActiveBlock] = useState<BlockLayout | null>(null);
 
   const sensors = useSensors(
@@ -97,7 +89,7 @@ export function EditorGrid() {
           items={layout.map((block) => block.id)}
           strategy={rectSortingStrategy}
         >
-          <BentoGrid isEditing={isEditMode} isPro={isPro}>
+          <BentoGrid isEditing={isEditMode} isPro={enableEffects}>
             {layout.map((block, index) => {
               const blockContent = content[block.id];
               if (!blockContent) return null;
@@ -109,10 +101,8 @@ export function EditorGrid() {
                   content={blockContent}
                   index={index}
                   isDragActive={activeBlock !== null}
-                  enableMagnetic={isPro}
-                  cardEffect={
-                    isPro ? themeConfig?.cardEffect || "none" : "none"
-                  }
+                  enableMagnetic={enableEffects}
+                  cardEffect={themeConfig?.cardEffect || "none"}
                 />
               );
             })}

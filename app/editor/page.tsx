@@ -26,7 +26,6 @@ function ErrorHandler({
     const error = searchParams.get("error");
     const message = searchParams.get("message");
     const errorCode = searchParams.get("error_code");
-    const errorDescription = searchParams.get("error_description");
 
     // Handle Supabase callback errors
     if (error === "server_error" && errorCode === "identity_already_exists") {
@@ -69,9 +68,10 @@ function EditorContent() {
   const { profile, loading, saveProfile, saving, hasProAccess } = useProfile();
   const { githubUsername } = useAuth();
   const { setLayout, setContent, layout, content } = useEditor();
-  const [currentTheme, setCurrentTheme] = useState<ThemeId>("dark");
+  const [selectedTheme, setSelectedTheme] = useState<ThemeId | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const currentTheme = selectedTheme || profile?.theme || "dark";
 
   // Detect mobile device
   useEffect(() => {
@@ -92,7 +92,6 @@ function EditorContent() {
         setLayout(profile.layout);
         setContent(profile.content);
       }
-      setCurrentTheme(profile.theme || "dark");
     }
   }, [profile, setLayout, setContent]);
 
@@ -101,7 +100,7 @@ function EditorContent() {
   };
 
   const handleThemeChange = (theme: ThemeId) => {
-    setCurrentTheme(theme);
+    setSelectedTheme(theme);
   };
 
   const handleCustomDomainChange = async (domain: string) => {
