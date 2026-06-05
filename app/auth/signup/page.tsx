@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Github } from "lucide-react";
 import { createClient } from "@/app/lib/supabase/client";
 import styles from "../auth.module.css";
@@ -14,15 +15,33 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
+  const [referralCode] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("ref")?.trim().toUpperCase() || "";
+  });
+  const router = useRouter();
   const supabase = createClient();
+
+  const getAuthCallbackUrl = () => {
+    const url = new URL("/auth/callback", window.location.origin);
+    if (referralCode) {
+      url.searchParams.set("ref", referralCode);
+    }
+    return url.toString();
+  };
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const normalizedUsername = username.trim().toLowerCase();
+    const normalizedEmail = email.trim();
 
     // Validate username (alphanumeric, underscores, hyphens only)
-    if (!/^[a-zA-Z0-9_-]+$/.test(username)) {
+    if (!/^[a-zA-Z0-9_-]+$/.test(normalizedUsername)) {
       setError(
         "Username can only contain letters, numbers, underscores, and hyphens"
       );
@@ -30,20 +49,29 @@ export default function SignupPage() {
       return;
     }
 
-    if (username.length < 3) {
+    if (normalizedUsername.length < 3) {
       setError("Username must be at least 3 characters");
       setLoading(false);
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      await supabase.auth.signOut();
+    }
+
+    const { data, error } = await supabase.auth.signUp({
+      email: normalizedEmail,
       password,
       options: {
         data: {
-          username,
+          username: normalizedUsername,
+          referral_code: referralCode || undefined,
         },
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: getAuthCallbackUrl(),
       },
     });
 
@@ -51,16 +79,54 @@ export default function SignupPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      setSuccess(true);
+      setEmail(normalizedEmail);
+      if (data.session) {
+        router.push("/editor");
+        router.refresh();
+        return;
+      }
       setLoading(false);
+      setSuccess(true);
     }
   };
 
+  const handleResendConfirmation = async () => {
+    const normalizedEmail = email.trim();
+    if (!normalizedEmail) return;
+
+    setResending(true);
+    setError(null);
+    setResendMessage(null);
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: getAuthCallbackUrl(),
+      },
+    });
+
+    if (error) {
+      setError(error.message);
+    } else {
+      setResendMessage("Confirmation email sent again. Check spam too.");
+    }
+    setResending(false);
+  };
+
   const handleGithubSignup = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
+    if (session) {
+      await supabase.auth.signOut();
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: getAuthCallbackUrl(),
       },
     });
 
@@ -84,6 +150,24 @@ export default function SignupPage() {
           </div>
           <div className={styles.success}>
             Click the link in your email to activate your account.
+          </div>
+          {error && <div className={styles.error}>{error}</div>}
+          {resendMessage && <div className={styles.success}>{resendMessage}</div>}
+          <button
+            type="button"
+            className={styles.submitButton}
+            onClick={handleResendConfirmation}
+            disabled={resending}
+          >
+            {resending ? "Sending..." : "Resend confirmation email"}
+          </button>
+          <div className={styles.footer}>
+            <p className={styles.footerText}>
+              Already confirmed?{" "}
+              <Link href="/auth/login" className={styles.footerLink}>
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

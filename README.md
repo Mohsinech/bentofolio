@@ -4,8 +4,8 @@ A creative bento portfolio builder built with Next.js, Supabase, Lemon Squeezy, 
 
 ## Current Product Structure
 
-- **Free**: all blocks, all themes, public `bentofolio.dev/[username]` profile, GitHub import, and the Creative tab.
-- **Pro**: `$9` lifetime, currently only unlocks custom domains.
+- **Free**: core portfolio blocks, built-in visual styles, public `bentofolio.dev/[username]` profile, GitHub import, and the Creative tab.
+- **Pro**: `$9` lifetime for custom domains, analytics, and premium blocks.
 - **Creative tab**: a Notion-style public workspace block for notes, case studies, experiments, moodboards, and external Notion links.
 
 ## Main App Areas
@@ -35,6 +35,12 @@ LEMON_SQUEEZY_STORE_ID=your_store_id
 LEMON_SQUEEZY_VARIANT_ID=your_9_dollar_lifetime_variant_id
 LEMON_SQUEEZY_WEBHOOK_SECRET=your_webhook_secret
 
+# Optional beta fallback while the BentoFolio Lemon Squeezy store is pending.
+NEXT_PUBLIC_BETA_PAYMENT_LINK=your_temporary_payment_or_waitlist_url
+
+# Server-only beta invite codes. These activate Pro without payment.
+BETA_FREE_PRO_CODES=FRIEND_ONE,FRIEND_TWO
+
 RESEND_API_KEY=optional_resend_key
 ```
 
@@ -61,7 +67,7 @@ Important profile fields:
 - `theme`: selected theme id.
 - `layout`: JSON block layout.
 - `content`: JSON block content.
-- `is_pro`: enables custom domain.
+- `is_pro`: enables Pro features.
 - `custom_domain`: paid custom domain, unique.
 - `lemon_squeezy_order_id`: payment reference.
 
@@ -79,9 +85,55 @@ upgraded_at = now()
 lemon_squeezy_order_id = order_id
 ```
 
-6. Editor unlocks custom domain input.
+6. Editor unlocks custom domain input, analytics, and premium block access.
+
+## Beta Launch Flow
+
+Use `$9` lifetime for the first beta users.
+
+- Keep public profiles free.
+- Create a Lemon Squeezy discount code named `BETA90` for 90% off the `$9`
+  beta product if you want a public launch coupon.
+- Add private 100% friend codes to `BETA_FREE_PRO_CODES`. When a signed-in
+  user enters one on `/pricing`, BentoFolio marks that profile as Pro directly.
+- If the BentoFolio Lemon Squeezy store is not approved yet, set
+  `NEXT_PUBLIC_BETA_PAYMENT_LINK` to a temporary payment or waitlist link.
+- After a beta user pays, manually update their profile in Supabase:
+
+```sql
+update profiles
+set is_pro = true,
+    upgraded_at = now()
+where username = 'their_username';
+```
+
+- Once the BentoFolio store is approved, set the real Lemon Squeezy env vars and
+  remove the beta fallback link.
+
+## Invite & Earn
+
+`/invite` lets a signed-in user add a friend's email and generate a referral
+link. The friend must create and confirm a BentoFolio account from that
+`/auth/signup?ref=...` link.
+
+Run the referral migration before enabling this in production:
+
+```sql
+-- supabase/migrations/008_referrals.sql
+```
+
+When 5 referred accounts are confirmed, BentoFolio creates a private
+`COUPON100-...` reward code, emails it to the referrer through Resend, and lets
+that user redeem the code on `/pricing` for Pro.
 
 Custom domains are enforced server-side in `/api/profile`; non-Pro users cannot save `customDomain`.
+
+## Pro Features
+
+- Custom domain support
+- Analytics dashboard
+- Premium blocks:
+  `github`, `experience`, `saas`, `metrics`, `spotify`, `network`, `career`
 
 ## Custom Domain Setup
 
@@ -125,6 +177,10 @@ The Creative block content shape:
   }
 }
 ```
+
+## Removed Route
+
+`/themes` was removed. Theme selection now lives directly inside `/editor`.
 
 ## Development
 

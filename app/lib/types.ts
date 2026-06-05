@@ -5,9 +5,9 @@ export type BlockType =
   | "techstack"
   | "experience"
   | "spotify"
-  | "metrics"
   | "link"
-  | "text"
+  | "work"
+  | "education"
   | "saas"
   | "github"
   | "projects"
@@ -15,11 +15,12 @@ export type BlockType =
   | "availability"
   | "quote"
   | "resume"
+  | "gallery"
   | "youtube"
-  | "instagram"
-  | "network"
-  | "career"
-  | "creative";
+  | "services"
+  | "tools"
+  | "stats"
+  | "instagram";
 
 // Position and size of a block in the grid
 export interface BlockLayout {
@@ -37,6 +38,10 @@ export interface IdentityContent {
   title: string;
   avatar: string;
   bio?: string;
+  location?: string;
+  email?: string;
+  website?: string;
+  availability?: string;
 }
 
 export interface MapContent {
@@ -69,21 +74,35 @@ export interface SpotifyContent {
   albumArt?: string;
 }
 
-export interface MetricsContent {
-  items: {
-    value: string;
-    label: string;
-  }[];
-}
-
 export interface LinkContent {
   url: string;
   title: string;
   icon?: string;
 }
 
-export interface TextContent {
-  text: string;
+export interface WorkContent {
+  title: string;
+  subtitle?: string;
+  email?: string;
+  items: {
+    title: string;
+    client: string;
+    category: string;
+    year: string;
+    image?: string;
+    url?: string;
+  }[];
+}
+
+export interface EducationContent {
+  title: string;
+  items: {
+    school: string;
+    degree: string;
+    period: string;
+    description?: string;
+    logo?: string;
+  }[];
 }
 
 export interface SaaSContent {
@@ -144,6 +163,11 @@ export interface AvailabilityContent {
   message: string;
   forHire: boolean;
   preferredContact?: string;
+  responseTime?: string;
+  timezone?: string;
+  nextOpening?: string;
+  rate?: string;
+  ctaLabel?: string;
 }
 
 // NEW: Quote/Testimonial Block
@@ -162,56 +186,47 @@ export interface ResumeContent {
   lastUpdated?: string;
 }
 
-// NEW: YouTube Block - Channel with video embed
+export interface GalleryContent {
+  title: string;
+  images: {
+    src: string;
+    alt?: string;
+  }[];
+}
+
 export interface YouTubeContent {
-  channelName: string;
-  subscribers: string;
-  videoUrl?: string; // YouTube video URL for embed
-}
-
-// NEW: Instagram Block - Profile link
-export interface InstagramContent {
-  profileUrl: string; // Instagram profile URL (@username or full URL)
-  username?: string;
-  postUrl?: string; // Instagram post URL for embedding
-}
-
-// NEW: Network/Connections Block
-export interface NetworkContent {
   title: string;
-  connections: {
-    name: string;
-    avatar: string; // Photo URL or uploaded file
-    linkedinUrl?: string; // LinkedIn profile URL
-    url?: string; // Other URL (optional)
-  }[];
+  url: string;
 }
 
-// NEW: Career Trajectory Block
-export interface CareerContent {
+export interface ServicesContent {
   title: string;
-  positions: {
-    company: string;
-    role: string;
-    dateRange: string;
-    description?: string;
-    logo?: string;
-    current?: boolean;
-  }[];
+  items: string[];
 }
 
-export interface CreativeContent {
+export interface ToolsContent {
   title: string;
-  description: string;
-  notionUrl?: string;
-  ctaLabel?: string;
-  ctaUrl?: string;
   items: {
-    title: string;
-    type: string;
-    status?: string;
-    url?: string;
+    name: string;
+    icon?: string;
   }[];
+}
+
+export interface StatsContent {
+  items: {
+    label: string;
+    value: string;
+  }[];
+}
+
+export interface InstagramContent {
+  handle: string;
+  profileUrl: string;
+  image?: string;
+  followers: string;
+  posts: string;
+  engagement: string;
+  featuredPostUrl?: string;
 }
 
 // Union type for all content
@@ -221,9 +236,9 @@ export type BlockContent =
   | { type: "techstack"; data: TechStackContent }
   | { type: "experience"; data: ExperienceContent }
   | { type: "spotify"; data: SpotifyContent }
-  | { type: "metrics"; data: MetricsContent }
   | { type: "link"; data: LinkContent }
-  | { type: "text"; data: TextContent }
+  | { type: "work"; data: WorkContent }
+  | { type: "education"; data: EducationContent }
   | { type: "saas"; data: SaaSContent }
   | { type: "github"; data: GitHubContent }
   | { type: "projects"; data: ProjectsContent }
@@ -231,11 +246,12 @@ export type BlockContent =
   | { type: "availability"; data: AvailabilityContent }
   | { type: "quote"; data: QuoteContent }
   | { type: "resume"; data: ResumeContent }
+  | { type: "gallery"; data: GalleryContent }
   | { type: "youtube"; data: YouTubeContent }
-  | { type: "instagram"; data: InstagramContent }
-  | { type: "network"; data: NetworkContent }
-  | { type: "career"; data: CareerContent }
-  | { type: "creative"; data: CreativeContent };
+  | { type: "services"; data: ServicesContent }
+  | { type: "tools"; data: ToolsContent }
+  | { type: "stats"; data: StatsContent }
+  | { type: "instagram"; data: InstagramContent };
 
 // Full block with layout + content
 export interface Block {
@@ -247,6 +263,7 @@ export interface Block {
 export interface Profile {
   id: string;
   username: string;
+  avatarUrl?: string | null;
   theme: ThemeId;
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
@@ -308,17 +325,7 @@ export interface ThemeConfig {
   blobColors?: string[]; // Blob colors
 }
 
-export type ThemeId =
-  | "dark"
-  | "cyberpunk"
-  | "lofi"
-  | "ocean"
-  | "forest"
-  | "sunset"
-  | "monochrome"
-  | "neon"
-  | "minimal"
-  | "nord";
+export type ThemeId = "dark" | "light";
 
 // Import data from separate file to avoid exposure in dev tools
 import { themes, premiumBlocks, freeBlocks } from "./themes.data";

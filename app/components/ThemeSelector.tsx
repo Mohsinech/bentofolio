@@ -7,7 +7,6 @@ import styles from "./ThemeSelector.module.css";
 
 interface ThemeSelectorProps {
   currentTheme: ThemeId;
-  isPro: boolean;
   onSelect: (theme: ThemeId) => void;
   compact?: boolean;
 }

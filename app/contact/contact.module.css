@@ -1,0 +1,230 @@
+.page {
+  min-height: 100vh;
+  padding: 22px clamp(18px, 4vw, 54px) 72px;
+  background:
+    radial-gradient(circle at 24% 2%, rgba(215, 255, 95, 0.12), transparent 24%),
+    radial-gradient(circle at 82% 14%, rgba(255, 255, 255, 0.08), transparent 22%),
+    linear-gradient(135deg, transparent 0 44%, rgba(255, 255, 255, 0.045) 45%, transparent 62%),
+    #070708;
+  color: #f7f3eb;
+}
+
+.nav {
+  width: min(1120px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 auto;
+}
+
+.nav div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav a,
+.back {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 13px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.86rem;
+  text-decoration: none;
+}
+
+.nav a:hover,
+.back:hover {
+  background: rgba(255, 255, 255, 0.055);
+  color: #ffffff;
+}
+
+.hero {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  margin: 72px auto 16px;
+}
+
+.hero > div,
+.domainHelp,
+.card {
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 28px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.018)),
+    rgba(18, 18, 19, 0.88);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.065);
+}
+
+.hero > div {
+  padding: clamp(28px, 5vw, 52px);
+}
+
+.eyebrow {
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 18px;
+  padding: 8px 12px;
+  border: 1px solid rgba(215, 255, 95, 0.14);
+  border-radius: 999px;
+  background: rgba(215, 255, 95, 0.075);
+  color: #e8ff9a;
+  font-size: 0.78rem;
+}
+
+.hero h1 {
+  max-width: 720px;
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-montreal), system-ui, sans-serif;
+  font-size: clamp(3.4rem, 8vw, 7rem);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0.9;
+}
+
+.hero p {
+  max-width: 580px;
+  margin: 22px 0 0;
+  color: rgba(255, 255, 255, 0.58);
+  line-height: 1.7;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.primary,
+.secondary,
+.domainHelp a {
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 15px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.primary {
+  background: #d7ff5f;
+  color: #090a07;
+}
+
+.secondary,
+.domainHelp a {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.055);
+  color: #ffffff;
+}
+
+.domainHelp {
+  align-self: stretch;
+  padding: 28px;
+}
+
+.domainHelp svg {
+  color: #d7ff5f;
+}
+
+.domainHelp h2 {
+  margin: 18px 0 10px;
+  color: #ffffff;
+  font-size: 1.45rem;
+  font-weight: 500;
+}
+
+.domainHelp code {
+  display: inline-block;
+  margin: 0 4px;
+  padding: 2px 6px;
+  border-radius: 7px;
+  background: rgba(0, 0, 0, 0.26);
+  color: #f0ffc2;
+  font-size: 0.78rem;
+}
+
+.domainHelp a {
+  margin-top: 22px;
+}
+
+.cards {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0 auto;
+}
+
+.card {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(215, 255, 95, 0.18);
+  background:
+    radial-gradient(circle at 86% 8%, rgba(215, 255, 95, 0.1), transparent 28%),
+    rgba(18, 18, 19, 0.9);
+}
+
+.card svg {
+  color: #d7ff5f;
+}
+
+.card strong {
+  margin-top: 22px;
+  color: #ffffff;
+  font-size: 1.2rem;
+}
+
+.card span {
+  margin-top: 9px;
+  color: rgba(255, 255, 255, 0.56);
+  line-height: 1.6;
+}
+
+.card em {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: auto;
+  color: #e8ff9a;
+  font-style: normal;
+  font-size: 0.86rem;
+}
+
+@media (max-width: 880px) {
+  .hero,
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    margin-top: 42px;
+  }
+}

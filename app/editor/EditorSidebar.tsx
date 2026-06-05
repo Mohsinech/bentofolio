@@ -7,14 +7,11 @@ import {
   MapPin,
   Code2,
   Briefcase,
-  TrendingUp,
   Link as LinkIcon,
-  FileText,
   Save,
   LogOut,
   Check,
   Loader2,
-  DollarSign,
   Github,
   FolderGit2,
   Share2,
@@ -26,20 +23,18 @@ import {
   FileDown,
   Copy,
   ExternalLink,
-  Youtube,
-  Users,
-  TrendingUp as Career,
   Globe,
+  GraduationCap,
   Info,
   X,
-  BookOpen,
+  LayoutGrid,
+  BarChart3,
 } from "lucide-react";
 import styles from "./editor.module.css";
 import { useEditor } from "@/app/lib/editor-context";
 import { useAuth } from "@/app/lib/hooks";
-import { BlockType, ThemeId } from "@/app/lib/types";
+import { BlockType } from "@/app/lib/types";
 import { DraggableSidebarBlock } from "./DraggableSidebarBlock";
-import { ThemeSelector } from "@/app/components/ThemeSelector";
 
 const blockTypes: {
   type: BlockType;
@@ -87,21 +82,27 @@ const blockTypes: {
   },
   // Work
   {
+    type: "work",
+    icon: <Briefcase size={18} />,
+    label: "Work",
+    category: "work",
+  },
+  {
     type: "experience",
     icon: <Briefcase size={18} />,
     label: "Experience",
     category: "work",
   },
   {
-    type: "saas",
-    icon: <DollarSign size={18} />,
-    label: "SaaS",
+    type: "education",
+    icon: <GraduationCap size={18} />,
+    label: "Education",
     category: "work",
   },
   {
-    type: "metrics",
-    icon: <TrendingUp size={18} />,
-    label: "Metrics",
+    type: "saas",
+    icon: <Globe size={18} />,
+    label: "SaaS",
     category: "work",
   },
   // Social
@@ -123,25 +124,7 @@ const blockTypes: {
     label: "Spotify",
     category: "social",
   },
-  {
-    type: "youtube",
-    icon: <Youtube size={18} />,
-    label: "YouTube",
-    category: "social",
-  },
-  {
-    type: "network",
-    icon: <Users size={18} />,
-    label: "Network",
-    category: "social",
-  },
   // Content
-  {
-    type: "text",
-    icon: <FileText size={18} />,
-    label: "Text",
-    category: "content",
-  },
   {
     type: "quote",
     icon: <Quote size={18} />,
@@ -154,18 +137,6 @@ const blockTypes: {
     label: "Resume",
     category: "content",
   },
-  {
-    type: "career",
-    icon: <Career size={18} />,
-    label: "Career",
-    category: "content",
-  },
-  {
-    type: "creative",
-    icon: <BookOpen size={18} />,
-    label: "Creative",
-    category: "content",
-  },
 ];
 
 interface EditorSidebarProps {
@@ -173,8 +144,6 @@ interface EditorSidebarProps {
   onSave?: () => Promise<void>;
   saving?: boolean;
   onGitHubImport?: () => Promise<void>;
-  currentTheme?: ThemeId;
-  onThemeChange?: (theme: ThemeId) => void;
   isPro?: boolean;
   customDomain?: string | null;
   onCustomDomainChange?: (domain: string) => void;
@@ -185,14 +154,13 @@ export function EditorSidebar({
   onSave,
   saving,
   onGitHubImport,
-  currentTheme = "dark",
-  onThemeChange,
   isPro = false,
   customDomain,
   onCustomDomainChange,
 }: EditorSidebarProps) {
   const { isEditMode, toggleEditMode, addBlock } = useEditor();
   const { signOut, githubUsername } = useAuth();
+  const [activeCategory, setActiveCategory] = useState<string>("profile");
   const [saved, setSaved] = useState(false);
   const [importing, setImporting] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -204,12 +172,8 @@ export function EditorSidebar({
     setDomainInput(customDomain || "");
   }, [customDomain]);
 
-  // Use custom domain if set, otherwise bentofolio.dev
-  const profileUrl = customDomain
-    ? `https://${customDomain}`
-    : username
-      ? `https://bentofolio.dev/${username}`
-      : "";
+  const publicProfileUrl = username ? `https://bentofolio.dev/${username}` : "";
+  const previewPath = username ? `/${username}` : "";
 
   const handleDomainSave = () => {
     if (onCustomDomainChange) {
@@ -229,13 +193,13 @@ export function EditorSidebar({
     if (!username) return;
 
     try {
-      await navigator.clipboard.writeText(profileUrl);
+      await navigator.clipboard.writeText(publicProfileUrl);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       // Fallback for older browsers
       const input = document.createElement("input");
-      input.value = profileUrl;
+      input.value = publicProfileUrl;
       document.body.appendChild(input);
       input.select();
       document.execCommand("copy");
@@ -246,13 +210,7 @@ export function EditorSidebar({
   };
 
   const handlePreview = () => {
-    if (customDomain) {
-      // Open custom domain in new tab
-      window.open(`https://${customDomain}`, "_blank");
-    } else if (username) {
-      // Open bentofolio subdomain
-      window.open(`/${username}`, "_blank");
-    }
+    if (previewPath) window.open(previewPath, "_blank");
   };
 
   const handleGitHubImport = async () => {
@@ -267,24 +225,116 @@ export function EditorSidebar({
     }
   };
 
+  const groupedBlocks = ["profile", "developer", "work", "social", "content"];
+  const visibleBlocks = blockTypes.filter(
+    (block) => block.category === activeCategory,
+  );
+
   return (
     <aside className={styles.sidebar}>
-      <h1 className={styles.logo}>
-        Bento<span className={styles.logoAccent}>Folio</span>
-      </h1>
+      <div className={styles.sidebarTop}>
+        <div className={styles.brandCard}>
+          <div>
+            <h1 className={styles.logo}>
+              Bento<span className={styles.logoAccent}>Folio</span>
+            </h1>
+            <p className={styles.brandCaption}>Portfolio editor</p>
+          </div>
+          <div className={styles.brandBadge}>{isPro ? "Pro" : "Free"}</div>
+        </div>
+
+        <button
+          type="button"
+          className={`${styles.actionButton} ${styles.primaryButton} ${styles.topSaveButton}`}
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saving ? (
+            <Loader2 size={16} className={styles.spinning} />
+          ) : saved ? (
+            <Check size={16} />
+          ) : (
+            <Save size={16} />
+          )}
+          {saving ? "Saving..." : saved ? "Saved" : "Save changes"}
+        </button>
+      </div>
 
       {username && (
-        <div className={styles.usernameDisplay}>
-          <span className={styles.usernameLabel}>Your profile</span>
-          <span className={styles.usernameValue}>
-            bentofolio.dev/{username}
-          </span>
+        <div className={styles.workspaceCard}>
+          <div className={styles.workspaceHeader}>
+            <div>
+              <span className={styles.usernameLabel}>Public profile</span>
+              <span className={styles.usernameValue}>
+                bentofolio.dev/{username}
+              </span>
+            </div>
+            <span className={styles.workspacePlan}>
+              {isPro ? "Custom domain ready" : "Free site"}
+            </span>
+          </div>
+          <div className={styles.quickRow}>
+            <button
+              type="button"
+              className={`${styles.actionButton} ${styles.secondaryButton} ${styles.actionHalf}`}
+              onClick={handlePreview}
+              disabled={!username}
+              title="Open in new tab"
+            >
+              <ExternalLink size={16} />
+              Preview
+            </button>
+
+            <button
+              type="button"
+              className={`${styles.actionButton} ${styles.shareButton} ${styles.actionHalf}`}
+              onClick={handleShare}
+              disabled={!username}
+              title="Copy link to clipboard"
+            >
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+              {copied ? "Copied!" : "Share"}
+            </button>
+          </div>
+
+          <div className={styles.utilityGrid}>
+            <Link
+              href={isPro ? "/editor/analytics" : "/pricing"}
+              className={styles.utilityButton}
+            >
+              <BarChart3 size={14} />
+              <span>{isPro ? "Analytics" : "Unlock analytics"}</span>
+            </Link>
+
+            {githubUsername ? (
+              <button
+                className={styles.utilityButton}
+                onClick={handleGitHubImport}
+                disabled={importing}
+              >
+                {importing ? (
+                  <Loader2 size={14} className={styles.spinning} />
+                ) : (
+                  <Github size={14} />
+                )}
+                <span>{importing ? "Importing" : "GitHub import"}</span>
+              </button>
+            ) : (
+              <Link href="/api/auth/github" className={styles.utilityButton}>
+                <Github size={14} />
+                <span>Connect GitHub</span>
+              </Link>
+            )}
+          </div>
+
+          {githubUsername && (
+            <span className={styles.githubHint}>Connected as @{githubUsername}</span>
+          )}
         </div>
       )}
 
-      {/* Custom Domain - Pro Feature */}
       {isPro ? (
-        <div className={styles.section}>
+        <div className={`${styles.section} ${styles.domainCard}`}>
           <div className={styles.sectionHeader}>
             <span className={styles.sectionTitle}>
               <Globe size={14} />
@@ -399,67 +449,35 @@ export function EditorSidebar({
         </div>
       ) : (
         <Link href="/pricing" className={styles.domainPromo}>
-          <Globe size={14} />
-          <span>Custom domain - $9 lifetime</span>
-          <Sparkles size={12} className={styles.proIcon} />
+          <div>
+            <span className={styles.sectionTitle}>
+              <Sparkles size={14} />
+              Pro unlocks
+            </span>
+            <p className={styles.upgradeCopy}>
+              Custom domain, analytics, and premium portfolio blocks.
+            </p>
+          </div>
+          <span className={styles.upgradePill}>$9 lifetime</span>
         </Link>
       )}
 
-      {/* GitHub Import */}
-      {githubUsername ? (
-        <div className={styles.section}>
-          <button
-            className={`${styles.actionButton} ${styles.githubButton}`}
-            onClick={handleGitHubImport}
-            disabled={importing}
-          >
-            {importing ? (
-              <Loader2 size={16} className={styles.spinning} />
-            ) : (
-              <Github size={16} />
-            )}
-            Import from GitHub
-          </button>
-          <span className={styles.githubHint}>@{githubUsername}</span>
-        </div>
-      ) : (
-        <div className={styles.section}>
-          <Link
-            href="/api/auth/github"
-            className={`${styles.actionButton} ${styles.githubConnectButton}`}
-          >
-            <Github size={16} />
-            Connect GitHub
-          </Link>
-          <span className={styles.githubHint}>
-            Link your GitHub to import data
-          </span>
-        </div>
-      )}
-
-      {/* Theme Selector */}
       <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <span className={styles.sectionTitle}>
             <Palette size={14} />
-            Theme
+            Visual system
           </span>
-          <Link href="/themes" className={styles.sectionLink}>
-            View all
-          </Link>
         </div>
-        <ThemeSelector
-          currentTheme={currentTheme}
-          isPro
-          onSelect={(theme) => onThemeChange?.(theme)}
-          compact
-        />
+        <div className={styles.styleNote}>
+          One focused built-in style keeps the editor, public profile, and
+          analytics consistent for launch.
+        </div>
       </div>
 
-      {/* Edit mode toggle */}
       <div className={styles.section}>
         <div className={styles.modeToggle}>
-          <span className={styles.modeLabel}>Edit Mode</span>
+          <span className={styles.modeLabel}>Editing enabled</span>
           <button
             className={`${styles.toggle} ${isEditMode ? styles.active : ""}`}
             onClick={toggleEditMode}
@@ -469,12 +487,30 @@ export function EditorSidebar({
         </div>
       </div>
 
-      {/* Add blocks menu */}
-      <div className={styles.section}>
-        <span className={styles.sectionTitle}>Add Blocks</span>
-        <span className={styles.sectionHint}>Click or drag to add</span>
+      <div className={`${styles.section} ${styles.blockSection}`}>
+        <div className={styles.sectionHeader}>
+          <span className={styles.sectionTitle}>
+            <LayoutGrid size={14} />
+            Card Library
+          </span>
+          <span className={styles.sectionHint}>Blocks</span>
+        </div>
+        <div className={styles.categoryTabs}>
+          {groupedBlocks.map((category) => (
+            <button
+              key={category}
+              type="button"
+              className={`${styles.categoryTab} ${
+                activeCategory === category ? styles.categoryTabActive : ""
+              }`}
+              onClick={() => setActiveCategory(category)}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
         <div className={styles.blockMenu}>
-          {blockTypes.map((block) => (
+          {visibleBlocks.map((block) => (
             <DraggableSidebarBlock
               key={block.type}
               type={block.type}
@@ -490,44 +526,7 @@ export function EditorSidebar({
       {/* Actions */}
       <div className={styles.actions}>
         <button
-          className={`${styles.actionButton} ${styles.primaryButton}`}
-          onClick={handleSave}
-          disabled={saving}
-        >
-          {saving ? (
-            <Loader2 size={16} className={styles.spinning} />
-          ) : saved ? (
-            <Check size={16} />
-          ) : (
-            <Save size={16} />
-          )}
-          {saving ? "Saving..." : saved ? "Saved!" : "Save"}
-        </button>
-
-        <div className={styles.actionRow}>
-          <button
-            className={`${styles.actionButton} ${styles.secondaryButton} ${styles.actionHalf}`}
-            onClick={handlePreview}
-            disabled={!username}
-            title="Open in new tab"
-          >
-            <ExternalLink size={16} />
-            Preview
-          </button>
-
-          <button
-            className={`${styles.actionButton} ${styles.shareButton} ${styles.actionHalf}`}
-            onClick={handleShare}
-            disabled={!username}
-            title="Copy link to clipboard"
-          >
-            {copied ? <Check size={16} /> : <Copy size={16} />}
-            {copied ? "Copied!" : "Share"}
-          </button>
-        </div>
-
-        <button
-          className={`${styles.actionButton} ${styles.dangerButton}`}
+          className={`${styles.actionButton} ${styles.secondaryButton}`}
           onClick={signOut}
         >
           <LogOut size={16} />

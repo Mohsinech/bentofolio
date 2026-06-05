@@ -23,7 +23,8 @@ function TechItem({
   index: number;
 }) {
   const [imgError, setImgError] = useState(false);
-  const iconUrl = getTechIconUrl(name);
+  const iconUrl = getTechIconUrl(name) || (icon.startsWith("/") ? icon : null);
+  const fallbackIcon = icon.startsWith("/") ? name.slice(0, 2) : icon;
 
   return (
     <motion.div
@@ -45,7 +46,7 @@ function TechItem({
             onError={() => setImgError(true)}
           />
         ) : (
-          icon
+          fallbackIcon
         )}
       </span>
       <span>{name}</span>

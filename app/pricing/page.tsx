@@ -2,36 +2,52 @@
 
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowLeft,
+  ArrowRight,
+  BarChart3,
   Check,
   Globe,
   Loader2,
-  NotebookTabs,
+  Lock,
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/app/lib/hooks/useAuth";
 import { useCheckout } from "@/app/lib/hooks/useCheckout";
+import { useProfile } from "@/app/lib/hooks/useProfile";
 import { PREMIUM_PRICE } from "@/app/lib/config";
 import styles from "./pricing.module.css";
 
 const freeFeatures = [
-  "All bento blocks",
-  "Creative tab for Notion-style work sharing",
-  "All themes while the new visual system evolves",
+  "Identity, work, stack, social, link, resume, quote, education, and tools",
   "Public bentofolio.dev profile",
-  "GitHub import and social links",
+  "Dark and light themes",
+  "Editable bento canvas",
+  "Good for a focused starter portfolio",
 ];
 
 const proFeatures = [
   "Connect your own custom domain",
+  "Verification badge beside your name",
+  "Analytics dashboard",
+  "Premium blocks: GitHub, Projects, SaaS, Spotify, YouTube, Gallery, Instagram, Services, Stats",
+  "Pro templates for creators, developers, and product launches",
   "Lifetime access for one payment",
-  "Keep every free creative feature",
+  "Keep every free block and future polish",
 ];
 
+const betaFreeCodes = ["NAOUMI100", "OUAZINI100"];
+
 export default function PricingPage() {
-  const { user, hasProAccess } = useAuth();
+  const { user } = useAuth();
+  const { hasProAccess } = useProfile();
   const { initiateCheckout, loading, error } = useCheckout();
+  const [couponCode, setCouponCode] = useState("");
+  const normalizedCouponCode = couponCode.trim().toUpperCase();
+  const isFreeBetaCode =
+    betaFreeCodes.includes(normalizedCouponCode) ||
+    normalizedCouponCode.startsWith("COUPON100-");
 
   const handleUpgrade = () => {
     if (!user) {
@@ -39,7 +55,7 @@ export default function PricingPage() {
       return;
     }
 
-    initiateCheckout();
+    initiateCheckout(couponCode);
   };
 
   return (
@@ -47,8 +63,12 @@ export default function PricingPage() {
       <header className={styles.header}>
         <Link href="/" className={styles.backLink}>
           <ArrowLeft size={18} />
-          Back
+          BentoFolio
         </Link>
+        <nav>
+          <Link href="/contact">Contact</Link>
+          <Link href="/auth/login">Log in</Link>
+        </nav>
       </header>
 
       <section className={styles.hero}>
@@ -60,14 +80,32 @@ export default function PricingPage() {
         >
           <span className={styles.eyebrow}>
             <Sparkles size={14} />
-            Simple lifetime upgrade
+            Beta lifetime deal
           </span>
-          <h1 className={styles.title}>Make the profile yours.</h1>
+          <h1 className={styles.title}>
+            Launch free. Own Pro for ${PREMIUM_PRICE}.
+          </h1>
           <p className={styles.subtitle}>
-            BentoFolio stays generous by default. Pro is only for creators who
-            want their own domain.
+            Start with the essential BentoFolio canvas. Upgrade when you want
+            richer proof blocks, analytics, templates, and your own domain.
+            Beta Pro is one payment while the product is young.
           </p>
         </motion.div>
+      </section>
+
+      <section className={styles.valueStrip}>
+        <span>
+          <Lock size={15} />
+          Pro features are clearly locked in the editor
+        </span>
+        <span>
+          <BarChart3 size={15} />
+          Analytics and growth blocks stay Pro
+        </span>
+        <span>
+          <Globe size={15} />
+          Custom domains for owned presence
+        </span>
       </section>
 
       <section className={styles.pricing}>
@@ -99,6 +137,7 @@ export default function PricingPage() {
 
           <Link href="/auth/signup" className={styles.freeButton}>
             Start building
+            <ArrowRight size={16} />
           </Link>
         </motion.article>
 
@@ -114,13 +153,15 @@ export default function PricingPage() {
           </div>
 
           <div className={styles.cardHeader}>
-            <span className={styles.planName}>Pro</span>
+            <span className={styles.planName}>Beta Pro</span>
             <div className={styles.priceRow}>
               <span className={styles.price}>${PREMIUM_PRICE}</span>
-              <span className={styles.priceLabel}>lifetime</span>
+              <span className={styles.priceLabel}>lifetime beta</span>
             </div>
             <p className={styles.planDesc}>
-              One payment to publish your portfolio on your own domain.
+              One payment for your own domain, analytics, and richer
+              proof-of-work blocks. Early users can be activated manually while
+              checkout is being approved.
             </p>
           </div>
 
@@ -132,6 +173,16 @@ export default function PricingPage() {
               </li>
             ))}
           </ul>
+
+          <label className={styles.couponField}>
+            <span>Beta coupon</span>
+            <input
+              value={couponCode}
+              onChange={(event) => setCouponCode(event.target.value)}
+              placeholder="BETA90 or invite code"
+              spellCheck={false}
+            />
+          </label>
 
           <button
             className={styles.proButton}
@@ -148,7 +199,7 @@ export default function PricingPage() {
             ) : (
               <>
                 <Globe size={16} />
-                Get Pro — ${PREMIUM_PRICE}
+                {isFreeBetaCode ? "Get Pro for free" : `Get Pro — $${PREMIUM_PRICE}`}
               </>
             )}
           </button>
@@ -160,13 +211,14 @@ export default function PricingPage() {
       <section className={styles.creativeSection}>
         <div className={styles.creativeCard}>
           <div className={styles.creativeIcon}>
-            <NotebookTabs size={22} />
+            <Sparkles size={22} />
           </div>
           <div>
-            <h2>Creative tab is included.</h2>
+            <h2>Free stays useful. Pro adds leverage.</h2>
             <p>
-              Use it like a public Notion desk: share case studies, notes,
-              moodboards, experiments, and the thinking behind your work.
+              The free plan is enough to publish a polished profile. Pro is for
+              people who want more proof, more media, analytics, and domain
+              ownership.
             </p>
           </div>
         </div>

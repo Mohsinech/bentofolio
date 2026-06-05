@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Star, Users, BookOpen, Github } from "lucide-react";
+import NextImage from "next/image";
 import styles from "./GitHubBlock.module.css";
 import { GitHubContent } from "@/app/lib/types";
 
@@ -55,9 +56,11 @@ export function GitHubBlock({ data }: GitHubBlockProps) {
       <div className={styles.header}>
         <div className={styles.avatar}>
           {avatarUrl && !imgError ? (
-            <img
+            <NextImage
               src={avatarUrl}
               alt={username}
+              width={40}
+              height={40}
               className={styles.avatarImg}
               onError={() => setImgError(true)}
             />

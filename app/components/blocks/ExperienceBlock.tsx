@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Briefcase } from "lucide-react";
+import NextImage from "next/image";
 import styles from "./ExperienceBlock.module.css";
 import { ExperienceContent } from "@/app/lib/types";
 import {
@@ -15,9 +16,12 @@ interface ExperienceBlockProps {
   data: ExperienceContent;
 }
 
-function CompanyLogo({ company }: { company: string }) {
+function CompanyLogo({ company, logo }: { company: string; logo?: string }) {
   const [imgError, setImgError] = useState(false);
-  const logoUrl = getCompanyLogo(company);
+  const detectedLogo = getCompanyLogo(company);
+  const savedLogo =
+    logo && !logo.includes("logo.clearbit.com") ? logo : detectedLogo;
+  const logoUrl = savedLogo || detectedLogo;
   const initials = getCompanyInitials(company);
   const bgColor = getCompanyColor(company);
 
@@ -30,9 +34,11 @@ function CompanyLogo({ company }: { company: string }) {
   }
 
   return (
-    <img
+    <NextImage
       src={logoUrl}
       alt={company}
+      width={40}
+      height={40}
       className={styles.logo}
       onError={() => setImgError(true)}
     />
@@ -71,7 +77,7 @@ export function ExperienceBlock({ data }: ExperienceBlockProps) {
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.1 }}
           >
-            <CompanyLogo company={item.company} />
+            <CompanyLogo company={item.company} logo={item.logo} />
             <div className={styles.info}>
               <span className={styles.company}>
                 {item.company || "Company"}

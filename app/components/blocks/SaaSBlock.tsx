@@ -1,42 +1,57 @@
 "use client";
 
+import { useId, useState } from "react";
 import { motion } from "framer-motion";
 import { ExternalLink, DollarSign } from "lucide-react";
+import NextImage from "next/image";
 import styles from "./SaaSBlock.module.css";
 import { SaaSContent } from "@/app/lib/types";
+import { IMAGE_PLACEHOLDER } from "@/app/lib/placeholders";
 
 interface SaaSBlockProps {
   data: SaaSContent;
 }
 
-// Mini sparkline chart component
 function SparklineChart({
   data,
-  color = "#a855f7",
+  color = "var(--saas-chart-color)",
 }: {
   data: number[];
   color?: string;
 }) {
+  const gradientId = `saas-chart-gradient-${useId().replace(/:/g, "")}`;
+  const glowId = `saas-chart-glow-${useId().replace(/:/g, "")}`;
+
   if (!data || data.length === 0) return null;
 
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
-
-  const width = 100;
-  const height = 40;
-  const padding = 2;
+  const width = 180;
+  const height = 106;
+  const padding = 8;
 
   const points = data.map((value, index) => {
-    const x = padding + (index / (data.length - 1)) * (width - padding * 2);
+    const x =
+      padding +
+      (index / Math.max(data.length - 1, 1)) * (width - padding * 2);
     const y =
       height - padding - ((value - min) / range) * (height - padding * 2);
     return `${x},${y}`;
   });
 
-  const pathD = `M ${points.join(" L ")}`;
+  const coords = points.map((point) => {
+    const [x, y] = point.split(",").map(Number);
+    return { x, y };
+  });
 
-  // Create area fill path
+  const pathD = coords.reduce((path, point, index) => {
+    if (index === 0) return `M ${point.x},${point.y}`;
+    const previous = coords[index - 1];
+    const midX = (previous.x + point.x) / 2;
+    return `${path} C ${midX},${previous.y} ${midX},${point.y} ${point.x},${point.y}`;
+  }, "");
+
   const areaD = `${pathD} L ${width - padding},${
     height - padding
   } L ${padding},${height - padding} Z`;
@@ -49,38 +64,70 @@ function SparklineChart({
     >
       <defs>
         <linearGradient
-          id={`gradient-${color.replace("#", "")}`}
+          id={gradientId}
           x1="0%"
           y1="0%"
           x2="0%"
           y2="100%"
         >
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="0%" stopColor={color} stopOpacity="0.34" />
+          <stop offset="55%" stopColor={color} stopOpacity="0.08" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
+        <filter id={glowId} x="-20%" y="-60%" width="140%" height="220%">
+          <feGaussianBlur stdDeviation="1.8" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
       </defs>
 
-      {/* Area fill */}
+      <g className={styles.gridLines}>
+        {[22, 48, 74].map((y) => (
+          <line key={y} x1="0" y1={y} x2={width} y2={y} />
+        ))}
+      </g>
+
       <motion.path
         d={areaD}
-        fill={`url(#gradient-${color.replace("#", "")})`}
+        fill={`url(#${gradientId})`}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       />
 
-      {/* Line */}
       <motion.path
         d={pathD}
         fill="none"
         stroke={color}
-        strokeWidth="2"
+        strokeWidth="2.8"
         strokeLinecap="round"
         strokeLinejoin="round"
+        filter={`url(#${glowId})`}
         initial={{ pathLength: 0 }}
         animate={{ pathLength: 1 }}
         transition={{ duration: 1, ease: "easeOut" }}
       />
+
+      {points.map((point, index) => {
+        const [cx, cy] = point.split(",");
+        const isLast = index === points.length - 1;
+        return (
+          <motion.circle
+            key={`${point}-${index}`}
+            cx={cx}
+            cy={cy}
+            r={isLast ? 4.2 : 0}
+            fill={isLast ? "var(--saas-chart-dot)" : color}
+            stroke={isLast ? color : "transparent"}
+            strokeWidth={isLast ? 1.6 : 0}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: isLast ? 1 : 0.72 }}
+            transition={{ delay: 0.55 + index * 0.04 }}
+          />
+        );
+      })}
     </svg>
   );
 }
@@ -96,9 +143,9 @@ function formatCurrency(value: number, currency = "$") {
 }
 
 export function SaaSBlock({ data }: SaaSBlockProps) {
+  const [failedLogoSrc, setFailedLogoSrc] = useState<string | null>(null);
   const { name, logo, tagline, url, mrr, revenue, currency = "$" } = data;
 
-  // Empty state
   if (!name) {
     return (
       <div className={styles.wrapper}>
@@ -110,24 +157,11 @@ export function SaaSBlock({ data }: SaaSBlockProps) {
     );
   }
 
-  // Determine chart color based on trend
-  const isGrowing =
-    revenue &&
-    revenue.length >= 2 &&
-    revenue[revenue.length - 1] > revenue[revenue.length - 2];
-  const chartColor = isGrowing ? "#22c55e" : "#a855f7";
-
-  // Auto-generate favicon URL from the SaaS URL if no logo provided
-  const getFaviconUrl = (siteUrl: string) => {
-    try {
-      const domain = new URL(siteUrl).hostname;
-      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
-    } catch {
-      return null;
-    }
-  };
-
-  const displayLogo = logo || getFaviconUrl(url);
+  const chartColor = "var(--saas-chart-color)";
+  const logoCandidate = logo || IMAGE_PLACEHOLDER;
+  const displayLogo =
+    failedLogoSrc === logoCandidate ? IMAGE_PLACEHOLDER : logoCandidate;
+  const host = url ? url.replace(/^https?:\/\//, "").replace(/\/$/, "") : "";
 
   return (
     <motion.a
@@ -138,44 +172,39 @@ export function SaaSBlock({ data }: SaaSBlockProps) {
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
-      <div className={styles.header}>
-        <div className={styles.logoWrapper}>
-          {displayLogo ? (
-            <img src={displayLogo} alt={name} className={styles.logo} />
-          ) : (
-            <div className={styles.logoPlaceholder}>
-              {name.charAt(0).toUpperCase()}
-            </div>
-          )}
-        </div>
-
-        <div className={styles.info}>
-          <div className={styles.nameRow}>
-            <span className={styles.name}>{name}</span>
-            <ExternalLink size={12} className={styles.externalIcon} />
-          </div>
-          <span className={styles.tagline}>{tagline}</span>
-        </div>
-
-        <div className={styles.mrr}>
-          <span className={styles.mrrValue}>
-            {formatCurrency(mrr, currency)}
-          </span>
-          <span className={styles.mrrLabel}>/mo</span>
-        </div>
+      <div className={styles.hero}>
+        <span className={styles.kicker}>
+          Revenue growth <ExternalLink size={14} />
+        </span>
+        <span className={styles.mrr}>
+          {formatCurrency(mrr, currency)} MRR
+        </span>
       </div>
 
       <div className={styles.chartWrapper}>
         <SparklineChart data={revenue} color={chartColor} />
+      </div>
 
-        <div className={styles.chartLabels}>
-          <span className={styles.chartMin}>
-            {formatCurrency(Math.min(...revenue), currency)}
-          </span>
-          <span className={styles.chartMax}>
-            {formatCurrency(Math.max(...revenue), currency)}
-          </span>
+      <div className={styles.footer}>
+        <div className={styles.logoWrapper}>
+          <NextImage
+            src={displayLogo}
+            alt={name}
+            width={34}
+            height={34}
+            className={styles.logo}
+            onError={() => {
+              if (displayLogo !== IMAGE_PLACEHOLDER) {
+                setFailedLogoSrc(displayLogo);
+              }
+            }}
+          />
         </div>
+        <div className={styles.info}>
+          <span className={styles.name}>{name}</span>
+          <span className={styles.tagline}>{tagline}</span>
+        </div>
+        <span className={styles.host}>{host}</span>
       </div>
     </motion.a>
   );

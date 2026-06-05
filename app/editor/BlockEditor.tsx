@@ -1,10 +1,21 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { X, Plus, Trash2, Upload, FileText } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  X,
+  Plus,
+  Trash2,
+  Upload,
+  FileText,
+  MapPin,
+  Loader2,
+  Github,
+} from "lucide-react";
 import NextImage from "next/image";
 import { useEditor } from "@/app/lib/editor-context";
 import { BlockContent } from "@/app/lib/types";
+import { importFromGitHub } from "@/app/lib/github";
+import { getCompanyLogo } from "@/app/lib/company-logos";
 import {
   techStack,
   getTechSuggestions,
@@ -12,7 +23,7 @@ import {
   getTechsByCategory,
   TechItem,
 } from "@/app/lib/tech-stack";
-import { getTechIconUrl } from "@/app/lib/tech-icons";
+import { getTechIconUrl, techIcons } from "@/app/lib/tech-icons";
 import styles from "./BlockEditor.module.css";
 
 interface BlockEditorProps {
@@ -98,9 +109,33 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             onChange={(v) => handleChange("title", v)}
           />
           <ImageUploadField
-            label="Avatar"
+            label="Memoji"
             value={content.data.avatar}
             onChange={(v) => handleChange("avatar", v)}
+          />
+          <Field
+            label="Availability"
+            value={content.data.availability || ""}
+            onChange={(v) => handleChange("availability", v)}
+            placeholder="Available for work"
+          />
+          <Field
+            label="Location"
+            value={content.data.location || ""}
+            onChange={(v) => handleChange("location", v)}
+            placeholder="Remote"
+          />
+          <Field
+            label="Email"
+            value={content.data.email || ""}
+            onChange={(v) => handleChange("email", v)}
+            placeholder="hello@example.com"
+          />
+          <Field
+            label="Website"
+            value={content.data.website || ""}
+            onChange={(v) => handleChange("website", v)}
+            placeholder="example.com"
           />
           <Field
             label="Bio"
@@ -114,41 +149,32 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
     case "map":
       return (
         <>
-          <Field
-            label="Location"
+          <LocationAutocompleteField
             value={content.data.location}
-            onChange={(v) => handleChange("location", v)}
+            onChange={(value) => handleChange("location", value)}
+            onSelect={(place) => {
+              onUpdate(blockId, {
+                ...content,
+                data: {
+                  ...content.data,
+                  location: place.label,
+                  lat: place.lat,
+                  lng: place.lng,
+                },
+              });
+            }}
           />
         </>
       );
 
     case "github":
       return (
-        <>
-          <Field
-            label="GitHub Username"
-            value={content.data.username}
-            onChange={(v) => handleChange("username", v)}
-          />
-          <Field
-            label="Followers"
-            value={String(content.data.followers)}
-            onChange={(v) => handleChange("followers", Number(v))}
-            type="number"
-          />
-          <Field
-            label="Repos"
-            value={String(content.data.publicRepos)}
-            onChange={(v) => handleChange("publicRepos", Number(v))}
-            type="number"
-          />
-          <Field
-            label="Stars"
-            value={String(content.data.totalStars || 0)}
-            onChange={(v) => handleChange("totalStars", Number(v))}
-            type="number"
-          />
-        </>
+        <GitHubImportEditor
+          username={content.data.username}
+          onImport={(githubContent) =>
+            onUpdate(blockId, { type: "github", data: githubContent })
+          }
+        />
       );
 
     case "link":
@@ -158,23 +184,156 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             label="Title"
             value={content.data.title}
             onChange={(v) => handleChange("title", v)}
+            placeholder="Let's Collaborate"
           />
           <Field
-            label="URL"
+            label="Email or URL"
             value={content.data.url}
             onChange={(v) => handleChange("url", v)}
+            placeholder="hello@example.com"
           />
         </>
       );
 
-    case "text":
+    case "work":
       return (
-        <Field
-          label="Text"
-          value={content.data.text}
-          onChange={(v) => handleChange("text", v)}
-          multiline
-        />
+        <>
+          <Field
+            label="Title"
+            value={content.data.title || ""}
+            onChange={(v) => handleChange("title", v)}
+            placeholder="Recent work"
+          />
+          <Field
+            label="Subtitle"
+            value={content.data.subtitle || ""}
+            onChange={(v) => handleChange("subtitle", v)}
+            placeholder="Selected projects"
+          />
+          <Field
+            label="Email"
+            value={content.data.email || ""}
+            onChange={(v) => handleChange("email", v)}
+            placeholder="hello@icloud.com"
+          />
+          <ArrayField
+            label="Work Items"
+            items={content.data.items || []}
+            renderItem={(item, idx) => (
+              <div key={idx} className={styles.arrayItemColumn}>
+                <input
+                  className={styles.input}
+                  value={item.title || ""}
+                  list="work-title-suggestions"
+                  autoComplete="on"
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], title: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Project title"
+                />
+                <input
+                  className={styles.input}
+                  value={item.client || ""}
+                  list="work-client-suggestions"
+                  autoComplete="on"
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], client: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Client or studio"
+                />
+                <input
+                  className={styles.input}
+                  value={item.category || ""}
+                  list="work-category-suggestions"
+                  autoComplete="on"
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], category: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Product design, web app..."
+                />
+                <input
+                  className={styles.smallInput}
+                  value={item.year || ""}
+                  autoComplete="on"
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], year: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="2026"
+                />
+                <ImageUploadField
+                  label="Preview image"
+                  value={item.image || ""}
+                  onChange={(url) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], image: url };
+                    handleChange("items", newItems);
+                  }}
+                  small
+                  maxSizeMB={10}
+                />
+                <input
+                  className={styles.input}
+                  value={item.url || ""}
+                  list="url-suggestions"
+                  autoComplete="on"
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[idx] = { ...newItems[idx], url: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Project URL"
+                />
+              </div>
+            )}
+            onAdd={() =>
+              handleChange("items", [
+                ...(content.data.items || []),
+                {
+                  title: "",
+                  client: "",
+                  category: "",
+                  year: "",
+                  image: "",
+                  url: "",
+                },
+              ])
+            }
+            onRemove={(i) => {
+              const newItems = (content.data.items || []).filter(
+                (_, idx) => idx !== i,
+              );
+              handleChange("items", newItems);
+            }}
+          />
+          <datalist id="work-title-suggestions">
+            {["Portfolio OS", "Creator dashboard", "Mobile app redesign", "Brand system"].map((item) => (
+              <option key={item} value={item} />
+            ))}
+          </datalist>
+          <datalist id="work-client-suggestions">
+            {["Northstar Studio", "Bento Labs", "Independent", "Studio"].map((item) => (
+              <option key={item} value={item} />
+            ))}
+          </datalist>
+          <datalist id="work-category-suggestions">
+            {["Product design", "Web app", "Brand identity", "Design system", "Development"].map((item) => (
+              <option key={item} value={item} />
+            ))}
+          </datalist>
+          <datalist id="url-suggestions">
+            {["https://example.com", "https://dribbble.com/username", "https://github.com/username"].map((item) => (
+              <option key={item} value={item} />
+            ))}
+          </datalist>
+        </>
       );
 
     case "saas":
@@ -229,15 +388,46 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             onChange={(v) => handleChange("message", v)}
             multiline
           />
+          <Field
+            label="Next opening"
+            value={content.data.nextOpening || ""}
+            onChange={(v) => handleChange("nextOpening", v)}
+            placeholder="2 spots this month"
+          />
+          <Field
+            label="Response time"
+            value={content.data.responseTime || ""}
+            onChange={(v) => handleChange("responseTime", v)}
+            placeholder="Replies within 24h"
+          />
+          <Field
+            label="Timezone"
+            value={content.data.timezone || ""}
+            onChange={(v) => handleChange("timezone", v)}
+            placeholder="GMT+1"
+          />
+          <Field
+            label="Rate"
+            value={content.data.rate || ""}
+            onChange={(v) => handleChange("rate", v)}
+            placeholder="Projects from $2k"
+          />
           <CheckboxField
             label="Open to work"
             checked={content.data.forHire}
             onChange={(v) => handleChange("forHire", v)}
           />
           <Field
-            label="Contact Email"
+            label="Contact"
             value={content.data.preferredContact || ""}
             onChange={(v) => handleChange("preferredContact", v)}
+            placeholder="hello@example.com or https://cal.com/you"
+          />
+          <Field
+            label="CTA label"
+            value={content.data.ctaLabel || ""}
+            onChange={(v) => handleChange("ctaLabel", v)}
+            placeholder="Start a project"
           />
         </>
       );
@@ -321,100 +511,165 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
 
     case "experience":
       return (
-        <ArrayField
-          label="Work Experience"
-          items={content.data.items || []}
-          renderItem={(item, i) => (
-            <div className={styles.arrayItemColumn}>
-              <input
-                className={styles.input}
-                value={item.company || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, company: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Company"
-              />
-              <input
-                className={styles.input}
-                value={item.role || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, role: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Role"
-              />
-              <input
-                className={styles.smallInput}
-                value={item.period || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, period: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="2022 - Present"
-              />
-            </div>
-          )}
-          onAdd={() =>
-            handleChange("items", [
-              ...(content.data.items || []),
-              { company: "", role: "", period: "" },
-            ])
-          }
-          onRemove={(i) => {
-            const newItems = (content.data.items || []).filter(
-              (_, idx) => idx !== i,
-            );
-            handleChange("items", newItems);
-          }}
-        />
+        <>
+          <ArrayField
+            label="Work Experience"
+            items={content.data.items || []}
+            renderItem={(item, i) => (
+              <div className={styles.arrayItemColumn}>
+                <div className={styles.companyInputRow}>
+                  <div className={styles.companyLogoPreview}>
+                    {item.logo || getCompanyLogo(item.company || "") ? (
+                      <NextImage
+                        src={item.logo || getCompanyLogo(item.company || "") || ""}
+                        alt={item.company || "Company logo"}
+                        width={28}
+                        height={28}
+                      />
+                    ) : (
+                      <span>{(item.company || "?").slice(0, 1).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <input
+                    className={styles.input}
+                    value={item.company || ""}
+                    list="experience-company-suggestions"
+                    autoComplete="on"
+                    onChange={(e) => {
+                      const company = e.target.value;
+                      const newItems = [...(content.data.items || [])];
+                      newItems[i] = {
+                        ...item,
+                        company,
+                        logo: getCompanyLogo(company) || "",
+                      };
+                      handleChange("items", newItems);
+                    }}
+                    placeholder="Upwork, Facebook, Figma..."
+                  />
+                </div>
+                <input
+                  className={styles.input}
+                  value={item.role || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, role: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Role"
+                />
+                <input
+                  className={styles.smallInput}
+                  value={item.period || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, period: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="2022 - Present"
+                />
+              </div>
+            )}
+            onAdd={() =>
+              handleChange("items", [
+                ...(content.data.items || []),
+                { company: "", role: "", period: "", logo: "" },
+              ])
+            }
+            onRemove={(i) => {
+              const newItems = (content.data.items || []).filter(
+                (_, idx) => idx !== i,
+              );
+              handleChange("items", newItems);
+            }}
+          />
+          <datalist id="experience-company-suggestions">
+            {getFieldSuggestions("Company").map((company) => (
+              <option key={company} value={company} />
+            ))}
+          </datalist>
+        </>
       );
 
-    case "metrics":
+    case "education":
       return (
-        <ArrayField
-          label="Metrics"
-          items={content.data.items || []}
-          renderItem={(item, i) => (
-            <div className={styles.arrayItemColumn}>
-              <input
-                className={styles.smallInput}
-                value={item.label || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, label: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Label"
-              />
-              <input
-                className={styles.smallInput}
-                value={item.value || ""}
-                onChange={(e) => {
-                  const newItems = [...(content.data.items || [])];
-                  newItems[i] = { ...item, value: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="Value"
-              />
-            </div>
-          )}
-          onAdd={() =>
-            handleChange("items", [
-              ...(content.data.items || []),
-              { label: "", value: "" },
-            ])
-          }
-          onRemove={(i) => {
-            const newItems = (content.data.items || []).filter(
-              (_, idx) => idx !== i,
-            );
-            handleChange("items", newItems);
-          }}
-        />
+        <>
+          <Field
+            label="Title"
+            value={content.data.title || "Education"}
+            onChange={(v) => handleChange("title", v)}
+          />
+          <ArrayField
+            label="Education"
+            items={content.data.items || []}
+            renderItem={(item, i) => (
+              <div className={styles.arrayItemColumn}>
+                <input
+                  className={styles.input}
+                  value={item.school || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, school: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="School"
+                />
+                <input
+                  className={styles.input}
+                  value={item.degree || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, degree: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Degree / Program"
+                />
+                <input
+                  className={styles.smallInput}
+                  value={item.period || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, period: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="2021 - 2024"
+                />
+                <input
+                  className={styles.input}
+                  value={item.description || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, description: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Short description"
+                />
+                <ImageUploadField
+                  label="Logo"
+                  value={item.logo || ""}
+                  onChange={(url) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, logo: url };
+                    handleChange("items", newItems);
+                  }}
+                  small
+                />
+              </div>
+            )}
+            onAdd={() =>
+              handleChange("items", [
+                ...(content.data.items || []),
+                { school: "", degree: "", period: "", description: "", logo: "" },
+              ])
+            }
+            onRemove={(i) => {
+              const newItems = (content.data.items || []).filter(
+                (_, idx) => idx !== i,
+              );
+              handleChange("items", newItems);
+            }}
+          />
+        </>
       );
 
     case "projects":
@@ -423,147 +678,6 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           items={content.data.items || []}
           onChange={(items) => handleChange("items", items)}
         />
-      );
-
-    case "youtube":
-      return (
-        <>
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-montreal), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.channelName || ""}
-            onChange={(e) => handleChange("channelName", e.target.value)}
-            placeholder="Your channel name"
-          />
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-mori), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.subscribers || ""}
-            onChange={(e) => handleChange("subscribers", e.target.value)}
-            placeholder="e.g. 100K"
-          />
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-mori), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.videoUrl || ""}
-            onChange={(e) => handleChange("videoUrl", e.target.value)}
-            placeholder="https://youtube.com/watch?v=..."
-          />
-          <p className={styles.fieldHint}>
-            Paste a YouTube video, shorts, or playlist link
-          </p>
-        </>
-      );
-
-    case "instagram":
-      return (
-        <>
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-montreal), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.username || ""}
-            onChange={(e) => handleChange("username", e.target.value)}
-            placeholder="Instagram username"
-          />
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-mori), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.postUrl || ""}
-            onChange={(e) => handleChange("postUrl", e.target.value)}
-            placeholder="Instagram post URL (e.g. https://instagram.com/p/...)"
-          />
-          <p className={styles.fieldHint}>
-            Add your Instagram username and post URL to embed a post preview.
-          </p>
-        </>
-      );
-
-    case "network":
-      return (
-        <>
-          <Field
-            label="Title"
-            value={content.data.title || "Network"}
-            onChange={(v) => handleChange("title", v)}
-          />
-          <ArrayField
-            label="Connections"
-            items={content.data.connections || []}
-            renderItem={(conn, idx) => (
-              <div key={idx} className={styles.arrayItemColumn}>
-                <input
-                  className={styles.input}
-                  value={conn.name}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.connections || [])];
-                    newItems[idx] = { ...newItems[idx], name: e.target.value };
-                    handleChange("connections", newItems);
-                  }}
-                  placeholder="Name"
-                />
-                <ImageUploadField
-                  value={conn.avatar}
-                  onChange={(url) => {
-                    const newItems = [...(content.data.connections || [])];
-                    newItems[idx] = { ...newItems[idx], avatar: url };
-                    handleChange("connections", newItems);
-                  }}
-                  label="Photo"
-                />
-                <input
-                  className={styles.input}
-                  value={conn.linkedinUrl || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.connections || [])];
-                    newItems[idx] = {
-                      ...newItems[idx],
-                      linkedinUrl: e.target.value,
-                    };
-                    handleChange("connections", newItems);
-                  }}
-                  placeholder="LinkedIn URL"
-                />
-                <input
-                  className={styles.input}
-                  value={conn.url || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.connections || [])];
-                    newItems[idx] = { ...newItems[idx], url: e.target.value };
-                    handleChange("connections", newItems);
-                  }}
-                  placeholder="Other URL (optional)"
-                />
-              </div>
-            )}
-            onAdd={() =>
-              handleChange("connections", [
-                ...(content.data.connections || []),
-                { name: "", avatar: "", url: "" },
-              ])
-            }
-            onRemove={(i) => {
-              const newItems = (content.data.connections || []).filter(
-                (_, idx) => idx !== i,
-              );
-              handleChange("connections", newItems);
-            }}
-          />
-        </>
       );
 
     case "resume":
@@ -585,7 +699,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           <input
             className={styles.input}
             style={{
-              fontFamily: "var(--font-mori), system-ui",
+              fontFamily: "var(--font-editor-body), system-ui",
               marginBottom: 6,
             }}
             value={content.data.lastUpdated || ""}
@@ -600,7 +714,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           <textarea
             className={styles.textarea}
             style={{
-              fontFamily: "var(--font-mori), system-ui",
+              fontFamily: "var(--font-editor-body), system-ui",
               marginBottom: 6,
             }}
             value={content.data.quote || ""}
@@ -611,7 +725,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           <input
             className={styles.input}
             style={{
-              fontFamily: "var(--font-montreal), system-ui",
+              fontFamily: "var(--font-editor-heading), system-ui",
               marginBottom: 6,
             }}
             value={content.data.author || ""}
@@ -621,7 +735,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           <input
             className={styles.input}
             style={{
-              fontFamily: "var(--font-mori), system-ui",
+              fontFamily: "var(--font-editor-body), system-ui",
               marginBottom: 6,
             }}
             value={content.data.role || ""}
@@ -631,7 +745,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           <input
             className={styles.input}
             style={{
-              fontFamily: "var(--font-mori), system-ui",
+              fontFamily: "var(--font-editor-body), system-ui",
               marginBottom: 6,
             }}
             value={content.data.company || ""}
@@ -647,233 +761,280 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
         </>
       );
 
-    case "career":
+    case "youtube":
       return (
         <>
           <Field
             label="Title"
-            value={content.data.title || "Career Path"}
+            value={content.data.title || ""}
             onChange={(v) => handleChange("title", v)}
+            placeholder="Featured video"
           />
-          <ArrayField
-            label="Positions"
-            items={content.data.positions || []}
-            renderItem={(position, idx) => (
-              <div key={idx} className={styles.arrayItemFields}>
-                <input
-                  className={styles.input}
-                  style={{
-                    fontFamily: "var(--font-montreal), system-ui",
-                    marginBottom: 6,
-                  }}
-                  value={position.company}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.positions || [])];
-                    newItems[idx] = {
-                      ...newItems[idx],
-                      company: e.target.value,
-                    };
-                    handleChange("positions", newItems);
-                  }}
-                  placeholder="Company"
-                />
-                <input
-                  className={styles.input}
-                  style={{
-                    fontFamily: "var(--font-mori), system-ui",
-                    marginBottom: 6,
-                  }}
-                  value={position.role}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.positions || [])];
-                    newItems[idx] = { ...newItems[idx], role: e.target.value };
-                    handleChange("positions", newItems);
-                  }}
-                  placeholder="Role/Title"
-                />
-                <input
-                  className={styles.input}
-                  style={{
-                    fontFamily: "var(--font-mori), system-ui",
-                    marginBottom: 6,
-                  }}
-                  value={position.dateRange}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.positions || [])];
-                    newItems[idx] = {
-                      ...newItems[idx],
-                      dateRange: e.target.value,
-                    };
-                    handleChange("positions", newItems);
-                  }}
-                  placeholder="Date Range (e.g. 2021 - 2024)"
-                />
-                <textarea
-                  className={styles.textarea}
-                  style={{
-                    fontFamily: "var(--font-mori), system-ui",
-                    marginBottom: 6,
-                  }}
-                  value={position.description || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.positions || [])];
-                    newItems[idx] = {
-                      ...newItems[idx],
-                      description: e.target.value,
-                    };
-                    handleChange("positions", newItems);
-                  }}
-                  placeholder="Description (optional)"
-                  rows={2}
-                />
-                <ImageUploadField
-                  label="Logo"
-                  value={position.logo || ""}
-                  onChange={(v) => {
-                    const newItems = [...(content.data.positions || [])];
-                    newItems[idx] = { ...newItems[idx], logo: v };
-                    handleChange("positions", newItems);
-                  }}
-                  small
-                />
-                <label className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    checked={position.current || false}
-                    onChange={(e) => {
-                      const newItems = [...(content.data.positions || [])];
-                      newItems[idx] = {
-                        ...newItems[idx],
-                        current: e.target.checked,
-                      };
-                      handleChange("positions", newItems);
-                    }}
-                  />
-                  <span>Current Position</span>
-                </label>
-              </div>
-            )}
-            onAdd={() =>
-              handleChange("positions", [
-                ...(content.data.positions || []),
-                {
-                  company: "",
-                  role: "",
-                  dateRange: "",
-                  description: "",
-                  logo: "",
-                  current: false,
-                },
-              ])
-            }
-            onRemove={(i) => {
-              const newItems = (content.data.positions || []).filter(
-                (_, idx) => idx !== i,
-              );
-              handleChange("positions", newItems);
-            }}
+          <Field
+            label="URL"
+            value={content.data.url || ""}
+            onChange={(v) => handleChange("url", v)}
+            placeholder="https://youtube.com/watch?v=..."
           />
         </>
       );
 
-    case "creative":
+    case "gallery":
       return (
         <>
           <Field
-            label="Tab Title"
+            label="Title"
             value={content.data.title || ""}
             onChange={(v) => handleChange("title", v)}
-            placeholder="Creative OS"
-          />
-          <Field
-            label="Intro"
-            value={content.data.description || ""}
-            onChange={(v) => handleChange("description", v)}
-            placeholder="What audience will find here"
-            multiline
-          />
-          <Field
-            label="Notion URL"
-            value={content.data.notionUrl || ""}
-            onChange={(v) => handleChange("notionUrl", v)}
-            placeholder="https://notion.site/..."
-          />
-          <Field
-            label="CTA Label"
-            value={content.data.ctaLabel || ""}
-            onChange={(v) => handleChange("ctaLabel", v)}
-            placeholder="Open my workspace"
-          />
-          <Field
-            label="CTA URL"
-            value={content.data.ctaUrl || ""}
-            onChange={(v) => handleChange("ctaUrl", v)}
-            placeholder="https://..."
+            placeholder="Gallery"
           />
           <ArrayField
-            label="Creative Pages"
-            items={content.data.items || []}
-            renderItem={(item, idx) => (
-              <div key={idx} className={styles.arrayItemColumn}>
-                <input
-                  className={styles.input}
-                  value={item.title || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], title: e.target.value };
-                    handleChange("items", newItems);
+            label="Images"
+            items={content.data.images || []}
+            renderItem={(item, i) => (
+              <div className={styles.arrayItemColumn}>
+                <ImageUploadField
+                  label="Image"
+                  value={item.src || ""}
+                  onChange={(src) => {
+                    const images = [...(content.data.images || [])];
+                    images[i] = { ...item, src };
+                    handleChange("images", images);
                   }}
-                  placeholder="Page title"
+                  small
                 />
                 <input
                   className={styles.input}
-                  value={item.type || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], type: e.target.value };
-                    handleChange("items", newItems);
+                  value={item.alt || ""}
+                  onChange={(event) => {
+                    const images = [...(content.data.images || [])];
+                    images[i] = { ...item, alt: event.target.value };
+                    handleChange("images", images);
                   }}
-                  placeholder="Case study, Notion page, Moodboard..."
-                />
-                <input
-                  className={styles.input}
-                  value={item.status || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = {
-                      ...newItems[idx],
-                      status: e.target.value,
-                    };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Public, Updated, Draft..."
-                />
-                <input
-                  className={styles.input}
-                  value={item.url || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], url: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Optional URL"
+                  placeholder="Caption"
                 />
               </div>
             )}
             onAdd={() =>
-              handleChange("items", [
-                ...(content.data.items || []),
-                { title: "", type: "Notion page", status: "Public", url: "" },
-              ])
+              handleChange("images", [...(content.data.images || []), { src: "", alt: "" }])
             }
-            onRemove={(i) => {
-              const newItems = (content.data.items || []).filter(
-                (_, idx) => idx !== i,
-              );
-              handleChange("items", newItems);
-            }}
+            onRemove={(i) =>
+              handleChange(
+                "images",
+                (content.data.images || []).filter((_, idx) => idx !== i),
+              )
+            }
           />
         </>
+      );
+
+    case "instagram":
+      const handleInstagramProfileChange = (value: string) => {
+        const username = extractInstagramUsername(value);
+
+        if (!username) {
+          handleChange("profileUrl", value);
+          return;
+        }
+
+        onUpdate(blockId, {
+          ...content,
+          data: {
+            ...content.data,
+            handle: `@${username}`,
+            profileUrl: `https://instagram.com/${username}`,
+          },
+        });
+      };
+
+      const handleInstagramHandleChange = (value: string) => {
+        const username = extractInstagramUsername(value);
+
+        if (!username) {
+          handleChange("handle", value);
+          return;
+        }
+
+        onUpdate(blockId, {
+          ...content,
+          data: {
+            ...content.data,
+            handle: `@${username}`,
+            profileUrl: content.data.profileUrl || `https://instagram.com/${username}`,
+          },
+        });
+      };
+
+      return (
+        <>
+          <Field
+            label="Handle"
+            value={content.data.handle || ""}
+            onChange={handleInstagramHandleChange}
+            placeholder="@yourhandle"
+          />
+          <Field
+            label="Profile URL"
+            value={content.data.profileUrl || ""}
+            onChange={handleInstagramProfileChange}
+            placeholder="https://instagram.com/yourhandle"
+          />
+          <ImageUploadField
+            label="Profile image"
+            value={content.data.image || ""}
+            onChange={(v) => handleChange("image", v)}
+            small
+          />
+          <Field
+            label="Followers"
+            value={content.data.followers || ""}
+            onChange={(v) => handleChange("followers", v)}
+            placeholder="12.4k"
+          />
+          <Field
+            label="Posts"
+            value={content.data.posts || ""}
+            onChange={(v) => handleChange("posts", v)}
+            placeholder="186"
+          />
+          <Field
+            label="Engagement"
+            value={content.data.engagement || ""}
+            onChange={(v) => handleChange("engagement", v)}
+            placeholder="8.7%"
+          />
+          <Field
+            label="Featured post URL"
+            value={content.data.featuredPostUrl || ""}
+            onChange={(v) => handleChange("featuredPostUrl", v)}
+            placeholder="https://instagram.com/p/..."
+          />
+        </>
+      );
+
+    case "services":
+      return (
+        <>
+          <Field
+            label="Title"
+            value={content.data.title || ""}
+            onChange={(v) => handleChange("title", v)}
+          />
+          <ArrayField
+            label="Services"
+            items={content.data.items || []}
+            renderItem={(item, i) => (
+              <input
+                className={styles.input}
+                value={item || ""}
+                onChange={(event) => {
+                  const items = [...(content.data.items || [])];
+                  items[i] = event.target.value;
+                  handleChange("items", items);
+                }}
+                placeholder="Product design"
+              />
+            )}
+            onAdd={() => handleChange("items", [...(content.data.items || []), ""])}
+            onRemove={(i) =>
+              handleChange(
+                "items",
+                (content.data.items || []).filter((_, idx) => idx !== i),
+              )
+            }
+          />
+        </>
+      );
+
+    case "tools":
+      return (
+        <>
+          <Field
+            label="Title"
+            value={content.data.title || ""}
+            onChange={(v) => handleChange("title", v)}
+          />
+          <ArrayField
+            label="Tools"
+            items={content.data.items || []}
+            renderItem={(item, i) => (
+              <div className={styles.arrayItemColumn}>
+                <input
+                  className={styles.input}
+                  value={item.name || ""}
+                  onChange={(event) => {
+                    const items = [...(content.data.items || [])];
+                    items[i] = { ...item, name: event.target.value };
+                    handleChange("items", items);
+                  }}
+                  placeholder="Figma"
+                  list="tool-name-suggestions"
+                />
+                <input
+                  className={styles.smallInput}
+                  value={item.icon || ""}
+                  onChange={(event) => {
+                    const items = [...(content.data.items || [])];
+                    items[i] = { ...item, icon: event.target.value };
+                    handleChange("items", items);
+                  }}
+                  placeholder="Icon text"
+                />
+              </div>
+            )}
+            onAdd={() => handleChange("items", [...(content.data.items || []), { name: "", icon: "" }])}
+            onRemove={(i) =>
+              handleChange(
+                "items",
+                (content.data.items || []).filter((_, idx) => idx !== i),
+              )
+            }
+          />
+          <datalist id="tool-name-suggestions">
+            {techIcons.map((icon) => (
+              <option key={icon.name} value={icon.name} />
+            ))}
+          </datalist>
+        </>
+      );
+
+    case "stats":
+      return (
+        <ArrayField
+          label="Stats"
+          items={content.data.items || []}
+          renderItem={(item, i) => (
+            <div className={styles.arrayItemColumn}>
+              <input
+                className={styles.input}
+                value={item.value || ""}
+                onChange={(event) => {
+                  const items = [...(content.data.items || [])];
+                  items[i] = { ...item, value: event.target.value };
+                  handleChange("items", items);
+                }}
+                placeholder="42"
+              />
+              <input
+                className={styles.input}
+                value={item.label || ""}
+                onChange={(event) => {
+                  const items = [...(content.data.items || [])];
+                  items[i] = { ...item, label: event.target.value };
+                  handleChange("items", items);
+                }}
+                placeholder="Projects"
+              />
+            </div>
+          )}
+          onAdd={() => handleChange("items", [...(content.data.items || []), { value: "", label: "" }])}
+          onRemove={(i) =>
+            handleChange(
+              "items",
+              (content.data.items || []).filter((_, idx) => idx !== i),
+            )
+          }
+        />
       );
 
     default:
@@ -882,6 +1043,115 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           No editable fields for this block type
         </p>
       );
+  }
+}
+
+function GitHubImportEditor({
+  username,
+  onImport,
+}: {
+  username: string;
+  onImport: (content: Extract<BlockContent, { type: "github" }>["data"]) => void;
+}) {
+  const [input, setInput] = useState(username || "");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const cleanUsername = input
+    .trim()
+    .replace(/^@/, "")
+    .replace(/^https?:\/\/github\.com\//, "")
+    .replace(/\/.*$/, "");
+
+  const handleImport = async () => {
+    if (!cleanUsername || loading) return;
+
+    setLoading(true);
+    setMessage(null);
+
+    try {
+      const data = await importFromGitHub(cleanUsername);
+      onImport(data.githubContent);
+      setInput(data.githubContent.username);
+      setMessage("GitHub profile imported");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "GitHub import failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className={styles.githubImport}>
+      <div className={styles.githubImportHeader}>
+        <Github size={18} />
+        <div>
+          <strong>Import from GitHub</strong>
+          <span>Fetch avatar, followers, repos, and stars automatically.</span>
+        </div>
+      </div>
+      <label className={styles.label}>GitHub username</label>
+      <input
+        className={styles.input}
+        value={input}
+        onChange={(event) => setInput(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.preventDefault();
+            handleImport();
+          }
+        }}
+        placeholder="muhsench or github.com/muhsench"
+        autoComplete="username"
+      />
+      <button
+        type="button"
+        className={styles.importButton}
+        onClick={handleImport}
+        disabled={!cleanUsername || loading}
+      >
+        {loading ? <Loader2 size={15} className={styles.inlineSpinner} /> : <Github size={15} />}
+        {loading ? "Importing" : "Import from GitHub"}
+      </button>
+      {message && <p className={styles.importMessage}>{message}</p>}
+    </div>
+  );
+}
+
+function extractInstagramUsername(value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+
+  if (/^@?[a-zA-Z0-9._]{1,30}$/.test(trimmed)) {
+    return trimmed.replace(/^@/, "");
+  }
+
+  try {
+    const url = new URL(
+      trimmed.startsWith("http") ? trimmed : `https://${trimmed}`,
+    );
+    const host = url.hostname.replace(/^www\./, "").replace(/^m\./, "");
+    if (host !== "instagram.com") return "";
+
+    const [username] = url.pathname
+      .split("/")
+      .filter(Boolean)
+      .map((part) => part.trim());
+
+    if (
+      !username ||
+      ["p", "reel", "reels", "stories", "explore", "accounts"].includes(
+        username.toLowerCase(),
+      )
+    ) {
+      return "";
+    }
+
+    return /^@?[a-zA-Z0-9._]{1,30}$/.test(username)
+      ? username.replace(/^@/, "")
+      : "";
+  } catch {
+    return "";
   }
 }
 
@@ -903,6 +1173,12 @@ function Field({
   multiline,
   placeholder,
 }: FieldProps) {
+  const suggestions = getFieldSuggestions(label);
+  const listId =
+    !multiline && type === "text" && suggestions.length > 0
+      ? `suggestions-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
+      : undefined;
+
   return (
     <div className={styles.field}>
       <label className={styles.label}>{label}</label>
@@ -921,7 +1197,209 @@ function Field({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          autoComplete="on"
+          list={listId}
         />
+      )}
+      {listId && (
+        <datalist id={listId}>
+          {suggestions.map((suggestion) => (
+            <option key={suggestion} value={suggestion} />
+          ))}
+        </datalist>
+      )}
+    </div>
+  );
+}
+
+function getFieldSuggestions(label: string) {
+  const key = label.toLowerCase();
+
+  if (key.includes("title")) {
+    return [
+      "Product Designer",
+      "Creative Developer",
+      "Full-Stack Developer",
+      "Design Engineer",
+      "Brand Designer",
+      "Recent work",
+      "Selected projects",
+    ];
+  }
+
+  if (key.includes("subtitle")) {
+    return ["Selected projects", "Recent launches", "Case studies", "Client work"];
+  }
+
+  if (key.includes("status") || key.includes("availability")) {
+    return ["Available for work", "Open to freelance", "Booking Q3 projects", "Busy this month"];
+  }
+
+  if (key.includes("email")) {
+    return ["hello@icloud.com", "work@example.com", "studio@example.com"];
+  }
+
+  if (key.includes("url") || key.includes("website")) {
+    return ["https://example.com", "https://dribbble.com/username", "https://github.com/username"];
+  }
+
+  if (key.includes("company") || key.includes("client")) {
+    return [
+      "Upwork",
+      "Facebook",
+      "Meta",
+      "Google",
+      "Apple",
+      "Microsoft",
+      "Amazon",
+      "Netflix",
+      "Spotify",
+      "LinkedIn",
+      "GitHub",
+      "Figma",
+      "Adobe",
+      "Canva",
+      "Notion",
+      "Vercel",
+      "Stripe",
+      "Shopify",
+      "Airbnb",
+      "Uber",
+      "Independent",
+      "Studio",
+      "Bento Labs",
+      "Northstar Studio",
+    ];
+  }
+
+  return [];
+}
+
+interface LocationSuggestion {
+  id: string;
+  label: string;
+  detail: string;
+  lat: number;
+  lng: number;
+}
+
+interface NominatimPlace {
+  place_id: number;
+  display_name: string;
+  lat: string;
+  lon: string;
+  type?: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    state?: string;
+    country?: string;
+  };
+}
+
+function LocationAutocompleteField({
+  value,
+  onChange,
+  onSelect,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onSelect: (place: LocationSuggestion) => void;
+}) {
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const query = value.trim();
+    if (query.length < 2) {
+      setSuggestions([]);
+      setOpen(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`,
+          { signal: controller.signal },
+        );
+        const places = (await response.json()) as NominatimPlace[];
+        setSuggestions(
+          places.map((place) => {
+            const city =
+              place.address?.city ||
+              place.address?.town ||
+              place.address?.village ||
+              "";
+            const detail = [city, place.address?.state, place.address?.country]
+              .filter(Boolean)
+              .join(", ");
+
+            return {
+              id: String(place.place_id),
+              label: place.display_name,
+              detail: detail || place.type || "Location",
+              lat: Number(place.lat),
+              lng: Number(place.lon),
+            };
+          }),
+        );
+        setOpen(true);
+      } catch (error) {
+        if ((error as DOMException).name !== "AbortError") {
+          setSuggestions([]);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }, 280);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [value]);
+
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>Location</label>
+      <div className={styles.locationInputWrap}>
+        <MapPin size={15} className={styles.locationInputIcon} />
+        <input
+          className={`${styles.input} ${styles.locationInput}`}
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          onFocus={() => suggestions.length > 0 && setOpen(true)}
+          placeholder="Search a city, country, or place"
+        />
+        {loading && <Loader2 size={15} className={styles.locationSpinner} />}
+      </div>
+
+      {open && suggestions.length > 0 && (
+        <div className={styles.locationSuggestions}>
+          {suggestions.map((place) => (
+            <button
+              key={place.id}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                onSelect(place);
+                setOpen(false);
+              }}
+            >
+              <MapPin size={14} />
+              <span>
+                <strong>{place.label.split(",")[0]}</strong>
+                <small>{place.detail}</small>
+              </span>
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -1018,6 +1496,7 @@ interface ImageUploadFieldProps {
   value: string;
   onChange: (value: string) => void;
   small?: boolean;
+  maxSizeMB?: number;
 }
 
 function ImageUploadField({
@@ -1025,6 +1504,7 @@ function ImageUploadField({
   value,
   onChange,
   small,
+  maxSizeMB = 10,
 }: ImageUploadFieldProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1032,9 +1512,8 @@ function ImageUploadField({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      alert("Image must be less than 2MB");
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      alert(`Image must be less than ${maxSizeMB}MB`);
       return;
     }
 
@@ -1061,8 +1540,10 @@ function ImageUploadField({
               className={small ? styles.imagePreviewSmall : styles.imagePreview}
             />
             <button
+              type="button"
               className={styles.imageRemoveButton}
               onClick={() => onChange("")}
+              aria-label={`Remove ${label}`}
             >
               <X size={14} />
             </button>

@@ -22,6 +22,8 @@ import { BentoGrid } from "@/app/components/grid";
 import { useEditor } from "@/app/lib/editor-context";
 import { DraggableBlock, BlockPreview } from "./DraggableBlock";
 import { BlockLayout, BlockType } from "@/app/lib/types";
+import { useTheme } from "@/app/lib/theme-context";
+import { themes } from "@/app/lib/types";
 import styles from "./editor.module.css";
 
 interface DragItem {
@@ -33,6 +35,8 @@ interface DragItem {
 export function EditorDndWrapper({ children }: { children: React.ReactNode }) {
   const { layout, content, reorderBlocks, addBlock, selectBlock, isEditMode } =
     useEditor();
+  const { theme } = useTheme();
+  const themeConfig = themes[theme];
   const [activeItem, setActiveItem] = useState<DragItem | null>(null);
 
   const sensors = useSensors(
@@ -119,28 +123,48 @@ export function EditorDndWrapper({ children }: { children: React.ReactNode }) {
 
       {/* Main grid area with sortable context */}
       <main className={styles.main} onClick={handleBackgroundClick}>
-        <div className={styles.gridWrapper} id="portfolio-grid">
-          <SortableContext
-            items={layout.map((block) => block.id)}
-            strategy={rectSortingStrategy}
-          >
-            <BentoGrid isEditing={isEditMode}>
-              {layout.map((block, index) => {
-                const blockContent = content[block.id];
-                if (!blockContent) return null;
+        <div className={styles.canvasShell}>
+          <div className={styles.canvasHeader}>
+            <div>
+              <span className={styles.canvasEyebrow}>Bento studio</span>
+              <h2 className={styles.canvasTitle}>Portfolio canvas</h2>
+            </div>
+            <div className={styles.canvasMeta}>
+              <span>{layout.length} blocks</span>
+              <span>{isEditMode ? "Edit mode" : "Preview mode"}</span>
+              <span>{themeConfig?.name || theme}</span>
+            </div>
+          </div>
 
-                return (
-                  <DraggableBlock
-                    key={block.id}
-                    layout={block}
-                    content={blockContent}
-                    index={index}
-                    isDragActive={activeItem !== null}
-                  />
-                );
-              })}
-            </BentoGrid>
-          </SortableContext>
+          <div className={styles.canvasHint}>
+            {isEditMode ? "Draft workspace" : "Public preview"} ·{" "}
+            {layout.length === 1 ? "1 card" : `${layout.length} cards`} ·{" "}
+            {themeConfig?.name || "Studio"}
+          </div>
+
+          <div className={styles.gridWrapper} id="portfolio-grid">
+            <SortableContext
+              items={layout.map((block) => block.id)}
+              strategy={rectSortingStrategy}
+            >
+              <BentoGrid isEditing={isEditMode}>
+                {layout.map((block, index) => {
+                  const blockContent = content[block.id];
+                  if (!blockContent) return null;
+
+                  return (
+                    <DraggableBlock
+                      key={block.id}
+                      layout={block}
+                      content={blockContent}
+                      index={index}
+                      isDragActive={activeItem !== null}
+                    />
+                  );
+                })}
+              </BentoGrid>
+            </SortableContext>
+          </div>
         </div>
       </main>
 

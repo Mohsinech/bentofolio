@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Github } from "lucide-react";
+import { ArrowRight, Github, LayoutGrid, Lock, Mail, Sparkles } from "lucide-react";
 import { createClient } from "@/app/lib/supabase/client";
 import styles from "../auth.module.css";
 
@@ -21,7 +21,7 @@ export default function LoginPage() {
     setError(null);
 
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: email.trim(),
       password,
     });
 
@@ -59,11 +59,42 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className={styles.container}
-      style={{ fontFamily: "var(--font-mori), sans-serif" }}
-    >
-      <div className={`glass ${styles.card}`}>
+    <main className={styles.container}>
+      <Link href="/" className={styles.backHome}>
+        Bento<span>Folio</span>
+      </Link>
+
+      <div className={styles.loginShell}>
+        <section className={styles.visualPanel} aria-label="BentoFolio preview">
+          <div className={styles.visualHeader}>
+            <span>
+              <LayoutGrid size={15} />
+              Studio preview
+            </span>
+            <em>Pro-ready</em>
+          </div>
+          <div className={styles.previewGrid}>
+            <div className={styles.previewHero}>
+              <strong>Hey, I&apos;m Mira</strong>
+              <span>Designer / creative dev</span>
+            </div>
+            <div className={styles.previewAvatar}>M</div>
+            <div className={styles.previewTile}>
+              <Sparkles size={18} />
+              <span>Recent work</span>
+            </div>
+            <div className={styles.previewTile}>
+              <Mail size={18} />
+              <span>Let&apos;s collab</span>
+            </div>
+          </div>
+          <p>
+            Come back to your canvas, update cards, publish changes, and keep
+            the public portfolio feeling sharp.
+          </p>
+        </section>
+
+        <section className={`glass ${styles.card} ${styles.authPanel}`}>
         <div className={styles.header}>
           <h1
             className={styles.logo}
@@ -81,7 +112,7 @@ export default function LoginPage() {
             className={styles.subtitle}
             style={{ fontFamily: "var(--font-mori), sans-serif" }}
           >
-            Sign in to continue building your portfolio
+            Sign in to continue building your BentoFolio.
           </p>
         </div>
 
@@ -90,14 +121,17 @@ export default function LoginPage() {
         <form className={styles.form} onSubmit={handleEmailLogin}>
           <div className={styles.field}>
             <label className={styles.label}>Email</label>
-            <input
-              type="email"
-              className={styles.input}
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+            <div className={styles.inputWrap}>
+              <Mail size={16} />
+              <input
+                type="email"
+                className={styles.input}
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <div className={styles.field}>
@@ -107,14 +141,17 @@ export default function LoginPage() {
                 Forgot password?
               </Link>
             </div>
-            <input
-              type="password"
-              className={styles.input}
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className={styles.inputWrap}>
+              <Lock size={16} />
+              <input
+                type="password"
+                className={styles.input}
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
           </div>
 
           <button
@@ -122,7 +159,8 @@ export default function LoginPage() {
             className={styles.submitButton}
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Signing in..." : "Sign in"}
+            {!loading && <ArrowRight size={16} />}
           </button>
         </form>
 
@@ -147,7 +185,8 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

@@ -203,3 +203,8 @@ You can use these variables in your template:
 - The template uses inline CSS for maximum email client compatibility
 - Make sure to test the email in different email clients (Gmail, Outlook, etc.)
 - You can customize colors, text, and branding to match your needs
+
+<!--
+ -->
+
+KHASNI NKML DEV PORTFOLIO DB

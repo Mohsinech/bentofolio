@@ -4,11 +4,14 @@
   gap: 12px;
   padding: 20px;
   height: 100%;
+  background:
+    radial-gradient(circle at 48% 18%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, #27282d 0%, #17181b 58%, #101114 100%);
 }
 
 .quoteIcon {
-  color: var(--accent);
-  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.72);
+  opacity: 0.82;
   flex-shrink: 0;
 }
 
@@ -38,7 +41,7 @@
   height: 36px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--border-subtle);
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .authorInfo {
@@ -56,4 +59,27 @@
 .authorRole {
   font-size: 0.75rem;
   color: var(--text-muted);
+}
+
+:global([data-theme="light"]) .container {
+  background:
+    radial-gradient(circle at 48% 18%, rgba(124, 58, 237, 0.12), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #f7f3ff 58%, #efe8ff 100%);
+}
+
+:global([data-theme="light"]) .quoteIcon {
+  color: rgba(124, 58, 237, 0.5);
+}
+
+:global([data-theme="light"]) .quote,
+:global([data-theme="light"]) .authorName {
+  color: #171321;
+}
+
+:global([data-theme="light"]) .authorRole {
+  color: rgba(23, 19, 33, 0.5);
+}
+
+:global([data-theme="light"]) .avatar {
+  border-color: rgba(124, 58, 237, 0.16);
 }

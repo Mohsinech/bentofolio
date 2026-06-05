@@ -1,6 +1,10 @@
 import { createClient } from "@/app/lib/supabase/server";
 import { BlockLayout, BlockContent, ThemeId } from "@/app/lib/types";
 
+function normalizeTheme(theme: unknown): ThemeId {
+  return theme === "light" ? "light" : "dark";
+}
+
 export interface ProfileData {
   id: string;
   username: string;
@@ -29,7 +33,7 @@ export async function getProfileByUsername(
   return {
     id: data.id,
     username: data.username,
-    theme: data.theme || "dark",
+    theme: normalizeTheme(data.theme),
     layout: data.layout || [],
     content: data.content || {},
     isPro: data.is_pro || false,
@@ -61,7 +65,7 @@ export async function getCurrentUserProfile(): Promise<ProfileData | null> {
   return {
     id: data.id,
     username: data.username,
-    theme: data.theme || "dark",
+    theme: normalizeTheme(data.theme),
     layout: data.layout || [],
     content: data.content || {},
     isPro: data.is_pro || false,

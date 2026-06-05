@@ -2,10 +2,14 @@
   display: flex;
   flex-direction: column;
   width: 100%;
+  height: 100%;
   padding: 16px;
   text-decoration: none;
   color: inherit;
   gap: 16px;
+  background:
+    radial-gradient(circle at 48% 18%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, #27282d 0%, #17181b 58%, #101114 100%);
 }
 
 .header {
@@ -72,15 +76,16 @@
   align-items: center;
   gap: 4px;
   padding: 12px 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.055);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   transition: all 0.2s ease;
 }
 
 .stat:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
 }
 
 .statIcon {
@@ -114,4 +119,49 @@
   flex: 1;
   color: var(--text-muted);
   font-size: 0.8rem;
+}
+
+:global([data-theme="light"]) .wrapper {
+  color: #171321;
+  background:
+    radial-gradient(circle at 48% 18%, rgba(124, 58, 237, 0.13), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #f7f3ff 58%, #efe8ff 100%);
+}
+
+:global([data-theme="light"]) .avatarImg,
+:global([data-theme="light"]) .avatarPlaceholder,
+:global([data-theme="light"]) .stat {
+  border-color: rgba(124, 58, 237, 0.13);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+:global([data-theme="light"]) .avatarPlaceholder {
+  background: #f1ebff;
+}
+
+:global([data-theme="light"]) .githubIcon {
+  color: #6d28d9;
+}
+
+:global([data-theme="light"]) .username,
+:global([data-theme="light"]) .statValue {
+  color: #171321;
+}
+
+:global([data-theme="light"]) .label,
+:global([data-theme="light"]) .statIcon,
+:global([data-theme="light"]) .statLabel,
+:global([data-theme="light"]) .empty {
+  color: rgba(23, 19, 33, 0.54);
+}
+
+:global([data-theme="light"]) .stat:hover {
+  border-color: rgba(124, 58, 237, 0.24);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+:global([data-theme="light"]) .wrapper:hover {
+  background:
+    radial-gradient(circle at 48% 18%, rgba(124, 58, 237, 0.17), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #f6f1ff 58%, #eadfff 100%);
 }

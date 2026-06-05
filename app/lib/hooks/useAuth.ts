@@ -11,8 +11,6 @@ interface UseAuthReturn {
   signOut: () => Promise<void>;
   githubUsername: string | null;
   isAdmin: boolean;
-  // Admin gets pro features automatically
-  hasProAccess: boolean;
 }
 
 export function useAuth(): UseAuthReturn {
@@ -78,6 +76,5 @@ export function useAuth(): UseAuthReturn {
     signOut,
     githubUsername,
     isAdmin: userIsAdmin,
-    hasProAccess: userIsAdmin, // Admins get pro access
   };
 }

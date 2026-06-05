@@ -1,5 +1,4 @@
-// Company logo mappings - auto-fetch logos based on company name
-// Uses Clearbit Logo API (free) or fallback patterns
+// Company logo mappings - auto-fetch favicons based on company name
 
 export interface CompanyInfo {
   name: string;
@@ -10,9 +9,12 @@ export interface CompanyInfo {
 // Import data from separate file to avoid exposure in dev tools
 import { knownCompanies } from "./company-logos.data";
 
+function getFaviconUrl(domain: string) {
+  return `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+}
+
 /**
- * Get logo URL for a company name
- * Uses Clearbit Logo API which is free and reliable
+ * Get logo URL for a company name.
  */
 export function getCompanyLogo(companyName: string): string | null {
   if (!companyName) return null;
@@ -22,16 +24,16 @@ export function getCompanyLogo(companyName: string): string | null {
   // Check known companies first
   const domain = knownCompanies[normalized];
   if (domain) {
-    return `https://logo.clearbit.com/${domain}`;
+    return getFaviconUrl(domain);
   }
 
   // Try to extract domain if company name looks like a domain
   if (normalized.includes(".")) {
-    return `https://logo.clearbit.com/${normalized}`;
+    return getFaviconUrl(normalized);
   }
 
   // Try company name + .com as fallback
-  return `https://logo.clearbit.com/${normalized.replace(/\s+/g, "")}.com`;
+  return getFaviconUrl(`${normalized.replace(/\s+/g, "")}.com`);
 }
 
 /**
@@ -47,7 +49,7 @@ export function getCompanySuggestions(input: string): CompanyInfo[] {
     if (name.includes(normalized) || domain.includes(normalized)) {
       matches.push({
         name: name.charAt(0).toUpperCase() + name.slice(1),
-        logo: `https://logo.clearbit.com/${domain}`,
+        logo: getFaviconUrl(domain),
         domain,
       });
     }

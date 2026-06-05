@@ -64,6 +64,8 @@ export async function updateSession(request: NextRequest) {
 
   // Protected routes check
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
+  const isPasswordUpdatePage =
+    request.nextUrl.pathname === "/auth/update-password";
   const isEditorPage = request.nextUrl.pathname.startsWith("/editor");
 
   // Redirect to login if accessing editor without auth
@@ -74,7 +76,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Redirect to editor if logged in and accessing auth pages
-  if (isAuthPage && user) {
+  if (isAuthPage && user && !isPasswordUpdatePage) {
     const url = request.nextUrl.clone();
     url.pathname = "/editor";
     return NextResponse.redirect(url);

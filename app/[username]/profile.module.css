@@ -65,6 +65,360 @@
   max-width: 920px;
 }
 
+.shellPage {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 18px;
+  background:
+    radial-gradient(circle at 23% 4%, rgba(107, 139, 181, 0.28), transparent 22%),
+    radial-gradient(circle at 76% 10%, rgba(255, 255, 255, 0.07), transparent 20%),
+    linear-gradient(135deg, transparent 0 48%, rgba(255, 255, 255, 0.032) 49%, transparent 66%),
+    #080809;
+}
+
+.publicShell {
+  width: min(1240px, calc(100vw - 36px));
+  min-height: calc(100vh - 56px);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 138px minmax(0, 1fr);
+  gap: 22px;
+  padding: 56px 48px 42px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+    rgba(12, 12, 13, 0.88);
+  box-shadow:
+    0 40px 140px rgba(0, 0, 0, 0.46),
+    inset 0 1px 0 rgba(255, 255, 255, 0.055);
+}
+
+.publicSidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 20px;
+}
+
+.publicAppIcon,
+.publicAvatar,
+.publicAppImage {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 32% 22%, rgba(255, 255, 255, 0.9), transparent 19%),
+    linear-gradient(135deg, #a9dcff, #252734);
+  color: #09090a;
+  font-weight: 700;
+}
+
+.publicAppImage {
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.publicSidebar nav,
+.publicSidebarBottom {
+  display: grid;
+  gap: 6px;
+}
+
+.publicSidebarBottom {
+  margin-top: 12px;
+}
+
+.publicSidebar a,
+.publicSidebar button {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.68rem;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+}
+
+.publicSidebar a:hover,
+.publicSidebar button:hover,
+.publicNavActive {
+  background: rgba(255, 255, 255, 0.07) !important;
+  color: #ffffff !important;
+}
+
+.publicMain {
+  min-width: 0;
+}
+
+.publicTopbar {
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.82rem;
+}
+
+.crumbs a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.18s ease;
+}
+
+.crumbs a:hover {
+  color: #ffffff;
+}
+
+.crumbs span {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.publicSearch {
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.publicSearch input {
+  min-width: 0;
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #ffffff;
+  font-size: 0.75rem;
+}
+
+.publicUser {
+  display: flex;
+  justify-content: flex-end;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.74rem;
+}
+
+.publicIntro {
+  min-height: 132px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 14px;
+  padding: 22px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 86% 14%, rgba(255, 255, 255, 0.11), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018)),
+    rgba(255, 255, 255, 0.025);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 20px 46px rgba(0, 0, 0, 0.18);
+}
+
+.publicEyebrow {
+  display: block;
+  margin-bottom: 8px;
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.68rem;
+  font-weight: 640;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.publicIntro h1 {
+  margin: 0;
+  color: #ffffff;
+  font-family: var(--font-montreal), system-ui, sans-serif;
+  font-size: clamp(2rem, 4vw, 3.6rem);
+  font-weight: 520;
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.publicIntro p {
+  max-width: 56ch;
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.publicIntroAvatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 24px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.mobileTabs,
+.notesTabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.mobileTabs button,
+.notesTabs button {
+  min-height: 30px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
+.mobileTabActive,
+.notesTabActive {
+  background: #f2eee6 !important;
+  border-color: #f2eee6 !important;
+  color: #0c0c0d !important;
+}
+
+.publicPortfolioPanel {
+  margin-top: 4px;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+}
+
+.publicPortfolioPanel > div {
+  max-width: none;
+  padding: 0;
+}
+
+.publicPortfolioPanel :global(.glass:hover) {
+  transform: none !important;
+}
+
+.publicEmpty {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.notesFeed {
+  margin-top: 2px;
+}
+
+.feedItem {
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.feedItem:hover {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.feedItem span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.84rem;
+}
+
+.feedItem small {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.publicInfo {
+  padding-top: 26px;
+}
+
+.publicIdentity {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 48px;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.74rem;
+}
+
+.publicInfo h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.publicInfo p {
+  margin: 10px 0 14px;
+  color: rgba(255, 255, 255, 0.47);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.infoBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.infoBadges span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.68rem;
+}
+
+.infoMetric {
+  display: grid;
+  gap: 3px;
+  margin: 22px 0;
+}
+
+.infoMetric strong {
+  color: #ffffff;
+  font-size: 1.4rem;
+}
+
+.infoMetric span {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.76rem;
+}
+
 .footer {
   margin-top: 48px;
   padding: 16px;
@@ -81,6 +435,78 @@
 
 .branding:hover {
   opacity: 1;
+}
+
+:global([data-theme="light"]) .shellPage {
+  background:
+    radial-gradient(circle at 22% 0%, rgba(124, 58, 237, 0.18), transparent 24%),
+    radial-gradient(circle at 80% 10%, rgba(196, 181, 253, 0.2), transparent 22%),
+    linear-gradient(135deg, #ffffff, #f5f1ff 60%, #eee7ff);
+}
+
+:global([data-theme="light"]) .publicShell {
+  border-color: rgba(124, 58, 237, 0.13);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(250, 247, 255, 0.74)),
+    rgba(255, 255, 255, 0.74);
+  box-shadow:
+    0 40px 120px rgba(80, 46, 140, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+:global([data-theme="light"]) .publicSidebar a,
+:global([data-theme="light"]) .publicSidebar button,
+:global([data-theme="light"]) .crumbs,
+:global([data-theme="light"]) .publicUser,
+:global([data-theme="light"]) .publicEyebrow,
+:global([data-theme="light"]) .publicIntro p,
+:global([data-theme="light"]) .publicEmpty,
+:global([data-theme="light"]) .feedItem small,
+:global([data-theme="light"]) .publicIdentity,
+:global([data-theme="light"]) .publicInfo p,
+:global([data-theme="light"]) .infoMetric span {
+  color: rgba(23, 19, 33, 0.58);
+}
+
+:global([data-theme="light"]) .publicSidebar a:hover,
+:global([data-theme="light"]) .publicSidebar button:hover,
+:global([data-theme="light"]) .publicNavActive {
+  background: rgba(124, 58, 237, 0.1) !important;
+  color: #4c1d95 !important;
+}
+
+:global([data-theme="light"]) .publicSearch,
+:global([data-theme="light"]) .mobileTabs button,
+:global([data-theme="light"]) .notesTabs button,
+:global([data-theme="light"]) .infoBadges span {
+  border-color: rgba(124, 58, 237, 0.12);
+  background: rgba(124, 58, 237, 0.055);
+  color: rgba(23, 19, 33, 0.62);
+}
+
+:global([data-theme="light"]) .publicSearch input,
+:global([data-theme="light"]) .publicIntro h1,
+:global([data-theme="light"]) .feedItem,
+:global([data-theme="light"]) .publicInfo h1,
+:global([data-theme="light"]) .infoMetric strong {
+  color: #171321;
+}
+
+:global([data-theme="light"]) .publicIntro {
+  border-color: rgba(124, 58, 237, 0.14);
+  background:
+    radial-gradient(circle at 86% 14%, rgba(124, 58, 237, 0.13), transparent 32%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(247, 243, 255, 0.82));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 22px 50px rgba(80, 46, 140, 0.12);
+}
+
+:global([data-theme="light"]) .mobileTabActive,
+:global([data-theme="light"]) .notesTabActive {
+  border-color: #7c3aed !important;
+  background: #7c3aed !important;
+  color: #ffffff !important;
 }
 
 /* Not found state */
@@ -219,6 +645,42 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .shellPage {
+    padding: 12px;
+  }
+
+  .publicShell {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .publicSidebar {
+    padding-top: 0;
+    flex-direction: row;
+    align-items: center;
+    overflow-x: auto;
+  }
+
+  .publicSidebar nav,
+  .publicSidebarBottom {
+    display: flex;
+    margin: 0;
+  }
+
+  .publicTopbar {
+    grid-template-columns: 1fr;
+  }
+
+  .publicInfo {
+    padding-top: 0;
+  }
+
+  .publicIdentity {
+    justify-content: flex-start;
+    margin-bottom: 18px;
+  }
+
   .page {
     padding: 24px 12px;
   }

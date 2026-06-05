@@ -1,0 +1,85 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.13), transparent 32%),
+    linear-gradient(145deg, #27282d 0%, #17181b 58%, #101114 100%);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.74rem;
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.tool {
+  min-height: 68px;
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  padding: 9px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  text-align: center;
+}
+
+.tool strong {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  overflow: hidden;
+  font-size: 0.78rem;
+}
+
+.toolLogo {
+  width: 21px;
+  height: 21px;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 5px 9px rgba(0, 0, 0, 0.22));
+}
+
+.tool span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 0.68rem;
+}
+
+:global([data-theme="light"]) .container {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(124, 58, 237, 0.13), transparent 32%),
+    linear-gradient(145deg, #ffffff 0%, #f7f3ff 58%, #efe8ff 100%);
+}
+
+:global([data-theme="light"]) .header {
+  color: rgba(23, 19, 33, 0.54);
+}
+
+:global([data-theme="light"]) .tool {
+  border-color: rgba(124, 58, 237, 0.13);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+:global([data-theme="light"]) .tool strong {
+  background: rgba(124, 58, 237, 0.1);
+  color: #5b21b6;
+}
+
+:global([data-theme="light"]) .tool span {
+  color: rgba(23, 19, 33, 0.62);
+}

@@ -3,7 +3,6 @@
 
 export const ADMIN_EMAILS: string[] = [
   // Add admin emails here
-  "chedganemouhssine@gmail.com",
 ];
 
 export const ADMIN_GITHUB_USERNAMES: string[] = [
@@ -32,6 +31,8 @@ export const LEMON_SQUEEZY_PRODUCT_ID =
   process.env.LEMON_SQUEEZY_PRODUCT_ID || "";
 export const LEMON_SQUEEZY_VARIANT_ID =
   process.env.LEMON_SQUEEZY_VARIANT_ID || "";
+export const BETA_PAYMENT_LINK =
+  process.env.NEXT_PUBLIC_BETA_PAYMENT_LINK || "";
 
 // App config
 export const APP_NAME = "BentoFolio";

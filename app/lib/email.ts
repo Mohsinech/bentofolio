@@ -45,6 +45,48 @@ export async function sendEmail({ to, subject, html }: EmailOptions) {
 
 // Email Templates
 export const emailTemplates = {
+  referralReward: ({
+    username,
+    code,
+    count,
+  }: {
+    username: string;
+    code: string;
+    count: number;
+  }) => ({
+    subject: "You earned BentoFolio Pro for free",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You earned BentoFolio Pro</title>
+</head>
+<body style="margin:0;padding:0;background:#070708;color:#f7f3eb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;">
+  <div style="max-width:620px;margin:0 auto;padding:36px 18px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="display:inline-block;padding:10px 14px;border-radius:999px;background:rgba(215,255,95,0.1);border:1px solid rgba(215,255,95,0.2);color:#e8ff9a;font-size:13px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;">Invite & Earn</div>
+      <h1 style="margin:18px 0 0;font-size:34px;line-height:1;color:#ffffff;">You did it, ${username}.</h1>
+      <p style="margin:12px auto 0;max-width:420px;color:rgba(255,255,255,.62);line-height:1.6;">${count} friends created BentoFolio accounts from your link. That means your Pro coupon has officially escaped the lab.</p>
+    </div>
+
+    <div style="background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025)),#121213;border:1px solid rgba(215,255,95,.22);border-radius:28px;padding:28px;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.35);">
+      <p style="margin:0;color:rgba(255,255,255,.52);font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;">Your 100% Pro code</p>
+      <div style="margin:18px 0;padding:18px;border-radius:18px;background:#d7ff5f;color:#080809;font-size:22px;font-weight:900;letter-spacing:.04em;word-break:break-word;">${code}</div>
+      <p style="margin:0;color:rgba(255,255,255,.58);font-size:14px;line-height:1.6;">Paste this on the BentoFolio pricing page and hit <strong style="color:#fff;">Get Pro for free</strong>. No wallet gymnastics required.</p>
+      <div style="margin-top:28px;">
+        <a href="https://bentofolio.dev/pricing" style="display:inline-block;background:#ffffff;color:#080809;text-decoration:none;padding:14px 22px;border-radius:999px;font-weight:800;">Claim Pro</a>
+      </div>
+    </div>
+
+    <p style="margin:24px 0 0;text-align:center;color:rgba(255,255,255,.42);font-size:13px;line-height:1.6;">Made with tiny blocks and questionable amounts of coffee by BentoFolio.</p>
+  </div>
+</body>
+</html>
+    `,
+  }),
+
   welcomePro: (username: string) => ({
     subject: "🎉 Welcome to BentoFolio Pro!",
     html: `
@@ -80,12 +122,12 @@ export const emailTemplates = {
                 Hey <strong style="color: #ffffff;">${username}</strong>,
               </p>
               <p style="font-size: 16px; line-height: 1.6; color: #d1d5db; margin: 0 0 24px;">
-                Thank you for upgrading to BentoFolio Pro! Your account can now use a custom domain for your portfolio.
+                Thank you for upgrading to BentoFolio Pro! Your account now includes custom domain support, analytics, and the premium block set.
               </p>
 
               <!-- Features List -->
               <div style="background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 12px; padding: 24px; margin: 32px 0;">
-                <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 600; color: #ffffff;">✨ Your Pro Feature</h2>
+                <h2 style="margin: 0 0 16px; font-size: 20px; font-weight: 600; color: #ffffff;">✨ Your Pro Features</h2>
                 
                 <div style="margin-bottom: 16px;">
                   <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
@@ -97,7 +139,17 @@ export const emailTemplates = {
                   </div>
                 </div>
 
-                <p style="margin: 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">All blocks, themes, and the Creative tab are available on the free plan while the product evolves. Pro is intentionally simple: connect your own domain.</p>
+                <div style="margin-bottom: 16px;">
+                  <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
+                    <span style="color: #8b5cf6; margin-right: 12px; font-size: 20px;">📈</span>
+                    <div>
+                      <strong style="color: #ffffff; font-size: 16px;">Analytics</strong>
+                      <p style="margin: 4px 0 0; color: #9ca3af; font-size: 14px;">See views, clicks, growth, and referrers for your public profile</p>
+                    </div>
+                  </div>
+                </div>
+
+                <p style="margin: 0; color: #9ca3af; font-size: 14px; line-height: 1.6;">You also unlock richer proof-of-work blocks like GitHub, Projects, SaaS metrics, and Spotify while keeping the essential portfolio blocks and all themes.</p>
               </div>
 
               <!-- CTA Button -->

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { BETA_PAYMENT_LINK } from "@/app/lib/config";
 import { useAuth } from "./useAuth";
 
 export function useCheckout() {
@@ -8,7 +9,7 @@ export function useCheckout() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const initiateCheckout = async () => {
+  const initiateCheckout = async (discountCode?: string) => {
     if (!user) {
       setError("You must be logged in to upgrade");
       return;
@@ -23,17 +24,21 @@ export function useCheckout() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ discountCode }),
       });
 
       if (!response.ok) {
         const data = await response.json();
+        if (BETA_PAYMENT_LINK && data.error === "Lemon Squeezy not configured") {
+          window.location.href = BETA_PAYMENT_LINK;
+          return;
+        }
         throw new Error(data.error || "Failed to create checkout");
       }
 
       const { url } = await response.json();
 
-      // Redirect to Lemon Squeezy checkout
+      // Redirect to Lemon Squeezy checkout, beta fallback, or upgraded editor.
       window.location.href = url;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { BlockLayout, BlockContent } from "./types";
 import { demoLayout, demoContent } from "./demo-data";
+import { DEFAULT_MEMOJI_AVATAR } from "./memoji";
 import { generateId } from "./utils";
 
 interface EditorState {
@@ -48,21 +49,28 @@ export function EditorProvider({ children }: { children: ReactNode }) {
     const getBlockSize = (t: BlockLayout["type"]) => {
       switch (t) {
         case "identity":
+          return { w: 4, h: 1 };
         case "saas":
         case "github":
-        case "youtube":
+        case "availability":
+        case "link":
+        case "resume":
+        case "map":
           return { w: 2, h: 1 };
         case "experience":
+        case "education":
         case "projects":
-        case "career":
         case "techstack":
-        case "creative":
-          return { w: 2, h: 2 };
-        case "social":
-        case "network":
-          return { w: 2, h: 1 };
+        case "work":
         case "spotify":
-          return { w: 1, h: 2 };
+        case "instagram":
+        case "gallery":
+        case "youtube":
+          return { w: 2, h: 2 };
+        case "services":
+        case "tools":
+        case "stats":
+          return { w: 2, h: 1 };
         default:
           return { w: 1, h: 1 };
       }
@@ -84,8 +92,13 @@ export function EditorProvider({ children }: { children: ReactNode }) {
         type: "identity",
         data: {
           name: "Your Name",
-          title: "Your Title",
-          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=" + id,
+          title: "Product Designer @ YourStudio",
+          avatar: DEFAULT_MEMOJI_AVATAR,
+          bio: "Designing calm products, useful systems, and tiny details people remember.",
+          location: "Remote",
+          email: "hello@example.com",
+          website: "example.com",
+          availability: "Available for work",
         },
       },
       map: {
@@ -104,6 +117,20 @@ export function EditorProvider({ children }: { children: ReactNode }) {
           ],
         },
       },
+      education: {
+        type: "education",
+        data: {
+          title: "Education",
+          items: [
+            {
+              school: "Design School",
+              degree: "Product Design",
+              period: "2021 - 2024",
+              description: "Design systems, interaction, and visual craft.",
+            },
+          ],
+        },
+      },
       spotify: {
         type: "spotify",
         data: {
@@ -111,17 +138,35 @@ export function EditorProvider({ children }: { children: ReactNode }) {
           spotifyUrl: "", // User will paste their Spotify URL
         },
       },
-      metrics: {
-        type: "metrics",
-        data: { items: [{ value: "0", label: "Metric" }] },
-      },
       link: {
         type: "link",
-        data: { url: "https://example.com", title: "Link" },
+        data: { url: "hello@example.com", title: "Let's Collaborate" },
       },
-      text: {
-        type: "text",
-        data: { text: "Your text here..." },
+      work: {
+        type: "work",
+        data: {
+          title: "Recent work",
+          subtitle: "Selected projects",
+          email: "hello@icloud.com",
+          items: [
+            {
+              title: "Mobile portfolio system",
+              client: "Northstar Studio",
+              category: "Product design",
+              year: "2026",
+              image: "",
+              url: "https://example.com",
+            },
+            {
+              title: "Creative dashboard",
+              client: "Bento Labs",
+              category: "Web app",
+              year: "2025",
+              image: "",
+              url: "",
+            },
+          ],
+        },
       },
       saas: {
         type: "saas",
@@ -138,7 +183,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       github: {
         type: "github",
         data: {
-          username: "github",
+          username: "",
           followers: 0,
           following: 0,
           publicRepos: 0,
@@ -182,6 +227,12 @@ export function EditorProvider({ children }: { children: ReactNode }) {
           status: "available",
           message: "Open to new opportunities!",
           forHire: true,
+          preferredContact: "hello@example.com",
+          responseTime: "Replies within 24h",
+          timezone: "GMT+1",
+          nextOpening: "2 spots this month",
+          rate: "Projects from $2k",
+          ctaLabel: "Start a project",
         },
       },
       quote: {
@@ -204,90 +255,52 @@ export function EditorProvider({ children }: { children: ReactNode }) {
           }),
         },
       },
-      youtube: {
-        type: "youtube",
-        data: {
-          channelName: "My Channel",
-          subscribers: "0",
-          videoUrl: "",
-        },
+      gallery: {
+        type: "gallery",
+        data: { title: "Gallery", images: [] },
       },
       instagram: {
         type: "instagram",
         data: {
-          profileUrl: "", // User will paste Instagram profile URL
-          username: "",
+          handle: "@yourhandle",
+          profileUrl: "https://instagram.com/yourhandle",
+          image: "",
+          followers: "12.4k",
+          posts: "186",
+          engagement: "8.7%",
+          featuredPostUrl: "",
         },
       },
-      network: {
-        type: "network",
+      youtube: {
+        type: "youtube",
+        data: { title: "Featured video", url: "" },
+      },
+      services: {
+        type: "services",
         data: {
-          title: "My Network",
-          connections: [
-            {
-              name: "Friend 1",
-              avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=1",
-            },
-            {
-              name: "Friend 2",
-              avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=2",
-            },
-            {
-              name: "Friend 3",
-              avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=3",
-            },
-          ],
+          title: "What I can help with",
+          items: ["Product design", "Framer", "Web apps", "Brand systems"],
         },
       },
-      career: {
-        type: "career",
+      tools: {
+        type: "tools",
         data: {
-          title: "Career Journey",
-          positions: [
-            {
-              company: "Tech Startup",
-              role: "Frontend Developer",
-              dateRange: "2020 - 2022",
-              description: "Built responsive web applications",
-            },
-            {
-              company: "Big Tech Co",
-              role: "Senior Developer",
-              dateRange: "2022 - 2024",
-              description: "Led frontend architecture",
-            },
-            {
-              company: "Innovation Labs",
-              role: "Tech Lead",
-              dateRange: "2024 - Present",
-              description: "Managing engineering team",
-              current: true,
-            },
-          ],
-        },
-      },
-      creative: {
-        type: "creative",
-        data: {
-          title: "Creative OS",
-          description:
-            "A live desk for case studies, notes, experiments, and public Notion pages.",
-          notionUrl: "",
-          ctaLabel: "Open my workspace",
-          ctaUrl: "",
+          title: "Tools I use",
           items: [
-            {
-              title: "Brand direction notes",
-              type: "Notion page",
-              status: "Public",
-              url: "",
-            },
-            {
-              title: "Recent case study",
-              type: "Project",
-              status: "Updated",
-              url: "",
-            },
+            { name: "Figma", icon: "F" },
+            { name: "Framer", icon: "Fr" },
+            { name: "Notion", icon: "N" },
+          ],
+        },
+      },
+      stats: {
+        type: "stats",
+        data: {
+          items: [
+            { value: "6+", label: "Years" },
+            { value: "42", label: "Projects" },
+            { value: "12k", label: "Users reached" },
+            { value: "98%", label: "Happy clients" },
           ],
         },
       },

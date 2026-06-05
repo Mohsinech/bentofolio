@@ -3,6 +3,10 @@
   flex-direction: column;
   padding: 16px;
   gap: 12px;
+  height: 100%;
+  background:
+    radial-gradient(circle at 48% 18%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, #27282d 0%, #17181b 58%, #101114 100%);
 }
 
 .header {
@@ -27,13 +31,15 @@
   display: flex;
   gap: 12px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
   transition: background 0.2s ease;
 }
 
 .item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
 }
 
 .logo {
@@ -122,4 +128,34 @@
   .period {
     font-size: 0.7rem;
   }
+}
+
+:global([data-theme="light"]) .container {
+  background:
+    radial-gradient(circle at 48% 18%, rgba(124, 58, 237, 0.12), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #f7f3ff 58%, #efe8ff 100%);
+}
+
+:global([data-theme="light"]) .header,
+:global([data-theme="light"]) .role,
+:global([data-theme="light"]) .period,
+:global([data-theme="light"]) .empty {
+  color: rgba(23, 19, 33, 0.54);
+}
+
+:global([data-theme="light"]) .item {
+  border-color: rgba(124, 58, 237, 0.13);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+:global([data-theme="light"]) .item:hover {
+  background: rgba(124, 58, 237, 0.08);
+}
+
+:global([data-theme="light"]) .company {
+  color: #171321;
+}
+
+:global([data-theme="light"]) .logoFallback {
+  color: #ffffff;
 }

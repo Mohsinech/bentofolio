@@ -2,11 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { BlockLayout, BlockContent, ThemeId } from "@/app/lib/types";
-import { useAuth } from "./useAuth";
+
+function normalizeTheme(theme: unknown): ThemeId {
+  return theme === "light" ? "light" : "dark";
+}
 
 interface ProfileData {
   id: string;
   username: string;
+  avatarUrl?: string | null;
   theme: ThemeId;
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
@@ -20,16 +24,18 @@ interface UseProfileReturn {
   error: string | null;
   saveProfile: (
     updates: Partial<
-      Pick<ProfileData, "layout" | "content" | "theme" | "customDomain">
+      Pick<
+        ProfileData,
+        "layout" | "content" | "theme" | "customDomain" | "avatarUrl"
+      >
     >
   ) => Promise<void>;
   saving: boolean;
-  // Combined pro access (DB isPro OR admin status)
+  // Pro access comes from the profile record, not admin status.
   hasProAccess: boolean;
 }
 
 export function useProfile(): UseProfileReturn {
-  const { isAdmin } = useAuth();
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -54,7 +60,8 @@ export function useProfile(): UseProfileReturn {
         setProfile({
           id: data.id,
           username: data.username,
-          theme: data.theme || "dark",
+          avatarUrl: data.avatar_url || null,
+          theme: normalizeTheme(data.theme),
           layout: data.layout || [],
           content: data.content || {},
           isPro: data.is_pro || false,
@@ -73,7 +80,10 @@ export function useProfile(): UseProfileReturn {
   const saveProfile = useCallback(
     async (
       updates: Partial<
-        Pick<ProfileData, "layout" | "content" | "theme" | "customDomain">
+        Pick<
+          ProfileData,
+          "layout" | "content" | "theme" | "customDomain" | "avatarUrl"
+        >
       >
     ) => {
       setSaving(true);
@@ -112,8 +122,7 @@ export function useProfile(): UseProfileReturn {
     []
   );
 
-  // Pro access = DB isPro OR admin status
-  const hasProAccess = profile?.isPro || isAdmin;
+  const hasProAccess = Boolean(profile?.isPro);
 
   return { profile, loading, error, saveProfile, saving, hasProAccess };
 }

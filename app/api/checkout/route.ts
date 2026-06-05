@@ -1,8 +1,30 @@
 import { NextResponse } from "next/server";
 import { PREMIUM_PRICE } from "@/app/lib/config";
+import { createAdminClient } from "@/app/lib/supabase/admin";
 import { createClient } from "@/app/lib/supabase/server";
 
-export async function POST() {
+function normalizeCode(code: unknown) {
+  return typeof code === "string" ? code.trim().toUpperCase() : "";
+}
+
+function appendDiscountCode(checkoutUrl: string, discountCode: string) {
+  if (!discountCode) {
+    return checkoutUrl;
+  }
+
+  try {
+    const url = new URL(checkoutUrl);
+    url.searchParams.set("checkout[discount_code]", discountCode);
+    return url.toString();
+  } catch {
+    const separator = checkoutUrl.includes("?") ? "&" : "?";
+    return `${checkoutUrl}${separator}checkout%5Bdiscount_code%5D=${encodeURIComponent(
+      discountCode
+    )}`;
+  }
+}
+
+export async function POST(request: Request) {
   try {
     const supabase = await createClient();
     const {
@@ -16,11 +38,105 @@ export async function POST() {
       );
     }
 
+    const body = await request.json().catch(() => ({}));
+    const discountCode = normalizeCode(body.discountCode);
+    const freeProCodes = (process.env.BETA_FREE_PRO_CODES || "")
+      .split(",")
+      .map((code) => code.trim().toUpperCase())
+      .filter(Boolean);
+
+    if (discountCode && freeProCodes.includes(discountCode)) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          is_pro: true,
+          upgraded_at: new Date().toISOString(),
+          lemon_squeezy_order_id: `beta-free:${discountCode}`,
+        })
+        .eq("id", user.id);
+
+      if (error) {
+        console.error("Beta free code error:", error);
+        return NextResponse.json(
+          { error: "Failed to activate beta code" },
+          { status: 500 }
+        );
+      }
+
+      return NextResponse.json({
+        upgraded: true,
+        url: `${
+          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+        }/editor?upgraded=true`,
+      });
+    }
+
+    if (discountCode) {
+      const admin = createAdminClient();
+      const { data: rewardCode } = await admin
+        .from("referral_reward_codes")
+        .select("id, used_at")
+        .eq("user_id", user.id)
+        .eq("code", discountCode)
+        .maybeSingle();
+
+      if (rewardCode && !rewardCode.used_at) {
+        const now = new Date().toISOString();
+        const [{ error: profileError }, { error: rewardError }] =
+          await Promise.all([
+            admin
+              .from("profiles")
+              .update({
+                is_pro: true,
+                upgraded_at: now,
+                lemon_squeezy_order_id: `referral-reward:${discountCode}`,
+              })
+              .eq("id", user.id),
+            admin
+              .from("referral_reward_codes")
+              .update({ used_at: now })
+              .eq("id", rewardCode.id),
+          ]);
+
+        if (profileError || rewardError) {
+          console.error("Referral reward activation failed:", {
+            profileError,
+            rewardError,
+          });
+          return NextResponse.json(
+            { error: "Failed to activate reward code" },
+            { status: 500 }
+          );
+        }
+
+        return NextResponse.json({
+          upgraded: true,
+          url: `${
+            process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+          }/editor?upgraded=true`,
+        });
+      }
+    }
+
     const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
     const variantId = process.env.LEMON_SQUEEZY_VARIANT_ID;
     const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
+    const betaPaymentLink = process.env.NEXT_PUBLIC_BETA_PAYMENT_LINK || "";
 
-    if (!storeId || !variantId || !apiKey) {
+    if (
+      !storeId ||
+      !variantId ||
+      !apiKey ||
+      storeId.startsWith("your_") ||
+      variantId.startsWith("your_") ||
+      apiKey.startsWith("your_")
+    ) {
+      if (betaPaymentLink) {
+        return NextResponse.json({
+          url: appendDiscountCode(betaPaymentLink, discountCode),
+        });
+      }
+
       return NextResponse.json(
         { error: "Lemon Squeezy not configured" },
         { status: 500 }
@@ -47,9 +163,11 @@ export async function POST() {
           attributes: {
             checkout_data: {
               email: user.email,
+              discount_code: discountCode || undefined,
               custom: {
                 user_id: user.id,
                 username: profile?.username || "",
+                discount_code: discountCode || "",
               },
             },
             checkout_options: {
@@ -57,11 +175,11 @@ export async function POST() {
               embed: false,
               media: false,
               logo: true,
-              button_color: "#8b5cf6",
+              button_color: "#d7ff5f",
             },
             product_options: {
               name: "BentoFolio Pro",
-              description: `One-time payment of $${PREMIUM_PRICE} for lifetime custom domain access`,
+              description: `One-time payment of $${PREMIUM_PRICE} for custom domains, analytics, Pro blocks, and templates`,
               receipt_button_text: "Go to Dashboard",
               receipt_thank_you_note:
                 "Thanks for upgrading to Pro! You can now connect your custom domain.",

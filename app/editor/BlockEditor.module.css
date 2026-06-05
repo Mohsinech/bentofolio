@@ -11,17 +11,17 @@
   padding: 40px 20px;
   color: var(--text-muted);
   font-size: 0.9rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   text-align: center;
 }
 
 /* Embedded mode - used in PropertiesPanel */
 .fieldsOnly {
-  padding: 16px 20px;
+  padding: 18px 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 18px;
 }
 
 .header {
@@ -35,7 +35,7 @@
 .title {
   font-size: 0.85rem;
   font-weight: 600;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   color: var(--text-primary);
   text-transform: capitalize;
 }
@@ -82,7 +82,7 @@
 
 .fieldHint {
   font-size: 0.75rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   color: var(--text-muted);
   margin: 4px 0 0 0;
   line-height: 1.4;
@@ -93,20 +93,20 @@
   font-weight: 600;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-family: var(--font-montreal);
+  letter-spacing: 0.08em;
+  font-family: var(--font-editor-heading);
 }
 
 .input,
 .textarea,
 .select {
   padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-subtle);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
   color: var(--text-primary);
-  font-size: 0.9rem;
-  font-family: var(--font-montreal);
+  font-size: 0.86rem;
+  font-family: var(--font-editor-heading);
   font-weight: 400;
   outline: none;
   transition: all 0.2s ease;
@@ -122,15 +122,206 @@
 .input:focus,
 .textarea:focus,
 .select:focus {
-  border-color: rgba(139, 92, 246, 0.6);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: rgba(244, 241, 234, 0.28);
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: 0 0 0 3px rgba(244, 241, 234, 0.06);
+}
+
+.locationInputWrap {
+  position: relative;
+}
+
+.locationInput {
+  width: 100%;
+  padding-left: 38px;
+  padding-right: 38px;
+}
+
+.locationInputIcon,
+.locationSpinner {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255, 255, 255, 0.42);
+  pointer-events: none;
+}
+
+.locationInputIcon {
+  left: 14px;
+}
+
+.locationSpinner {
+  right: 14px;
+  animation: spin 800ms linear infinite;
+}
+
+.locationSuggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.035)),
+    rgba(18, 18, 19, 0.96);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.locationSuggestions button {
+  width: 100%;
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--font-editor-heading);
+}
+
+.locationSuggestions button:hover {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.locationSuggestions span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.locationSuggestions strong,
+.locationSuggestions small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.locationSuggestions strong {
+  font-size: 0.82rem;
+  font-weight: 560;
+}
+
+.locationSuggestions small {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.72rem;
+}
+
+.githubImport {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.githubImportHeader {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.075);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.12), transparent 36%),
+    rgba(255, 255, 255, 0.035);
+}
+
+.githubImportHeader > svg {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 12px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.githubImportHeader strong,
+.githubImportHeader span {
+  display: block;
+  min-width: 0;
+}
+
+.githubImportHeader strong {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+  font-weight: 560;
+}
+
+.githubImportHeader span {
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.46);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.importButton {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 14px;
+  background: #f4f0e8;
+  color: #09090a;
+  font-family: var(--font-editor-heading), system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease,
+    background 160ms ease;
+}
+
+.importButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #ffffff;
+}
+
+.importButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.inlineSpinner {
+  animation: inlineSpin 800ms linear infinite;
+}
+
+.importMessage {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+
+@keyframes spin {
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+
+@keyframes inlineSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .textarea {
   resize: vertical;
   min-height: 100px;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   line-height: 1.6;
 }
 
@@ -167,7 +358,7 @@
 
 .checkboxLabel {
   font-size: 0.9rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   color: var(--text-secondary);
   cursor: pointer;
@@ -186,6 +377,10 @@
   gap: 12px;
   flex-wrap: wrap;
   width: 100%;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
 }
 
 .arrayItemRow {
@@ -205,6 +400,33 @@
   flex: 1;
 }
 
+.companyInputRow {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+}
+
+.companyLogoPreview {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #0b0b0c;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.companyLogoPreview img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .smallInput {
   flex: 1;
   padding: 10px 14px;
@@ -213,7 +435,7 @@
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.95rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 400;
   outline: none;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
@@ -239,7 +461,7 @@
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.85rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   cursor: pointer;
   outline: none;
@@ -297,7 +519,7 @@
   color: var(--text-primary);
   font-size: 0.85rem;
   font-weight: 600;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   cursor: pointer;
   margin-top: 12px;
   transition: all 0.2s ease;
@@ -320,7 +542,7 @@
   border-radius: 8px;
   color: var(--text-primary);
   font-size: 0.85rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 400;
   outline: none;
   transition: all 0.2s ease;
@@ -358,7 +580,7 @@
   transition: all 0.2s ease;
   color: var(--text-muted);
   font-size: 0.85rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
 }
 
@@ -427,7 +649,7 @@
   transition: all 0.2s ease;
   color: var(--text-muted);
   font-size: 0.85rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   background: var(--bg-tertiary);
 }
@@ -451,7 +673,7 @@
 .fileName {
   flex: 1;
   font-size: 0.85rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   color: var(--text-primary);
   overflow: hidden;
@@ -518,7 +740,7 @@
 
 .techChipName {
   color: var(--text-primary);
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
 }
 
@@ -555,7 +777,7 @@
   background: transparent;
   color: var(--text-muted);
   font-size: 0.75rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -625,7 +847,7 @@
 
 .techSuggestionName {
   font-size: 0.8rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   color: var(--text-primary);
   white-space: nowrap;
@@ -689,7 +911,7 @@
   background: transparent;
   color: var(--text-primary);
   font-size: 0.85rem;
-  font-family: var(--font-montreal);
+  font-family: var(--font-editor-heading);
   font-weight: 500;
   cursor: pointer;
   text-align: left;
@@ -737,4 +959,252 @@
     font-size: 0.85rem;
     padding: 8px 10px;
   }
+}
+
+/* Studio inspector finish */
+.fieldsOnly {
+  padding: 14px 2px 4px;
+  gap: 16px;
+}
+
+.field,
+.fieldWrapper,
+.arrayItem,
+.filePreview {
+  border-radius: 16px;
+}
+
+.input,
+.textarea,
+.select,
+.smallInput,
+.smallSelect,
+.urlInput {
+  min-height: 44px;
+  border-radius: 14px;
+  background: #0b0b0c;
+  border-color: rgba(255, 255, 255, 0.075);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus,
+.smallInput:focus,
+.smallSelect:focus,
+.urlInput:focus {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: #151516;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.045);
+}
+
+.arrayItem {
+  background: #0b0b0c;
+  border-color: rgba(255, 255, 255, 0.065);
+}
+
+.addButton,
+.techCategoryBtn.active {
+  border-radius: 13px;
+  background: #f1eee7;
+  border-color: #f1eee7;
+  color: #101011;
+}
+
+.addButton:hover {
+  background: #ffffff;
+  border-color: #ffffff;
+}
+
+.removeButton,
+.imageRemoveButton {
+  background: #2a1717;
+  color: #ffb4b4;
+}
+
+.imageDropzone,
+.imageDropzoneSmall,
+.fileDropzone {
+  border-radius: 16px;
+  background: #0f0f10;
+  border-color: rgba(255, 255, 255, 0.075);
+}
+
+.imageDropzone:hover,
+.imageDropzoneSmall:hover,
+.fileDropzone:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #171719;
+}
+
+.techChip {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.techCategoryBtn,
+.techSuggestion,
+.autocompleteDropdown {
+  border-radius: 13px;
+  background: #0f0f10;
+  border-color: rgba(255, 255, 255, 0.075);
+}
+
+.techCategoryBtn:hover,
+.techSuggestion:hover:not(.added),
+.autocompleteOption:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #18181a;
+}
+
+:global([data-theme="light"]) .empty {
+  color: rgba(23, 19, 33, 0.54);
+}
+
+:global([data-theme="light"]) .title,
+:global([data-theme="light"]) .githubImportHeader strong,
+:global([data-theme="light"]) .fileName {
+  color: #171321;
+}
+
+:global([data-theme="light"]) .label,
+:global([data-theme="light"]) .fieldHint,
+:global([data-theme="light"]) .githubImportHeader span,
+:global([data-theme="light"]) .importMessage,
+:global([data-theme="light"]) .checkboxLabel {
+  color: rgba(23, 19, 33, 0.58);
+}
+
+:global([data-theme="light"]) .input,
+:global([data-theme="light"]) .textarea,
+:global([data-theme="light"]) .select,
+:global([data-theme="light"]) .smallInput,
+:global([data-theme="light"]) .smallSelect,
+:global([data-theme="light"]) .urlInput {
+  background: rgba(255, 255, 255, 0.84);
+  border-color: rgba(124, 58, 237, 0.16);
+  color: #171321;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 10px 26px rgba(80, 46, 140, 0.055);
+}
+
+:global([data-theme="light"]) .input::placeholder,
+:global([data-theme="light"]) .textarea::placeholder,
+:global([data-theme="light"]) .smallInput::placeholder,
+:global([data-theme="light"]) .urlInput::placeholder {
+  color: rgba(23, 19, 33, 0.4);
+  opacity: 1;
+}
+
+:global([data-theme="light"]) .input:focus,
+:global([data-theme="light"]) .textarea:focus,
+:global([data-theme="light"]) .select:focus,
+:global([data-theme="light"]) .smallInput:focus,
+:global([data-theme="light"]) .smallSelect:focus,
+:global([data-theme="light"]) .urlInput:focus {
+  background: #ffffff;
+  border-color: rgba(124, 58, 237, 0.42);
+  box-shadow:
+    0 0 0 3px rgba(124, 58, 237, 0.1),
+    0 14px 34px rgba(80, 46, 140, 0.08);
+}
+
+:global([data-theme="light"]) .select,
+:global([data-theme="light"]) .smallSelect {
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4L6 8L10 4' stroke='%237c3aed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+:global([data-theme="light"]) .select option,
+:global([data-theme="light"]) .smallSelect option {
+  background: #ffffff;
+  color: #171321;
+}
+
+:global([data-theme="light"]) .arrayItem,
+:global([data-theme="light"]) .filePreview,
+:global([data-theme="light"]) .githubImportHeader,
+:global([data-theme="light"]) .locationSuggestions,
+:global([data-theme="light"]) .techCategoryBtn,
+:global([data-theme="light"]) .techSuggestion,
+:global([data-theme="light"]) .autocompleteDropdown {
+  border-color: rgba(124, 58, 237, 0.13);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 247, 255, 0.84)),
+    rgba(255, 255, 255, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 14px 34px rgba(80, 46, 140, 0.07);
+}
+
+:global([data-theme="light"]) .imageDropzone,
+:global([data-theme="light"]) .imageDropzoneSmall,
+:global([data-theme="light"]) .fileDropzone {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: rgba(124, 58, 237, 0.18);
+  color: rgba(23, 19, 33, 0.56);
+}
+
+:global([data-theme="light"]) .imageDropzone:hover,
+:global([data-theme="light"]) .imageDropzoneSmall:hover,
+:global([data-theme="light"]) .fileDropzone:hover {
+  background: rgba(124, 58, 237, 0.08);
+  border-color: rgba(124, 58, 237, 0.34);
+  color: #4c1d95;
+}
+
+:global([data-theme="light"]) .locationInputIcon,
+:global([data-theme="light"]) .locationSpinner,
+:global([data-theme="light"]) .closeButton {
+  color: rgba(23, 19, 33, 0.46);
+}
+
+:global([data-theme="light"]) .locationSuggestions button,
+:global([data-theme="light"]) .autocompleteOption {
+  color: rgba(23, 19, 33, 0.74);
+}
+
+:global([data-theme="light"]) .locationSuggestions button:hover,
+:global([data-theme="light"]) .techCategoryBtn:hover,
+:global([data-theme="light"]) .techSuggestion:hover:not(.added),
+:global([data-theme="light"]) .autocompleteOption:hover {
+  border-color: rgba(124, 58, 237, 0.18);
+  background: rgba(124, 58, 237, 0.085);
+}
+
+:global([data-theme="light"]) .locationSuggestions small {
+  color: rgba(23, 19, 33, 0.46);
+}
+
+:global([data-theme="light"]) .githubImportHeader > svg,
+:global([data-theme="light"]) .techChip {
+  border-color: rgba(124, 58, 237, 0.14);
+  background: rgba(124, 58, 237, 0.08);
+  color: #5b21b6;
+}
+
+:global([data-theme="light"]) .addButton,
+:global([data-theme="light"]) .techCategoryBtn.active {
+  border-color: #7c3aed;
+  background: #7c3aed;
+  color: #ffffff;
+}
+
+:global([data-theme="light"]) .addButton:hover {
+  border-color: #6d28d9;
+  background: #6d28d9;
+}
+
+:global([data-theme="light"]) .removeButton,
+:global([data-theme="light"]) .imageRemoveButton {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+:global([data-theme="light"]) .companyLogoPreview,
+:global([data-theme="light"]) .imagePreview,
+:global([data-theme="light"]) .imagePreviewSmall {
+  border-color: rgba(124, 58, 237, 0.16);
+  background: rgba(255, 255, 255, 0.86);
 }

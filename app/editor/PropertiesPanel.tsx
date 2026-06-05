@@ -36,7 +36,7 @@ export function PropertiesPanel() {
           </div>
 
           <div className={styles.blockType}>
-            <span className={styles.blockTypeLabel}>Block Type</span>
+            <span className={styles.blockTypeLabel}>Selected card</span>
             <span className={styles.blockTypeName}>
               {formatBlockType(selectedContent.type)}
             </span>
@@ -58,10 +58,10 @@ export function PropertiesPanel() {
           <div className={styles.emptyState}>
             <Layers size={32} className={styles.emptyIcon} />
             <p className={styles.emptyText}>
-              Select a block to edit its properties
+              No card selected
             </p>
             <span className={styles.emptyHint}>
-              Click on any block in the canvas
+              Pick a card on the canvas to edit its content.
             </span>
           </div>
         </motion.aside>

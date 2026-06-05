@@ -1,0 +1,323 @@
+.container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 270px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  overflow: hidden;
+  color: #f7f7f8;
+  background:
+    radial-gradient(
+      circle at 50% 18%,
+      rgba(255, 255, 255, 0.14),
+      transparent 35%
+    ),
+    linear-gradient(145deg, #27282d 0%, #17181b 58%, #101114 100%);
+}
+
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 205px;
+  display: grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.stage::before {
+  content: "";
+  position: absolute;
+  width: min(82%, 260px);
+  aspect-ratio: 1;
+  border-radius: 34%;
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 26px 60px rgba(0, 0, 0, 0.22);
+  z-index: -2;
+}
+
+.envelopeStack {
+  position: relative;
+  width: min(88%, 292px);
+  height: 254px;
+}
+
+.previewImage,
+.envelopeBack,
+.envelopeFront {
+  position: absolute;
+  left: 50%;
+  transform-origin: 50% 100%;
+}
+
+.previewImage {
+  top: 54%;
+  left: 50%;
+  width: 54%;
+  height: 122px;
+  border-radius: 5px;
+  object-fit: cover;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.26);
+  background: #d8e4ea;
+  transform: translate(-50%, -50%);
+  transition: transform 260ms ease;
+  animation: imageFloat 3.8s ease-in-out infinite;
+}
+
+.image0 {
+  --image-x: -88%;
+  --image-rotate: -6deg;
+}
+
+.image1 {
+  --image-x: -50%;
+  --image-rotate: 0deg;
+}
+
+.image2 {
+  --image-x: -12%;
+  --image-rotate: 6deg;
+}
+
+.activeImage {
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.envelopeBack,
+.envelopeFront {
+  bottom: 6px;
+  width: 90%;
+  height: 124px;
+  border-radius: 22px;
+  transform: translateX(-50%);
+}
+
+.envelopeBack {
+  background: linear-gradient(180deg, #f0f0ee, #d0d2cf);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 24px 48px rgba(0, 0, 0, 0.34);
+  z-index: 20;
+}
+
+.envelopeFront {
+  display: grid;
+  place-items: end center;
+  padding: 0 14px 17px;
+  overflow: hidden;
+  background: linear-gradient(180deg, rgba(245, 246, 244, 0.97), #d7d8d5);
+  color: rgba(31, 32, 35, 0.42);
+  z-index: 30;
+}
+
+.envelopeFold {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      31deg,
+      transparent 49.4%,
+      rgba(160, 162, 160, 0.36) 50%,
+      transparent 50.6%
+    ),
+    linear-gradient(
+      -31deg,
+      transparent 49.4%,
+      rgba(160, 162, 160, 0.32) 50%,
+      transparent 50.6%
+    );
+}
+
+.envelopeMeta {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 680;
+}
+
+.envelopeMeta strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.emptyState {
+  width: min(72%, 220px);
+  min-height: 154px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  border-radius: 26px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.82rem;
+}
+
+.caption {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.caption span {
+  display: block;
+  margin-bottom: 4px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.caption h3 {
+  margin: 0;
+  color: #ffffff;
+  font-size: 1.18rem;
+  font-weight: 620;
+  line-height: 1.05;
+}
+
+.openButton {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px;
+  box-sizing: content-box;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 255, 255, 0.72);
+  text-decoration: none;
+  transition: transform 180ms ease;
+}
+
+.container:hover .previewImage {
+  animation-play-state: paused;
+  transform: translate(var(--image-x, -50%), calc(-50% - 22px))
+    rotate(var(--image-rotate, 0deg));
+}
+
+.container:hover .openButton {
+  transform: translate(2px, -2px);
+}
+
+.switcher {
+  position: absolute;
+  left: 50%;
+  bottom: -8px;
+  z-index: 40;
+  display: inline-flex;
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(10px);
+  transform: translateX(-50%);
+}
+
+.switcher button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.34);
+  cursor: pointer;
+  transition:
+    width 180ms ease,
+    background 180ms ease;
+}
+
+.switcher .switchActive {
+  width: 18px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+@keyframes imageFloat {
+  0%,
+  100% {
+    transform: translate(var(--image-x, -50%), -50%)
+      rotate(var(--image-rotate, 0deg));
+  }
+
+  50% {
+    transform: translate(var(--image-x, -50%), calc(-50% - 7px))
+      rotate(var(--image-rotate, 0deg));
+  }
+}
+
+:global([data-theme="light"]) .container {
+  color: #171321;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(124, 58, 237, 0.13), transparent 35%),
+    linear-gradient(145deg, #ffffff 0%, #f7f3ff 58%, #efe8ff 100%);
+}
+
+:global([data-theme="light"]) .stage::before {
+  background: rgba(124, 58, 237, 0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.85),
+    0 26px 60px rgba(80, 46, 140, 0.12);
+}
+
+:global([data-theme="light"]) .previewImage {
+  border-color: rgba(124, 58, 237, 0.18);
+  box-shadow: 0 18px 34px rgba(80, 46, 140, 0.14);
+}
+
+:global([data-theme="light"]) .activeImage {
+  box-shadow:
+    0 22px 44px rgba(80, 46, 140, 0.2),
+    0 0 0 1px rgba(124, 58, 237, 0.16);
+}
+
+:global([data-theme="light"]) .emptyState {
+  border-color: rgba(124, 58, 237, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+  color: rgba(23, 19, 33, 0.5);
+}
+
+:global([data-theme="light"]) .caption span {
+  color: rgba(23, 19, 33, 0.48);
+}
+
+:global([data-theme="light"]) .caption h3 {
+  color: #171321;
+}
+
+:global([data-theme="light"]) .openButton {
+  border-color: rgba(124, 58, 237, 0.14);
+  background: rgba(124, 58, 237, 0.08);
+  color: #6d28d9;
+}
+
+:global([data-theme="light"]) .switcher {
+  border-color: rgba(124, 58, 237, 0.14);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+:global([data-theme="light"]) .switcher button {
+  background: rgba(124, 58, 237, 0.26);
+}
+
+:global([data-theme="light"]) .switcher .switchActive {
+  background: #7c3aed;
+}

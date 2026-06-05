@@ -21,9 +21,7 @@ export function ThemeProvider({ theme, children }: ThemeProviderProps) {
     if (!themeConfig) return;
 
     const root = document.documentElement;
-
-    // Detect if it's a light theme (minimal)
-    const isLightTheme = theme === "minimal";
+    root.dataset.theme = theme;
 
     // Apply theme CSS variables (matching globals.css variable names)
     root.style.setProperty("--bg-primary", themeConfig.background);
@@ -38,45 +36,57 @@ export function ThemeProvider({ theme, children }: ThemeProviderProps) {
     root.style.setProperty("--text-muted", themeConfig.textMuted);
     root.style.setProperty("--accent", themeConfig.accent);
 
-    // Theme-aware sidebar and UI element colors
-    if (isLightTheme) {
-      root.style.setProperty("--sidebar-bg", "rgba(255, 255, 255, 0.7)");
-      root.style.setProperty("--card-bg-subtle", "rgba(0, 0, 0, 0.03)");
-      root.style.setProperty("--card-bg-hover", "rgba(0, 0, 0, 0.06)");
-      root.style.setProperty("--scrollbar-thumb", "rgba(0, 0, 0, 0.15)");
-      root.style.setProperty("--scrollbar-thumb-hover", "rgba(0, 0, 0, 0.25)");
-      root.style.setProperty(
-        "--shadow-hover",
-        "0 4px 12px rgba(0, 0, 0, 0.08)"
-      );
-      // Block control buttons for light theme
-      root.style.setProperty("--control-bg", "rgba(255, 255, 255, 0.8)");
-      root.style.setProperty("--control-bg-hover", "rgba(255, 255, 255, 0.95)");
-      root.style.setProperty("--accent-bg", "rgba(15, 23, 42, 0.1)");
-      root.style.setProperty("--accent-bg-hover", "rgba(15, 23, 42, 0.15)");
-      root.style.setProperty("--accent-border", "rgba(15, 23, 42, 0.2)");
-      root.style.setProperty("--accent-border-hover", "rgba(15, 23, 42, 0.3)");
-    } else {
-      root.style.setProperty("--sidebar-bg", "rgba(0, 0, 0, 0.4)");
-      root.style.setProperty("--card-bg-subtle", "rgba(255, 255, 255, 0.03)");
-      root.style.setProperty("--card-bg-hover", "rgba(255, 255, 255, 0.08)");
-      root.style.setProperty("--scrollbar-thumb", "rgba(255, 255, 255, 0.1)");
-      root.style.setProperty(
-        "--scrollbar-thumb-hover",
-        "rgba(255, 255, 255, 0.2)"
-      );
-      root.style.setProperty("--shadow-hover", "0 4px 12px rgba(0, 0, 0, 0.2)");
-      // Block control buttons for dark themes
-      root.style.setProperty("--control-bg", "rgba(0, 0, 0, 0.6)");
-      root.style.setProperty("--control-bg-hover", "rgba(0, 0, 0, 0.8)");
-      root.style.setProperty("--accent-bg", "rgba(139, 92, 246, 0.2)");
-      root.style.setProperty("--accent-bg-hover", "rgba(139, 92, 246, 0.3)");
-      root.style.setProperty("--accent-border", "rgba(139, 92, 246, 0.3)");
-      root.style.setProperty(
-        "--accent-border-hover",
-        "rgba(139, 92, 246, 0.5)"
-      );
-    }
+    const isLight = theme === "light";
+    root.style.setProperty(
+      "--sidebar-bg",
+      isLight ? "rgba(255, 255, 255, 0.72)" : "rgba(0, 0, 0, 0.4)",
+    );
+    root.style.setProperty(
+      "--card-bg-subtle",
+      isLight ? "rgba(124, 58, 237, 0.055)" : "rgba(255, 255, 255, 0.03)",
+    );
+    root.style.setProperty(
+      "--card-bg-hover",
+      isLight ? "rgba(124, 58, 237, 0.1)" : "rgba(255, 255, 255, 0.08)",
+    );
+    root.style.setProperty(
+      "--scrollbar-thumb",
+      isLight ? "rgba(124, 58, 237, 0.18)" : "rgba(255, 255, 255, 0.1)",
+    );
+    root.style.setProperty(
+      "--scrollbar-thumb-hover",
+      isLight ? "rgba(124, 58, 237, 0.28)" : "rgba(255, 255, 255, 0.2)",
+    );
+    root.style.setProperty(
+      "--shadow-hover",
+      isLight
+        ? "0 10px 30px rgba(80, 46, 140, 0.12)"
+        : "0 4px 12px rgba(0, 0, 0, 0.2)",
+    );
+    root.style.setProperty(
+      "--control-bg",
+      isLight ? "rgba(255, 255, 255, 0.82)" : "rgba(0, 0, 0, 0.6)",
+    );
+    root.style.setProperty(
+      "--control-bg-hover",
+      isLight ? "rgba(245, 240, 255, 0.96)" : "rgba(0, 0, 0, 0.8)",
+    );
+    root.style.setProperty(
+      "--accent-bg",
+      isLight ? "rgba(124, 58, 237, 0.1)" : "rgba(215, 255, 95, 0.12)",
+    );
+    root.style.setProperty(
+      "--accent-bg-hover",
+      isLight ? "rgba(124, 58, 237, 0.16)" : "rgba(215, 255, 95, 0.18)",
+    );
+    root.style.setProperty(
+      "--accent-border",
+      isLight ? "rgba(124, 58, 237, 0.18)" : "rgba(215, 255, 95, 0.18)",
+    );
+    root.style.setProperty(
+      "--accent-border-hover",
+      isLight ? "rgba(124, 58, 237, 0.3)" : "rgba(215, 255, 95, 0.28)",
+    );
 
     // Premium glassmorphism effects
     const blur = themeConfig.blur || 12;
@@ -106,15 +116,15 @@ export function ThemeProvider({ theme, children }: ThemeProviderProps) {
     // Fun animation effects
     root.style.setProperty(
       "--has-particles",
-      themeConfig.particles ? "1" : "0"
+      themeConfig.particles ? "1" : "0",
     );
     root.style.setProperty(
       "--particle-color",
-      themeConfig.particleColor || "rgba(139, 92, 246, 0.5)"
+      themeConfig.particleColor || "rgba(139, 92, 246, 0.5)",
     );
     root.style.setProperty(
       "--has-mouse-glow",
-      themeConfig.mouseGlow ? "1" : "0"
+      themeConfig.mouseGlow ? "1" : "0",
     );
     root.style.setProperty("--card-effect", themeConfig.cardEffect || "none");
     root.style.setProperty("--has-blobs", themeConfig.blobs ? "1" : "0");
@@ -124,7 +134,6 @@ export function ThemeProvider({ theme, children }: ThemeProviderProps) {
       root.style.setProperty("--blob-color-3", themeConfig.blobColors[2]);
     }
 
-    // Set body background with image
     if (themeConfig.backgroundImage) {
       document.body.style.background = `${themeConfig.backgroundImage}, ${themeConfig.background}`;
       document.body.style.backgroundColor = themeConfig.background;

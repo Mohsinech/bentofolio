@@ -16,9 +16,7 @@ import {
   TechStackBlock,
   ExperienceBlock,
   SpotifyBlock,
-  MetricsBlock,
   LinkBlock,
-  TextBlock,
   SaaSBlock,
   GitHubBlock,
   ProjectsBlock,
@@ -26,11 +24,14 @@ import {
   AvailabilityBlock,
   QuoteBlock,
   ResumeBlock,
-  YouTubeBlock,
+  WorkBlock,
+  EducationBlock,
+  GalleryBlock,
   InstagramBlock,
-  NetworkBlock,
-  CareerBlock,
-  CreativeBlock,
+  YouTubeBlock,
+  ServicesBlock,
+  ToolsBlock,
+  StatsBlock,
 } from "@/app/components/blocks";
 
 interface DraggableBlockProps {
@@ -57,20 +58,20 @@ function renderBlock(content: BlockContent) {
       return <TechStackBlock data={content.data} />;
     case "experience":
       return <ExperienceBlock data={content.data} />;
+    case "education":
+      return <EducationBlock data={content.data} />;
     case "spotify":
       return <SpotifyBlock data={content.data} />;
-    case "metrics":
-      return <MetricsBlock data={content.data} />;
     case "link":
       return <LinkBlock data={content.data} />;
-    case "text":
-      return <TextBlock data={content.data} />;
     case "saas":
       return <SaaSBlock data={content.data} />;
     case "github":
       return <GitHubBlock data={content.data} />;
     case "projects":
       return <ProjectsBlock data={content.data} />;
+    case "work":
+      return <WorkBlock data={content.data} />;
     case "social":
       return <SocialBlock data={content.data} />;
     case "availability":
@@ -79,16 +80,18 @@ function renderBlock(content: BlockContent) {
       return <QuoteBlock data={content.data} />;
     case "resume":
       return <ResumeBlock data={content.data} />;
-    case "youtube":
-      return <YouTubeBlock data={content.data} />;
+    case "gallery":
+      return <GalleryBlock data={content.data} />;
     case "instagram":
       return <InstagramBlock data={content.data} />;
-    case "network":
-      return <NetworkBlock data={content.data} />;
-    case "career":
-      return <CareerBlock data={content.data} />;
-    case "creative":
-      return <CreativeBlock data={content.data} />;
+    case "youtube":
+      return <YouTubeBlock data={content.data} />;
+    case "services":
+      return <ServicesBlock data={content.data} />;
+    case "tools":
+      return <ToolsBlock data={content.data} />;
+    case "stats":
+      return <StatsBlock data={content.data} />;
     default:
       return <div>Unknown block</div>;
   }

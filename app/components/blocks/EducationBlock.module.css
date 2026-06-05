@@ -1,0 +1,155 @@
+.container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 48% 18%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, #27282d 0%, #17181b 58%, #101114 100%);
+}
+
+.header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.7rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  overflow: hidden;
+}
+
+.item {
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 11px;
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.045);
+  transition:
+    transform 170ms ease,
+    background 170ms ease,
+    border-color 170ms ease;
+}
+
+.item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.085);
+}
+
+.logo,
+.logoFallback {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.11);
+}
+
+.logo {
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.logoFallback {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  font-weight: 720;
+}
+
+.copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.copy strong,
+.copy span,
+.copy small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.copy strong {
+  color: var(--text-primary);
+  font-size: 0.86rem;
+}
+
+.copy span {
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.76rem;
+}
+
+.copy small {
+  color: rgba(255, 255, 255, 0.38);
+  font-size: 0.7rem;
+}
+
+.empty {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: rgba(255, 255, 255, 0.44);
+  font-size: 0.84rem;
+}
+
+:global([data-theme="light"]) .container {
+  background:
+    radial-gradient(circle at 48% 18%, rgba(124, 58, 237, 0.12), transparent 34%),
+    linear-gradient(145deg, #ffffff 0%, #f7f3ff 58%, #efe8ff 100%);
+}
+
+:global([data-theme="light"]) .header,
+:global([data-theme="light"]) .copy span,
+:global([data-theme="light"]) .empty {
+  color: rgba(23, 19, 33, 0.54);
+}
+
+:global([data-theme="light"]) .item {
+  border-color: rgba(124, 58, 237, 0.13);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+:global([data-theme="light"]) .item:hover {
+  border-color: rgba(124, 58, 237, 0.24);
+  background: rgba(124, 58, 237, 0.08);
+}
+
+:global([data-theme="light"]) .logo,
+:global([data-theme="light"]) .logoFallback {
+  border-color: rgba(124, 58, 237, 0.14);
+}
+
+:global([data-theme="light"]) .logoFallback {
+  background: rgba(124, 58, 237, 0.1);
+  color: #5b21b6;
+}
+
+:global([data-theme="light"]) .copy strong {
+  color: #171321;
+}
+
+:global([data-theme="light"]) .copy small {
+  color: rgba(23, 19, 33, 0.42);
+}

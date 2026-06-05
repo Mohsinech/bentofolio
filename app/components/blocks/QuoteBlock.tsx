@@ -1,6 +1,7 @@
 "use client";
 
 import { Quote } from "lucide-react";
+import NextImage from "next/image";
 import styles from "./QuoteBlock.module.css";
 import { QuoteContent } from "@/app/lib/types";
 
@@ -17,7 +18,13 @@ export function QuoteBlock({ data }: QuoteBlockProps) {
 
       <div className={styles.author}>
         {data.avatar && (
-          <img src={data.avatar} alt={data.author} className={styles.avatar} />
+          <NextImage
+            src={data.avatar}
+            alt={data.author}
+            width={36}
+            height={36}
+            className={styles.avatar}
+          />
         )}
         <div className={styles.authorInfo}>
           <span className={styles.authorName}>{data.author}</span>

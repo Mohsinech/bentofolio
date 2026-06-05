@@ -2,11 +2,9 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import { getProfileByUsername } from "@/app/lib/supabase/profiles";
-import { PublicGrid } from "./PublicGrid";
 import { Watermark } from "@/app/components/Watermark";
 import { ProfileClientWrapper } from "./ProfileClientWrapper";
-import { ShareButton } from "./ShareButton";
-import { ViewsCounter } from "./ViewsCounter";
+import { PublicProfileShell } from "./PublicProfileShell";
 import styles from "./profile.module.css";
 
 interface PageProps {
@@ -71,44 +69,19 @@ export default async function ProfilePage({ params }: PageProps) {
     );
   }
 
-  // If profile has no layout, show empty state
-  if (profile.layout.length === 0) {
-    return (
-      <div className={styles.notFound}>
-        <h1 className={styles.notFoundTitle}>🚧</h1>
-        <p className={styles.notFoundText}>
-          @{username} is still building their portfolio.
-        </p>
-        <Link href="/" className={styles.notFoundLink}>
-          Create Yours
-        </Link>
-      </div>
-    );
-  }
-
   return (
     <ProfileClientWrapper
       username={profile.username}
       isPro={profile.isPro}
       theme={profile.theme}
     >
-      <div className={styles.page}>
-        <header className={styles.header}>
-          <p className={styles.username}>@{profile.username}</p>
-          <ViewsCounter username={profile.username} isPro={profile.isPro} />
-          <ShareButton username={profile.username} />
-        </header>
-
-        <div className={styles.grid} id="public-portfolio-grid">
-          <PublicGrid
-            layout={profile.layout}
-            content={profile.content}
-            isPro={profile.isPro}
-          />
-        </div>
-
-        <Watermark show={false} />
-      </div>
+      <PublicProfileShell
+        username={profile.username}
+        isPro={profile.isPro}
+        layout={profile.layout}
+        content={profile.content}
+      />
+      <Watermark show={false} />
     </ProfileClientWrapper>
   );
 }

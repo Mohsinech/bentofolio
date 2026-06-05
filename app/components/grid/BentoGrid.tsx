@@ -37,6 +37,7 @@ interface BentoItemProps {
   index?: number;
   enableMagnetic?: boolean;
   cardEffect?: "wiggle" | "bounce" | "jelly" | "none";
+  disableHoverScale?: boolean;
 }
 
 export function BentoItem({
@@ -47,6 +48,7 @@ export function BentoItem({
   index = 0,
   enableMagnetic = false,
   cardEffect = "none",
+  disableHoverScale = false,
 }: BentoItemProps) {
   const colClass = styles[`col${colSpan}`];
   const rowClass = styles[`row${rowSpan}`];
@@ -85,6 +87,8 @@ export function BentoItem({
 
   // Card effect-specific hover animations
   const getHoverAnimation = (): TargetAndTransition | undefined => {
+    if (disableHoverScale) return undefined;
+
     switch (cardEffect) {
       case "wiggle":
         return {
@@ -126,6 +130,8 @@ export function BentoItem({
 
   // Card effect-specific tap animations
   const getTapAnimation = (): TargetAndTransition | undefined => {
+    if (disableHoverScale) return undefined;
+
     if (cardEffect === "jelly") {
       return {
         scale: [1, 0.95, 1.05, 0.98, 1],
@@ -143,7 +149,7 @@ export function BentoItem({
       animate={{
         opacity: 1,
         y: 0,
-        scale: isHovering && enableMagnetic ? 1.02 : 1,
+        scale: isHovering && enableMagnetic && !disableHoverScale ? 1.02 : 1,
         rotateX: enableMagnetic ? tilt.rotateX : 0,
         rotateY: enableMagnetic ? tilt.rotateY : 0,
       }}

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/app/lib/supabase/server";
 
+function normalizeTheme(theme: unknown) {
+  return theme === "light" ? "light" : "dark";
+}
+
 // GET: Fetch current user's profile (or create one if it doesn't exist)
 export async function GET() {
   const supabase = await createClient();
@@ -42,10 +46,37 @@ export async function GET() {
       .single();
 
     if (insertError) {
-      return NextResponse.json({ error: insertError.message }, { status: 500 });
-    }
+      if (insertError.code === "23505") {
+        const fallbackUsername = `user_${user.id.slice(0, 8)}`;
+        const { data: fallbackProfile, error: fallbackError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            username: fallbackUsername,
+            theme: "dark",
+            layout: [],
+            content: {},
+          })
+          .select()
+          .single();
 
-    data = newProfile;
+        if (fallbackError) {
+          return NextResponse.json(
+            { error: fallbackError.message },
+            { status: 500 }
+          );
+        }
+
+        data = fallbackProfile;
+      } else {
+        return NextResponse.json(
+          { error: insertError.message },
+          { status: 500 }
+        );
+      }
+    } else {
+      data = newProfile;
+    }
   } else if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -66,7 +97,7 @@ export async function PUT(request: Request) {
   }
 
   const body = await request.json();
-  const { layout, content, theme, username, customDomain } = body;
+  const { layout, content, theme, username, customDomain, avatarUrl } = body;
 
   // Build update object (only include fields that were provided)
   const updates: Record<string, unknown> = {
@@ -75,7 +106,21 @@ export async function PUT(request: Request) {
 
   if (layout !== undefined) updates.layout = layout;
   if (content !== undefined) updates.content = content;
-  if (theme !== undefined) updates.theme = theme;
+  if (theme !== undefined) updates.theme = normalizeTheme(theme);
+  if (avatarUrl !== undefined) {
+    if (
+      avatarUrl !== null &&
+      avatarUrl !== "" &&
+      typeof avatarUrl === "string" &&
+      avatarUrl.length > 8_000_000
+    ) {
+      return NextResponse.json(
+        { error: "Avatar image is too large" },
+        { status: 400 }
+      );
+    }
+    updates.avatar_url = avatarUrl || null;
+  }
   if (username !== undefined) {
     // Validate username
     if (!/^[a-zA-Z0-9_-]+$/.test(username) || username.length < 3) {
@@ -101,8 +146,9 @@ export async function PUT(request: Request) {
     }
 
     const hasCustomDomainAccess = Boolean(profileAccess?.is_pro);
+    const isAddingCustomDomain = customDomain !== null && customDomain !== "";
 
-    if (!hasCustomDomainAccess) {
+    if (isAddingCustomDomain && !hasCustomDomainAccess) {
       return NextResponse.json(
         { error: "Custom domains require Pro" },
         { status: 403 }
@@ -110,7 +156,7 @@ export async function PUT(request: Request) {
     }
 
     // Validate custom domain format (allow null to remove)
-    if (customDomain !== null && customDomain !== "") {
+    if (isAddingCustomDomain) {
       const domainRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]*\.[a-zA-Z]{2,}$/;
       if (!domainRegex.test(customDomain)) {
         return NextResponse.json(

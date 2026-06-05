@@ -1,7 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Mail } from "lucide-react";
+import {
+  ArrowUpRight,
+  CalendarClock,
+  Clock3,
+  Mail,
+  TimerReset,
+  WalletCards,
+} from "lucide-react";
 import styles from "./AvailabilityBlock.module.css";
 import { AvailabilityContent } from "@/app/lib/types";
 
@@ -11,73 +18,107 @@ interface AvailabilityBlockProps {
 
 const statusConfig = {
   available: {
-    color: "#22c55e",
     label: "Available",
-    bgColor: "rgba(34, 197, 94, 0.1)",
+    headline: "Taking new work",
+    tone: "green",
   },
   busy: {
-    color: "#f59e0b",
-    label: "Busy",
-    bgColor: "rgba(245, 158, 11, 0.1)",
+    label: "Limited",
+    headline: "Selective availability",
+    tone: "amber",
   },
   "not-available": {
-    color: "#ef4444",
-    label: "Not Available",
-    bgColor: "rgba(239, 68, 68, 0.1)",
+    label: "Booked",
+    headline: "Not taking work",
+    tone: "red",
   },
-};
+} as const;
+
+function getContactHref(contact?: string) {
+  if (!contact) return "";
+  if (contact.includes("@") && !contact.startsWith("http")) {
+    return `mailto:${contact}`;
+  }
+  return contact.startsWith("http") ? contact : `https://${contact}`;
+}
 
 export function AvailabilityBlock({ data }: AvailabilityBlockProps) {
-  const { status, message, forHire, preferredContact } = data;
-
-  // Ensure status is valid, default to 'available' if not
-  const validStatus = status && statusConfig[status] ? status : "available";
+  const validStatus = data.status && statusConfig[data.status] ? data.status : "available";
   const config = statusConfig[validStatus];
+  const contactHref = getContactHref(data.preferredContact);
+  const isExternal = contactHref.startsWith("http");
+
+  const details = [
+    data.nextOpening
+      ? { icon: <CalendarClock size={14} />, label: "Next", value: data.nextOpening }
+      : null,
+    data.responseTime
+      ? { icon: <TimerReset size={14} />, label: "Reply", value: data.responseTime }
+      : null,
+    data.timezone
+      ? { icon: <Clock3 size={14} />, label: "Zone", value: data.timezone }
+      : null,
+    data.rate ? { icon: <WalletCards size={14} />, label: "Budget", value: data.rate } : null,
+  ].filter(Boolean) as { icon: React.ReactNode; label: string; value: string }[];
 
   return (
     <div
-      className={styles.wrapper}
-      style={{ fontFamily: "var(--font-mori), system-ui" }}
+      className={`${styles.wrapper} ${styles[config.tone]} ${
+        data.forHire ? styles.forHire : ""
+      }`}
     >
-      <div className={styles.statusRow}>
+      <div className={styles.header}>
         <motion.div
-          className={styles.statusIndicator}
-          style={{ backgroundColor: config.bgColor }}
-          animate={status === "available" ? { scale: [1, 1.05, 1] } : {}}
-          transition={{ repeat: Infinity, duration: 2 }}
+          className={styles.orb}
+          animate={
+            validStatus === "available"
+              ? { scale: [1, 1.08, 1], opacity: [0.82, 1, 0.82] }
+              : {}
+          }
+          transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
         >
-          <motion.span
-            className={styles.statusDot}
-            style={{ backgroundColor: config.color }}
-            animate={status === "available" ? { opacity: [1, 0.5, 1] } : {}}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          />
-          <span className={styles.statusLabel} style={{ color: config.color }}>
-            {config.label}
-          </span>
+          <span />
         </motion.div>
-
-        {forHire && <span className={styles.forHireBadge}>Open to work</span>}
+        <div>
+          <span className={styles.eyebrow}>{config.label}</span>
+          <h3>{config.headline}</h3>
+        </div>
       </div>
 
-      {message && <p className={styles.message}>{message}</p>}
+      <p className={styles.message}>
+        {data.message || "Open to selected collaborations and focused product work."}
+      </p>
 
-      {preferredContact && (
-        <a
-          href={
-            preferredContact.includes("@")
-              ? `mailto:${preferredContact}`
-              : preferredContact
-          }
+      {details.length > 0 && (
+        <div className={styles.details}>
+          {details.slice(0, 4).map((item) => (
+            <div className={styles.detail} key={item.label}>
+              {item.icon}
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {contactHref ? (
+        <motion.a
+          href={contactHref}
+          target={isExternal ? "_blank" : undefined}
+          rel={isExternal ? "noopener noreferrer" : undefined}
           className={styles.contactButton}
-          target={preferredContact.includes("@") ? undefined : "_blank"}
-          rel={
-            preferredContact.includes("@") ? undefined : "noopener noreferrer"
-          }
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.98 }}
         >
           <Mail size={14} />
-          Get in touch
-        </a>
+          <span>{data.ctaLabel || "Get in touch"}</span>
+          <ArrowUpRight size={14} />
+        </motion.a>
+      ) : (
+        <div className={styles.contactButtonDisabled}>
+          <Mail size={14} />
+          <span>Add contact</span>
+        </div>
       )}
     </div>
   );
