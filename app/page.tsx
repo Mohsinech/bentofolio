@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -18,6 +19,7 @@ import {
   Youtube,
 } from "lucide-react";
 import { PREMIUM_PRICE } from "@/app/lib/config";
+import { createClient } from "@/app/lib/supabase/client";
 
 const templates = [
   {
@@ -27,7 +29,7 @@ const templates = [
   },
   {
     name: "Developer",
-    helper: "Free",
+    helper: "Pro",
     image: "/prebuilt/dev/profile.png",
   },
   {
@@ -47,6 +49,24 @@ const proBlocks = [
 ];
 
 export default function Home() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    supabase.auth.getUser().then(({ data }) => {
+      setIsSignedIn(Boolean(data.user));
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSignedIn(Boolean(session?.user));
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <main className="min-h-screen overflow-hidden bg-[#080809] text-[#f7f3eb]">
       <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_18%_10%,rgba(215,255,95,0.16),transparent_24%),radial-gradient(circle_at_84%_20%,rgba(255,255,255,0.10),transparent_22%),linear-gradient(120deg,transparent_0%,transparent_46%,rgba(255,255,255,0.055)_47%,transparent_64%)]" />
@@ -63,11 +83,19 @@ export default function Home() {
           </Link>
 
           <div className="hidden items-center gap-2 md:flex">
-            {["Discover", "Invite", "Pricing", "Contact", "Log in"].map((item) => (
+            {[
+              "Discover",
+              "Invite",
+              "Pricing",
+              "Contact",
+              isSignedIn ? "Dashboard" : "Log in",
+            ].map((item) => (
               <Link
                 key={item}
                 href={
-                  item === "Log in"
+                  item === "Dashboard"
+                    ? "/editor"
+                    : item === "Log in"
                     ? "/auth/login"
                     : `/${item.toLowerCase()}`
                 }
@@ -80,7 +108,7 @@ export default function Home() {
               href="/editor"
               className="inline-flex items-center gap-2 rounded-full bg-[#d7ff5f] px-4 py-2 text-sm font-bold text-[#080809] transition hover:bg-[#edff9c]"
             >
-              Start building
+              {isSignedIn ? "Dashboard" : "Start building"}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -93,7 +121,7 @@ export default function Home() {
               href="/editor"
               className="inline-flex items-center gap-1.5 rounded-full bg-[#d7ff5f] px-3 py-2 text-xs font-bold text-[#080809]"
             >
-              Start
+              {isSignedIn ? "Dashboard" : "Start"}
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
@@ -128,7 +156,7 @@ export default function Home() {
                 href="/editor"
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#d7ff5f] px-5 py-3 text-sm font-bold text-[#080809] transition hover:bg-[#edff9c]"
               >
-                Create my BentoFolio
+                {isSignedIn ? "Open dashboard" : "Create my BentoFolio"}
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
