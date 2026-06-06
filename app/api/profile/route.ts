@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { activateBetaFreeProCode } from "@/app/lib/beta-codes";
 import { createClient } from "@/app/lib/supabase/server";
 
 function normalizeTheme(theme: unknown) {
@@ -79,6 +80,31 @@ export async function GET() {
     }
   } else if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  const betaCouponCode = user.user_metadata?.beta_coupon_code;
+  if (data && !data.is_pro && betaCouponCode) {
+    const activation = await activateBetaFreeProCode({
+      userId: user.id,
+      code: betaCouponCode,
+      username:
+        user.user_metadata?.username ||
+        user.user_metadata?.preferred_username ||
+        user.user_metadata?.user_name ||
+        data.username,
+    });
+
+    if (activation.activated) {
+      const { data: upgradedProfile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+
+      if (upgradedProfile) {
+        data = upgradedProfile;
+      }
+    }
   }
 
   return NextResponse.json(data);

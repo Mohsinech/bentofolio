@@ -1,5 +1,7 @@
 import { createAdminClient } from "@/app/lib/supabase/admin";
 
+const builtInBetaFreeCodes = ["NAOUMI100", "OUAZINI100"];
+
 export function normalizeCouponCode(code?: unknown) {
   return typeof code === "string" ? code.trim().toUpperCase() : "";
 }
@@ -8,11 +10,14 @@ export function isBetaFreeProCode(code?: unknown) {
   const normalizedCode = normalizeCouponCode(code);
   if (!normalizedCode) return false;
 
-  return (process.env.BETA_FREE_PRO_CODES || "")
+  const configuredCodes = (process.env.BETA_FREE_PRO_CODES || "")
     .split(",")
     .map((item) => item.trim().toUpperCase())
-    .filter(Boolean)
-    .includes(normalizedCode);
+    .filter(Boolean);
+
+  return [...builtInBetaFreeCodes, ...configuredCodes].includes(
+    normalizedCode
+  );
 }
 
 export async function activateBetaFreeProCode({
