@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script"; // 1. Import Script for Analytics
+import { FeedbackWidget } from "@/app/components/feedback/FeedbackWidget";
 import "./globals.css";
 
 export const viewport: Viewport = {
@@ -131,6 +132,7 @@ export default function RootLayout({
         </Script>
 
         {children}
+        <FeedbackWidget />
       </body>
     </html>
   );
