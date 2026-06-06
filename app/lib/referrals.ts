@@ -19,6 +19,77 @@ function createRewardCode(username?: string | null) {
   return `COUPON100-${prefix}-${suffix}`;
 }
 
+export async function ensureReferralRewardForInviter(inviterId: string) {
+  const supabase = createAdminClient();
+
+  const { count } = await supabase
+    .from("referral_signups")
+    .select("id", { count: "exact", head: true })
+    .eq("inviter_id", inviterId);
+
+  if (!count || count < REFERRAL_REWARD_THRESHOLD) {
+    return { count: count || 0 };
+  }
+
+  const { data: existingReward } = await supabase
+    .from("referral_reward_codes")
+    .select("code, sent_at")
+    .eq("user_id", inviterId)
+    .maybeSingle();
+
+  if (existingReward) {
+    return { count, rewardCode: existingReward.code };
+  }
+
+  const { data: inviterProfile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", inviterId)
+    .single();
+
+  const {
+    data: { user: inviterUser },
+  } = await supabase.auth.admin.getUserById(inviterId);
+
+  const rewardCode = createRewardCode(inviterProfile?.username);
+  const { data: reward, error: rewardError } = await supabase
+    .from("referral_reward_codes")
+    .insert({
+      user_id: inviterId,
+      code: rewardCode,
+      threshold: REFERRAL_REWARD_THRESHOLD,
+    })
+    .select("id, code")
+    .single();
+
+  if (rewardError || !reward) {
+    console.error("Referral reward insert failed:", rewardError);
+    return { count };
+  }
+
+  if (inviterUser?.email) {
+    const template = emailTemplates.referralReward({
+      username: inviterProfile?.username || "builder",
+      code: reward.code,
+      count,
+    });
+    const result = await sendEmail({
+      to: inviterUser.email,
+      subject: template.subject,
+      html: template.html,
+    });
+
+    if ("success" in result) {
+      await supabase
+        .from("referral_reward_codes")
+        .update({ sent_at: new Date().toISOString() })
+        .eq("id", reward.id);
+    }
+  }
+
+  return { count, rewardCode: reward.code };
+}
+
 export async function recordReferralSignup({
   referralCode,
   referredUserId,
@@ -72,72 +143,8 @@ export async function recordReferralSignup({
     return { tracked: false };
   }
 
-  const { count } = await supabase
-    .from("referral_signups")
-    .select("id", { count: "exact", head: true })
-    .eq("inviter_id", invite.inviter_id);
-
-  if (!count || count < REFERRAL_REWARD_THRESHOLD) {
-    return { tracked: true, count: count || 0 };
-  }
-
-  const { data: existingReward } = await supabase
-    .from("referral_reward_codes")
-    .select("code, sent_at")
-    .eq("user_id", invite.inviter_id)
-    .maybeSingle();
-
-  if (existingReward) {
-    return { tracked: true, count, rewardCode: existingReward.code };
-  }
-
-  const { data: inviterProfile } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", invite.inviter_id)
-    .single();
-
-  const {
-    data: { user: inviterUser },
-  } = await supabase.auth.admin.getUserById(invite.inviter_id);
-
-  const rewardCode = createRewardCode(inviterProfile?.username);
-  const { data: reward, error: rewardError } = await supabase
-    .from("referral_reward_codes")
-    .insert({
-      user_id: invite.inviter_id,
-      code: rewardCode,
-      threshold: REFERRAL_REWARD_THRESHOLD,
-    })
-    .select("id, code")
-    .single();
-
-  if (rewardError || !reward) {
-    console.error("Referral reward insert failed:", rewardError);
-    return { tracked: true, count };
-  }
-
-  if (inviterUser?.email) {
-    const template = emailTemplates.referralReward({
-      username: inviterProfile?.username || "builder",
-      code: reward.code,
-      count,
-    });
-    const result = await sendEmail({
-      to: inviterUser.email,
-      subject: template.subject,
-      html: template.html,
-    });
-
-    if ("success" in result) {
-      await supabase
-        .from("referral_reward_codes")
-        .update({ sent_at: new Date().toISOString() })
-        .eq("id", reward.id);
-    }
-  }
-
-  return { tracked: true, count, rewardCode: reward.code };
+  const reward = await ensureReferralRewardForInviter(invite.inviter_id);
+  return { tracked: true, ...reward };
 }
 
 export { REFERRAL_REWARD_THRESHOLD };

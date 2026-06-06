@@ -156,3 +156,39 @@ CREATE POLICY "Users can read own referral signups"
 CREATE POLICY "Users can read own referral reward codes"
   ON referral_reward_codes FOR SELECT
   USING (auth.uid() = user_id);
+
+CREATE OR REPLACE FUNCTION record_auth_referral_signup()
+RETURNS TRIGGER AS $$
+DECLARE
+  referral_code_value TEXT;
+BEGIN
+  referral_code_value := UPPER(TRIM(NEW.raw_user_meta_data->>'referral_code'));
+
+  IF referral_code_value IS NULL OR referral_code_value = '' THEN
+    RETURN NEW;
+  END IF;
+
+  INSERT INTO referral_signups (
+    invite_id,
+    inviter_id,
+    referred_user_id,
+    referred_email
+  )
+  SELECT
+    referral_invites.id,
+    referral_invites.inviter_id,
+    NEW.id,
+    NEW.email
+  FROM referral_invites
+  WHERE referral_invites.referral_code = referral_code_value
+    AND referral_invites.inviter_id <> NEW.id
+  ON CONFLICT (referred_user_id) DO NOTHING;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER zzz_record_auth_referral_signup
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION record_auth_referral_signup();

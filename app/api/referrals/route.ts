@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { REFERRAL_REWARD_THRESHOLD } from "@/app/lib/referrals";
+import {
+  ensureReferralRewardForInviter,
+  REFERRAL_REWARD_THRESHOLD,
+} from "@/app/lib/referrals";
 import { createClient } from "@/app/lib/supabase/server";
 
 function normalizeEmail(email: unknown) {
@@ -30,6 +33,8 @@ export async function GET() {
       { status: 401 }
     );
   }
+
+  await ensureReferralRewardForInviter(user.id);
 
   const [{ data: invites }, { data: signups }, { data: reward }] =
     await Promise.all([
