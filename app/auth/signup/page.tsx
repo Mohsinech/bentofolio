@@ -22,6 +22,11 @@ export default function SignupPage() {
     const params = new URLSearchParams(window.location.search);
     return params.get("ref")?.trim().toUpperCase() || "";
   });
+  const [couponCode] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const params = new URLSearchParams(window.location.search);
+    return params.get("coupon")?.trim().toUpperCase() || "";
+  });
   const router = useRouter();
   const supabase = createClient();
 
@@ -29,6 +34,9 @@ export default function SignupPage() {
     const url = new URL("/auth/callback", window.location.origin);
     if (referralCode) {
       url.searchParams.set("ref", referralCode);
+    }
+    if (couponCode) {
+      url.searchParams.set("coupon", couponCode);
     }
     return url.toString();
   };
@@ -70,6 +78,7 @@ export default function SignupPage() {
         data: {
           username: normalizedUsername,
           referral_code: referralCode || undefined,
+          beta_coupon_code: couponCode || undefined,
         },
         emailRedirectTo: getAuthCallbackUrl(),
       },
@@ -81,6 +90,13 @@ export default function SignupPage() {
     } else {
       setEmail(normalizedEmail);
       if (data.session) {
+        if (couponCode) {
+          await fetch("/api/checkout", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ discountCode: couponCode }),
+          }).catch(() => null);
+        }
         router.push("/editor");
         router.refresh();
         return;

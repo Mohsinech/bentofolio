@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
+import {
+  activateBetaFreeProCode,
+  normalizeCouponCode,
+} from "@/app/lib/beta-codes";
 import { PREMIUM_PRICE } from "@/app/lib/config";
 import { createAdminClient } from "@/app/lib/supabase/admin";
 import { createClient } from "@/app/lib/supabase/server";
-
-function normalizeCode(code: unknown) {
-  return typeof code === "string" ? code.trim().toUpperCase() : "";
-}
 
 function appendDiscountCode(checkoutUrl: string, discountCode: string) {
   if (!discountCode) {
@@ -39,24 +39,15 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json().catch(() => ({}));
-    const discountCode = normalizeCode(body.discountCode);
-    const freeProCodes = (process.env.BETA_FREE_PRO_CODES || "")
-      .split(",")
-      .map((code) => code.trim().toUpperCase())
-      .filter(Boolean);
+    const discountCode = normalizeCouponCode(body.discountCode);
 
-    if (discountCode && freeProCodes.includes(discountCode)) {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          is_pro: true,
-          upgraded_at: new Date().toISOString(),
-          lemon_squeezy_order_id: `beta-free:${discountCode}`,
-        })
-        .eq("id", user.id);
+    const betaActivation = await activateBetaFreeProCode({
+      userId: user.id,
+      code: discountCode,
+    });
 
-      if (error) {
-        console.error("Beta free code error:", error);
+    if (betaActivation.activated || betaActivation.error) {
+      if (betaActivation.error) {
         return NextResponse.json(
           { error: "Failed to activate beta code" },
           { status: 500 }

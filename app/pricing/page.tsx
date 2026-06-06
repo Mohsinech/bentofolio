@@ -43,7 +43,15 @@ export default function PricingPage() {
   const { user } = useAuth();
   const { hasProAccess } = useProfile();
   const { initiateCheckout, loading, error } = useCheckout();
-  const [couponCode, setCouponCode] = useState("");
+  const [couponCode, setCouponCode] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return (
+      new URLSearchParams(window.location.search)
+        .get("coupon")
+        ?.trim()
+        .toUpperCase() || ""
+    );
+  });
   const normalizedCouponCode = couponCode.trim().toUpperCase();
   const isFreeBetaCode =
     betaFreeCodes.includes(normalizedCouponCode) ||
@@ -51,7 +59,11 @@ export default function PricingPage() {
 
   const handleUpgrade = () => {
     if (!user) {
-      window.location.href = "/auth/signup";
+      const signupUrl = new URL("/auth/signup", window.location.origin);
+      if (normalizedCouponCode) {
+        signupUrl.searchParams.set("coupon", normalizedCouponCode);
+      }
+      window.location.href = signupUrl.toString();
       return;
     }
 
