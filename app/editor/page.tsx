@@ -1248,7 +1248,23 @@ function EditorStudio() {
   const [status, setStatus] = useState<string | null>(null);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [themeOverride, setThemeOverride] = useState<ThemeId | null>(null);
+  const [hasReferralReward, setHasReferralReward] = useState(false);
   const selectedTheme = themeOverride ?? profile?.theme ?? "dark";
+
+  useEffect(() => {
+    async function fetchReferralReward() {
+      try {
+        const response = await fetch("/api/referrals");
+        if (!response.ok) return;
+        const data = await response.json();
+        setHasReferralReward(Boolean(data.reward?.code));
+      } catch {
+        setHasReferralReward(false);
+      }
+    }
+
+    fetchReferralReward();
+  }, []);
 
   useEffect(() => {
     if (profile && profile.layout.length > 0) {
@@ -1504,7 +1520,7 @@ function EditorStudio() {
             })}
             <Link href="/invite" className={styles.navLinkButton}>
               <Gift size={16} />
-              <span>Invite</span>
+              <span>{hasReferralReward ? "Get your coupon" : "Invite"}</span>
             </Link>
           </nav>
 
