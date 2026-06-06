@@ -161,56 +161,109 @@
   margin-bottom: 16px;
 }
 
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
 .cardTitle {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 18px;
+  margin: 0;
   font-family: var(--font-editor-heading), system-ui, sans-serif;
   font-size: 1rem;
+}
+
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 0.78rem;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border-radius: 999px;
+}
+
+.viewsKey {
+  background: #d7ff5f;
+  box-shadow: 0 0 16px rgba(215, 255, 95, 0.5);
+}
+
+.clicksKey {
+  background: rgba(255, 255, 255, 0.55);
 }
 
 .chart {
   min-height: 250px;
 }
 
-.barChart {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(52px, 1fr));
-  gap: 10px;
-  align-items: end;
-  min-height: 240px;
+.realChart {
+  min-height: 278px;
+  overflow: hidden;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 80% 18%, rgba(215, 255, 95, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.01));
 }
 
-.barWrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: end;
-  gap: 8px;
-  min-height: 220px;
-}
-
-.bar {
-  position: relative;
+.realChart svg {
+  display: block;
   width: 100%;
-  min-height: 8px;
-  border-radius: 12px 12px 4px 4px;
-  background: linear-gradient(180deg, #f3f0ea, #8f8b85);
+  height: auto;
 }
 
-.barValue {
-  position: absolute;
-  top: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 0.74rem;
-  color: rgba(255, 255, 255, 0.56);
+.gridLine {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
 }
 
-.barLabel {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.46);
+.areaPath {
+  fill: url("#viewsFill");
+}
+
+.viewPath,
+.clickPath {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.viewPath {
+  stroke: #d7ff5f;
+  stroke-width: 4;
+}
+
+.clickPath {
+  stroke: rgba(255, 255, 255, 0.52);
+  stroke-width: 2.5;
+  stroke-dasharray: 7 8;
+}
+
+.viewDot {
+  fill: #111111;
+  stroke: #d7ff5f;
+  stroke-width: 3;
+}
+
+.axisLabel {
+  fill: rgba(255, 255, 255, 0.42);
+  font-size: 12px;
+  text-anchor: middle;
 }
 
 .referrersList {
@@ -219,15 +272,20 @@
 }
 
 .referrerItem {
+  display: grid;
+  gap: 9px;
+  min-height: 66px;
+  padding: 13px 16px;
+  border-radius: 14px;
+  background: #101011;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.referrerTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  min-height: 54px;
-  padding: 0 16px;
-  border-radius: 14px;
-  background: #101011;
-  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .referrerSource {
@@ -236,6 +294,20 @@
 
 .referrerCount {
   font-family: var(--font-editor-heading), system-ui, sans-serif;
+}
+
+.referrerTrack {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.referrerTrack span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #d7ff5f, rgba(215, 255, 95, 0.34));
 }
 
 .proRequired,

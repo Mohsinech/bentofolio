@@ -9,6 +9,34 @@ const supabase = createServiceClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+function getAppHostname() {
+  try {
+    return new URL(
+      process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev"
+    ).hostname.replace(/^www\./, "");
+  } catch {
+    return "bentofolio.dev";
+  }
+}
+
+function normalizeReferrer(referrer?: string | null) {
+  if (!referrer) return "Direct";
+
+  try {
+    const url = new URL(referrer);
+    const hostname = url.hostname.replace(/^www\./, "");
+    const appHostname = getAppHostname();
+
+    if (hostname === appHostname || hostname.endsWith(`.${appHostname}`)) {
+      return "Direct";
+    }
+
+    return hostname;
+  } catch {
+    return referrer.length > 42 ? `${referrer.slice(0, 42)}...` : referrer;
+  }
+}
+
 function getGithubUsername(user: {
   identities?: Array<{
     provider?: string;
@@ -177,22 +205,45 @@ export async function GET(request: Request) {
       (a) => a.event_type === "link_click"
     ).length;
     const uniqueReferrers = [
-      ...new Set(analytics.map((a) => a.referrer).filter(Boolean)),
+      ...new Set(analytics.map((a) => normalizeReferrer(a.referrer))),
     ];
 
-    // Group by date for chart
+    // Group by date for charts
     const viewsByDate: Record<string, number> = {};
+    const clicksByDate: Record<string, number> = {};
     analytics
       .filter((a) => a.event_type === "view")
       .forEach((a) => {
         const date = new Date(a.created_at).toISOString().split("T")[0];
         viewsByDate[date] = (viewsByDate[date] || 0) + 1;
       });
+    analytics
+      .filter((a) => a.event_type === "link_click")
+      .forEach((a) => {
+        const date = new Date(a.created_at).toISOString().split("T")[0];
+        clicksByDate[date] = (clicksByDate[date] || 0) + 1;
+      });
+
+    const dates: string[] = [];
+    if (period === "all") {
+      const uniqueDates = new Set([
+        ...Object.keys(viewsByDate),
+        ...Object.keys(clicksByDate),
+      ]);
+      dates.push(...Array.from(uniqueDates).sort());
+    } else {
+      const dayCount = period === "30d" ? 30 : 7;
+      for (let index = dayCount - 1; index >= 0; index -= 1) {
+        const date = new Date();
+        date.setDate(date.getDate() - index);
+        dates.push(date.toISOString().split("T")[0]);
+      }
+    }
 
     // Referrer breakdown
     const referrerCounts: Record<string, number> = {};
     analytics.forEach((a) => {
-      const ref = a.referrer || "Direct";
+      const ref = normalizeReferrer(a.referrer);
       referrerCounts[ref] = (referrerCounts[ref] || 0) + 1;
     });
 
@@ -201,9 +252,12 @@ export async function GET(request: Request) {
       totalClicks,
       uniqueReferrers,
       viewsByDate,
-      recentViews: Object.entries(viewsByDate)
-        .map(([date, count]) => ({ date, count }))
-        .sort((a, b) => a.date.localeCompare(b.date)),
+      clicksByDate,
+      recentViews: dates.map((date) => ({ date, count: viewsByDate[date] || 0 })),
+      recentClicks: dates.map((date) => ({
+        date,
+        count: clicksByDate[date] || 0,
+      })),
       referrerBreakdown: Object.entries(referrerCounts)
         .map(([name, count]) => ({ name, count }))
         .sort((a, b) => b.count - a.count)

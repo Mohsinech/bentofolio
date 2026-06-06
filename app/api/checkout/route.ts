@@ -24,6 +24,13 @@ function appendDiscountCode(checkoutUrl: string, discountCode: string) {
   }
 }
 
+function getAppUrl() {
+  return (process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev").replace(
+    /\/$/,
+    ""
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const supabase = await createClient();
@@ -56,9 +63,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         upgraded: true,
-        url: `${
-          process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-        }/editor?upgraded=true`,
+        url: `${getAppUrl()}/editor?upgraded=true`,
       });
     }
 
@@ -102,9 +107,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
           upgraded: true,
-          url: `${
-            process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-          }/editor?upgraded=true`,
+          url: `${getAppUrl()}/editor?upgraded=true`,
         });
       }
     }
@@ -174,9 +177,7 @@ export async function POST(request: Request) {
               receipt_button_text: "Go to Dashboard",
               receipt_thank_you_note:
                 "Thanks for upgrading to Pro! You can now connect your custom domain.",
-              redirect_url: `${
-                process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-              }/editor?upgraded=true`,
+              redirect_url: `${getAppUrl()}/editor?upgraded=true`,
             },
           },
           relationships: {

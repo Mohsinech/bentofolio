@@ -11,7 +11,9 @@ import {
   ChevronRight,
   CircleDot,
   Code2,
+  Copy,
   Eye,
+  Facebook,
   FileText,
   FolderGit2,
   Gift,
@@ -30,6 +32,7 @@ import {
   Plus,
   Save,
   Settings,
+  Share2,
   Sparkles,
   Sun,
   TrendingUp,
@@ -38,6 +41,7 @@ import {
   User,
   Users,
   Wrench,
+  X,
   Youtube,
 } from "lucide-react";
 
@@ -1232,6 +1236,127 @@ function normalizeLoadedLayout(savedLayout: BlockLayout[]) {
   );
 }
 
+function ShareBentoModal({
+  username,
+  avatarUrl,
+  onClose,
+}: {
+  username: string;
+  avatarUrl?: string | null;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const appUrl =
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+    "https://bentofolio.dev";
+  const profileUrl = `${appUrl}/${username}`;
+  const shareText = "I just made my BentoFolio. Check it out:";
+
+  const copyText = async (text = profileUrl) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1400);
+  };
+
+  const openShareUrl = (url: string) => {
+    window.open(url, "_blank", "width=640,height=520");
+  };
+
+  return (
+    <div className={styles.shareModalOverlay} role="dialog" aria-modal="true">
+      <div className={styles.shareModal}>
+        <button
+          type="button"
+          className={styles.shareClose}
+          onClick={onClose}
+          aria-label="Close share popup"
+        >
+          <X size={16} />
+        </button>
+
+        <div className={styles.sharePreview}>
+          <div className={styles.sharePreviewGrid}>
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+          <div className={styles.sharePreviewAvatar}>
+            {avatarUrl ? (
+              <NextImage
+                src={avatarUrl}
+                alt={username}
+                width={78}
+                height={78}
+                unoptimized
+              />
+            ) : (
+              username.charAt(0).toUpperCase()
+            )}
+          </div>
+          <strong>@{username}</strong>
+          <Link href="/" className={styles.shareCreateButton}>
+            Create yours
+          </Link>
+        </div>
+
+        <div className={styles.shareCopy}>
+          <span className={styles.eyebrow}>Share your BentoFolio</span>
+          <h2>Your public profile is ready.</h2>
+          <p>
+            Send it to friends, clients, or that one person who keeps asking
+            where they can see your work.
+          </p>
+          <div className={styles.shareUrl}>{profileUrl}</div>
+          <div className={styles.shareActions}>
+            <button type="button" onClick={() => copyText()}>
+              {copied ? <Check size={16} /> : <Copy size={16} />}
+              {copied ? "Copied" : "Copy link"}
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                openShareUrl(
+                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                    shareText,
+                  )}&url=${encodeURIComponent(profileUrl)}`,
+                )
+              }
+            >
+              <Share2 size={16} />
+              Twitter
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                openShareUrl(
+                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                    profileUrl,
+                  )}`,
+                )
+              }
+            >
+              <Facebook size={16} />
+              Facebook
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                copyText(
+                  `${shareText} ${profileUrl}\n\nCreate yours on BentoFolio.`,
+                )
+              }
+            >
+              <Instagram size={16} />
+              Instagram copy
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function EditorStudio() {
   const { profile, loading, saveProfile, saving, hasProAccess } = useProfile();
   const { githubUsername, signOut } = useAuth();
@@ -1249,6 +1374,7 @@ function EditorStudio() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [themeOverride, setThemeOverride] = useState<ThemeId | null>(null);
   const [hasReferralReward, setHasReferralReward] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const selectedTheme = themeOverride ?? profile?.theme ?? "dark";
 
   useEffect(() => {
@@ -1283,6 +1409,19 @@ function EditorStudio() {
       theme: selectedTheme,
     });
     setStatus("Saved");
+
+    const sharePromptKey = profile?.username
+      ? `bentofolio-share-prompt:${profile.username}`
+      : "";
+    if (
+      sharePromptKey &&
+      layout.length > 0 &&
+      !window.localStorage.getItem(sharePromptKey)
+    ) {
+      window.localStorage.setItem(sharePromptKey, "seen");
+      setShowShareModal(true);
+    }
+
     window.setTimeout(() => setStatus(null), 1800);
   };
 
@@ -1539,6 +1678,16 @@ function EditorStudio() {
               <span>{saving ? "Saving" : status || "Save"}</span>
             </button>
             {profileUrl && (
+              <button
+                type="button"
+                onClick={() => setShowShareModal(true)}
+                className={styles.secondaryButton}
+              >
+                <Share2 size={16} />
+                <span>Share my Bento</span>
+              </button>
+            )}
+            {profileUrl && (
               <Link
                 href={profileUrl}
                 target="_blank"
@@ -1718,6 +1867,13 @@ function EditorStudio() {
           )}
         </aside>
       </main>
+      {showShareModal && profile?.username && (
+        <ShareBentoModal
+          username={profile.username}
+          avatarUrl={profile.avatarUrl}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
     </ThemeProvider>
   );
 }

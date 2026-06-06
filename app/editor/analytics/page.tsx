@@ -21,10 +21,125 @@ interface AnalyticsData {
     date: string;
     count: number;
   }>;
+  recentClicks: Array<{
+    date: string;
+    count: number;
+  }>;
   topReferrers: Array<{
     source: string;
     count: number;
   }>;
+}
+
+function formatShortDate(date: string) {
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function buildLinePath(
+  data: { date: string; count: number }[],
+  maxValue: number,
+  width: number,
+  height: number
+) {
+  if (!data.length) return "";
+  return data
+    .map((item, index) => {
+      const x = data.length === 1 ? width / 2 : (index / (data.length - 1)) * width;
+      const y = height - (item.count / maxValue) * height;
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
+
+function TrendChart({
+  views,
+  clicks,
+}: {
+  views: AnalyticsData["recentViews"];
+  clicks: AnalyticsData["recentClicks"];
+}) {
+  const width = 760;
+  const height = 260;
+  const chartPadding = 18;
+  const maxValue = Math.max(
+    1,
+    ...views.map((item) => item.count),
+    ...clicks.map((item) => item.count)
+  );
+  const viewPath = buildLinePath(views, maxValue, width, height);
+  const clickPath = buildLinePath(clicks, maxValue, width, height);
+  const areaPath = viewPath
+    ? `${viewPath} L ${width} ${height} L 0 ${height} Z`
+    : "";
+  const labelStep = Math.max(1, Math.ceil(views.length / 6));
+
+  return (
+    <div className={styles.realChart}>
+      <svg
+        viewBox={`0 0 ${width + chartPadding * 2} ${height + 54}`}
+        role="img"
+        aria-label="Views and clicks over time"
+      >
+        <defs>
+          <linearGradient id="viewsFill" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#d7ff5f" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="#d7ff5f" stopOpacity="0" />
+          </linearGradient>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <g transform={`translate(${chartPadding} ${chartPadding})`}>
+          {[0, 1, 2, 3].map((line) => {
+            const y = (line / 3) * height;
+            return (
+              <line
+                key={line}
+                x1="0"
+                x2={width}
+                y1={y}
+                y2={y}
+                className={styles.gridLine}
+              />
+            );
+          })}
+          {areaPath && <path d={areaPath} className={styles.areaPath} />}
+          {viewPath && (
+            <path d={viewPath} className={styles.viewPath} filter="url(#softGlow)" />
+          )}
+          {clickPath && <path d={clickPath} className={styles.clickPath} />}
+          {views.map((item, index) => {
+            const x =
+              views.length === 1 ? width / 2 : (index / (views.length - 1)) * width;
+            const y = height - (item.count / maxValue) * height;
+            const showLabel = index % labelStep === 0 || index === views.length - 1;
+
+            return (
+              <g key={item.date}>
+                <circle cx={x} cy={y} r="4.5" className={styles.viewDot}>
+                  <title>
+                    {formatShortDate(item.date)}: {item.count} views
+                  </title>
+                </circle>
+                {showLabel && (
+                  <text x={x} y={height + 30} className={styles.axisLabel}>
+                    {formatShortDate(item.date)}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </g>
+      </svg>
+    </div>
+  );
 }
 
 export default function AnalyticsPage() {
@@ -228,38 +343,28 @@ export default function AnalyticsPage() {
         </div>
 
         <div className={styles.chartCard}>
-          <h2 className={styles.cardTitle}>
-            <Calendar size={18} />
-            Daily Views
-          </h2>
+          <div className={styles.cardHeader}>
+            <h2 className={styles.cardTitle}>
+              <Calendar size={18} />
+              Traffic trend
+            </h2>
+            <div className={styles.legend}>
+              <span>
+                <i className={styles.viewsKey} />
+                Views
+              </span>
+              <span>
+                <i className={styles.clicksKey} />
+                Clicks
+              </span>
+            </div>
+          </div>
           <div className={styles.chart}>
             {analytics?.recentViews && analytics.recentViews.length > 0 ? (
-              <div className={styles.barChart}>
-                {analytics.recentViews.map((day, i) => {
-                  const maxCount = Math.max(
-                    ...analytics.recentViews.map((d) => d.count)
-                  );
-                  const height =
-                    maxCount > 0 ? (day.count / maxCount) * 100 : 0;
-                  return (
-                    <div key={i} className={styles.barWrapper}>
-                      <div
-                        className={styles.bar}
-                        style={{ height: `${height}%` }}
-                        title={`${day.date}: ${day.count} views`}
-                      >
-                        <span className={styles.barValue}>{day.count}</span>
-                      </div>
-                      <span className={styles.barLabel}>
-                        {new Date(day.date).toLocaleDateString("en-US", {
-                          month: "short",
-                          day: "numeric",
-                        })}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
+              <TrendChart
+                views={analytics.recentViews}
+                clicks={analytics.recentClicks || []}
+              />
             ) : (
               <div className={styles.emptyState}>
                 <Eye size={32} />
@@ -276,12 +381,29 @@ export default function AnalyticsPage() {
           </h2>
           {analytics?.topReferrers && analytics.topReferrers.length > 0 ? (
             <div className={styles.referrersList}>
-              {analytics.topReferrers.map((referrer) => (
-                <div key={referrer.source} className={styles.referrerItem}>
-                  <span className={styles.referrerSource}>{referrer.source}</span>
-                  <span className={styles.referrerCount}>{referrer.count}</span>
-                </div>
-              ))}
+              {analytics.topReferrers.map((referrer) => {
+                const maxCount = Math.max(
+                  ...analytics.topReferrers.map((item) => item.count)
+                );
+                const width =
+                  maxCount > 0 ? `${(referrer.count / maxCount) * 100}%` : "0%";
+
+                return (
+                  <div key={referrer.source} className={styles.referrerItem}>
+                    <div className={styles.referrerTop}>
+                      <span className={styles.referrerSource}>
+                        {referrer.source}
+                      </span>
+                      <span className={styles.referrerCount}>
+                        {referrer.count}
+                      </span>
+                    </div>
+                    <div className={styles.referrerTrack}>
+                      <span style={{ width }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className={styles.emptyState}>
