@@ -13,16 +13,19 @@ export const metadata: Metadata = {
     process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev"
   ),
   title: {
-    default: "BentoFolio - Create Beautiful Developer Portfolios",
+    default: "BentoFolio - Bento Portfolio Builder for Creatives and Devs",
     template: "%s | BentoFolio",
   },
   description:
-    "Build stunning bento-style portfolio pages in minutes. Showcase your projects, tech stack, and experience with beautiful, customizable blocks.",
+    "Create a polished bento portfolio for your work, links, socials, media, projects, and launch metrics. Start free with editable templates for creatives and developers.",
   keywords: [
     "developer portfolio",
+    "creative portfolio",
     "bento grid",
     "portfolio builder",
+    "bento portfolio",
     "developer tools",
+    "creator portfolio",
     "tech portfolio",
     "personal website",
     "programmer portfolio",
@@ -49,31 +52,36 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     siteName: "BentoFolio",
-    title: "BentoFolio - Create Beautiful Developer Portfolios",
+    title: "BentoFolio - Bento Portfolio Builder for Creatives and Devs",
     description:
-      "Build stunning bento-style portfolio pages in minutes. Showcase your projects, tech stack, and experience with beautiful, customizable blocks.",
+      "Create a polished bento portfolio for your work, links, socials, media, projects, and launch metrics. Start free with editable templates.",
+    url: "/",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "BentoFolio - Developer Portfolio Builder",
+        alt: "BentoFolio - Bento portfolio builder",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BentoFolio - Create Beautiful Developer Portfolios",
+    title: "BentoFolio - Bento Portfolio Builder",
     description:
-      "Build stunning bento-style portfolio pages in minutes. Showcase your projects, tech stack, and experience.",
+      "Build a bento-style portfolio for your work, socials, media, projects, and launch metrics.",
     images: ["/og-image.png"],
     creator: "@muhsench", // Add your actual Twitter handle here if you have one
   },
   icons: {
-    icon: [{ url: "/favicon.ico", sizes: "any" }],
-    apple: "/apple-touch-icon.png",
+    icon: [
+      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/icon.png?v=3", type: "image/png", sizes: "512x512" },
+    ],
+    shortcut: "/favicon.ico?v=3",
+    apple: "/apple-icon.png?v=3",
   },
-  manifest: "/manifest.json",
+  manifest: "/manifest.json?v=3",
 };
 
 // 3. Schema Markup Data (Structured Data for SEO)
@@ -81,15 +89,16 @@ const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "BentoFolio",
-  applicationCategory: "DeveloperApplication",
+  applicationCategory: "DesignApplication",
   operatingSystem: "Web",
   offers: {
     "@type": "Offer",
     price: "0",
     priceCurrency: "USD",
   },
-  description: "Build stunning bento-style portfolio pages in minutes.",
-  image: "/icon.png", // Ensure this path matches your icon
+  description:
+    "Create a bento portfolio for work, links, socials, media, projects, and launch metrics.",
+  image: "/icon.png?v=3",
 };
 
 export default function RootLayout({
@@ -109,7 +118,7 @@ export default function RootLayout({
       <body className="antialiased">
         {/* 5. Google Analytics (Replace G-XXXXXXXXXX with your ID) */}
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"
+          src="https://www.googletagmanager.com/gtag/js?id=G-9XSZH2R67Q"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">

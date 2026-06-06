@@ -10,6 +10,10 @@ export async function GET(request: Request) {
   const referralCode = searchParams.get("ref");
   const couponCode = searchParams.get("coupon");
 
+  if (!code) {
+    return NextResponse.redirect(`${origin}/auth/complete`);
+  }
+
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

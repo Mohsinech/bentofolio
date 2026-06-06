@@ -368,6 +368,16 @@
   color: #bbf7d0;
 }
 
+.spinner {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 840px) {
   .loginShell {
     grid-template-columns: 1fr;
