@@ -1726,6 +1726,22 @@
   backdrop-filter: blur(18px);
 }
 
+.celebrationLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.celebrationLayer span {
+  position: absolute;
+  top: 0;
+  width: 10px;
+  height: 16px;
+  border-radius: 3px;
+  box-shadow: 0 0 18px rgba(215, 255, 95, 0.22);
+}
+
 .shareModal {
   position: relative;
   width: min(820px, 100%);
@@ -1897,6 +1913,15 @@
 .shareActions button:first-child {
   background: #d7ff5f;
   color: #080809;
+}
+
+.shareActions button:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.shareActions button svg {
+  flex: 0 0 auto;
 }
 
 @media (max-width: 760px) {

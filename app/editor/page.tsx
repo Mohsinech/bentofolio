@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import NextImage from "next/image";
+import html2canvas from "html2canvas";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   BarChart3,
   BriefcaseBusiness,
@@ -1246,6 +1248,8 @@ function ShareBentoModal({
   onClose: () => void;
 }) {
   const [copied, setCopied] = useState(false);
+  const [sharingImage, setSharingImage] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   const appUrl =
     process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
     "https://bentofolio.dev";
@@ -1262,10 +1266,110 @@ function ShareBentoModal({
     window.open(url, "_blank", "width=640,height=520");
   };
 
+  const createShareImage = async () => {
+    if (!cardRef.current) return null;
+
+    const canvas = await html2canvas(cardRef.current, {
+      backgroundColor: "#111112",
+      scale: 2,
+      useCORS: true,
+    });
+
+    return new Promise<File | null>((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          resolve(null);
+          return;
+        }
+        resolve(
+          new File([blob], `${username}-bentofolio.png`, {
+            type: "image/png",
+          }),
+        );
+      }, "image/png");
+    });
+  };
+
+  const shareCardImage = async () => {
+    setSharingImage(true);
+    const file = await createShareImage();
+    const canShareFile =
+      file &&
+      typeof navigator !== "undefined" &&
+      "canShare" in navigator &&
+      navigator.canShare?.({ files: [file] });
+
+    if (file && canShareFile) {
+      await navigator
+        .share({
+          title: `${username}'s BentoFolio`,
+          text: `${shareText} ${profileUrl}`,
+          files: [file],
+        })
+        .catch(() => null);
+      setSharingImage(false);
+      return;
+    }
+
+    if (file) {
+      const url = URL.createObjectURL(file);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = file.name;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    setSharingImage(false);
+  };
+
+  const openInstagramStory = async () => {
+    await shareCardImage();
+    window.location.href = "instagram://story-camera";
+  };
+
   return (
-    <div className={styles.shareModalOverlay} role="dialog" aria-modal="true">
-      <div className={styles.shareModal}>
-        <button
+    <AnimatePresence>
+      <motion.div
+        className={styles.shareModalOverlay}
+        role="dialog"
+        aria-modal="true"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <div className={styles.celebrationLayer} aria-hidden="true">
+          {Array.from({ length: 18 }).map((_, index) => (
+            <motion.span
+              key={index}
+              style={{
+                left: `${8 + ((index * 17) % 86)}%`,
+                background:
+                  index % 3 === 0
+                    ? "#d7ff5f"
+                    : index % 3 === 1
+                    ? "#ffffff"
+                    : "#8fb3ff",
+              }}
+              initial={{ y: -30, opacity: 0, rotate: 0 }}
+              animate={{ y: "96vh", opacity: [0, 1, 1, 0], rotate: 260 }}
+              transition={{
+                duration: 2.2 + (index % 5) * 0.22,
+                delay: index * 0.045,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+        </div>
+
+        <motion.div
+          className={styles.shareModal}
+          initial={{ y: 34, scale: 0.9, opacity: 0 }}
+          animate={{ y: 0, scale: 1, opacity: 1 }}
+          exit={{ y: 20, scale: 0.96, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 220, damping: 22 }}
+        >
+          <button
           type="button"
           className={styles.shareClose}
           onClick={onClose}
@@ -1274,7 +1378,13 @@ function ShareBentoModal({
           <X size={16} />
         </button>
 
-        <div className={styles.sharePreview}>
+        <motion.div
+          ref={cardRef}
+          className={styles.sharePreview}
+          initial={{ rotate: -2, scale: 0.94 }}
+          animate={{ rotate: 0, scale: 1 }}
+          transition={{ type: "spring", stiffness: 180, damping: 16, delay: 0.1 }}
+        >
           <div className={styles.sharePreviewGrid}>
             <span />
             <span />
@@ -1298,17 +1408,21 @@ function ShareBentoModal({
           <Link href="/" className={styles.shareCreateButton}>
             Create yours
           </Link>
-        </div>
+        </motion.div>
 
         <div className={styles.shareCopy}>
-          <span className={styles.eyebrow}>Share your BentoFolio</span>
-          <h2>Your public profile is ready.</h2>
+          <span className={styles.eyebrow}>You shipped it</span>
+          <h2>Surprise. Your BentoFolio is live.</h2>
           <p>
-            Send it to friends, clients, or that one person who keeps asking
-            where they can see your work.
+            Share the mini card itself, or send the live profile link. On mobile,
+            Instagram can appear as a story/share target.
           </p>
           <div className={styles.shareUrl}>{profileUrl}</div>
           <div className={styles.shareActions}>
+            <button type="button" onClick={shareCardImage} disabled={sharingImage}>
+              {sharingImage ? <Loader2 size={16} /> : <Sparkles size={16} />}
+              {sharingImage ? "Creating card" : "Share card"}
+            </button>
             <button type="button" onClick={() => copyText()}>
               {copied ? <Check size={16} /> : <Copy size={16} />}
               {copied ? "Copied" : "Copy link"}
@@ -1341,19 +1455,17 @@ function ShareBentoModal({
             </button>
             <button
               type="button"
-              onClick={() =>
-                copyText(
-                  `${shareText} ${profileUrl}\n\nCreate yours on BentoFolio.`,
-                )
-              }
+              onClick={openInstagramStory}
+              disabled={sharingImage}
             >
               <Instagram size={16} />
-              Instagram copy
+              Instagram story
             </button>
           </div>
         </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }
 
