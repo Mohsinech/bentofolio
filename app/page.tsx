@@ -137,7 +137,10 @@ export default function Home() {
             transition={{ duration: 0.45 }}
             className="max-w-2xl"
           >
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d7ff5f]/16 bg-[#d7ff5f]/8 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-[#e9ff99]">
+            <div
+              style={{ fontFamily: "var(--font-saans), sans-serif" }}
+              className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d7ff5f]/16 bg-[#d7ff5f]/8 px-3 py-2 text-xs  uppercase tracking-[0.05rem] text-[#e9ff99]"
+            >
               <Layers3 className="h-3.5 w-3.5" />
               Bento portfolios for creatives and devs
             </div>
