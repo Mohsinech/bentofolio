@@ -96,8 +96,8 @@ export default function Home() {
                   item === "Dashboard"
                     ? "/editor"
                     : item === "Log in"
-                    ? "/auth/login"
-                    : `/${item.toLowerCase()}`
+                      ? "/auth/login"
+                      : `/${item.toLowerCase()}`
                 }
                 className="rounded-full px-4 py-2 text-sm text-white/55 transition hover:bg-white/[0.055] hover:text-white"
               >
@@ -114,7 +114,10 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-1.5 md:hidden">
-            <Link href="/pricing" className="rounded-full px-2.5 py-2 text-xs text-white/58">
+            <Link
+              href="/pricing"
+              className="rounded-full px-2.5 py-2 text-xs text-white/58"
+            >
               Pricing
             </Link>
             <Link
@@ -139,8 +142,8 @@ export default function Home() {
               Bento portfolios for creatives and devs
             </div>
             <h1
-              className="text-5xl leading-[0.9] text-white sm:text-7xl lg:text-8xl"
-              style={{ fontFamily: "var(--font-general), sans-serif" }}
+              className="text-5xl leading-[1.1] tracking-tighter text-white sm:text-7xl lg:text-8xl"
+              style={{ fontFamily: "var(--font-saans), sans-serif" }}
             >
               Build your public proof in blocks.
             </h1>
@@ -195,7 +198,9 @@ export default function Home() {
                   <span className="rounded-full bg-[#d7ff5f] px-3 py-1 text-xs font-bold text-[#080809]">
                     Live profile
                   </span>
-                  <span className="text-sm text-white/42">bentofolio.dev/you</span>
+                  <span className="text-sm text-white/42">
+                    bentofolio.dev/you
+                  </span>
                 </div>
                 <h2 className="max-w-sm text-3xl leading-none text-white">
                   Work, links, socials, media, and launch metrics in one grid.
@@ -225,8 +230,12 @@ export default function Home() {
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                    <p className="text-lg font-semibold text-white">{template.name}</p>
-                    <span className="text-xs text-white/52">{template.helper} template</span>
+                    <p className="text-lg font-semibold text-white">
+                      {template.name}
+                    </p>
+                    <span className="text-xs text-white/52">
+                      {template.helper} template
+                    </span>
                   </div>
                 </article>
               ))}
