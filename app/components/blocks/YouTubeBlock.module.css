@@ -16,6 +16,14 @@
   border: 0;
 }
 
+@media (max-width: 560px) {
+  .container {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+  }
+}
+
 .empty {
   height: 100%;
   display: grid;

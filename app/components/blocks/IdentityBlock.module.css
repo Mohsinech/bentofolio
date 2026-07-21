@@ -197,10 +197,13 @@
 @media (max-width: 560px) {
   .container {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
   .avatarCard {
-    min-height: 180px;
+    aspect-ratio: 4 / 3;
+    min-height: 0;
+    max-height: 260px;
   }
 }
 

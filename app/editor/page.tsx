@@ -574,7 +574,7 @@ function customizeTemplateContent(
                   url: "https://bentofolio.dev",
                 },
               ]
-              : [
+            : [
                 {
                   title: "iOS onboarding redesign",
                   client: "Luma Studio",
@@ -944,11 +944,11 @@ function customizeTemplateContent(
             ? "https://www.youtube.com/watch?v=IXOk6o-Omps"
             : templateId === "pro"
               ? "https://www.youtube.com/watch?v=RwkGSPp6yG0&pp=ygUOY2luZW1hdGljIHZsb2c%3D"
-            : templateId === "designer"
-              ? "https://www.youtube.com/watch?v=GQS7wPujL2k&pp=ygUIZGVzaWduZXI%3D"
-              : templateId === "influencer"
-                ? "https://www.youtube.com/watch?v=SlgKIJaoXd8&pp=ygUEdmxvZw%3D%3D"
-            : "https://www.youtube.com/watch?v=ysz5S6PUM-U",
+              : templateId === "designer"
+                ? "https://www.youtube.com/watch?v=GQS7wPujL2k&pp=ygUIZGVzaWduZXI%3D"
+                : templateId === "influencer"
+                  ? "https://www.youtube.com/watch?v=SlgKIJaoXd8&pp=ygUEdmxvZw%3D%3D"
+                  : "https://www.youtube.com/watch?v=ysz5S6PUM-U",
       },
     };
   }
@@ -987,24 +987,39 @@ function customizeTemplateContent(
         images:
           templateId === "designer"
             ? [
-                { src: "/prebuilt/designer/work1.jpeg", alt: "Alice project one" },
-                { src: "/prebuilt/designer/work2.jpeg", alt: "Alice project two" },
-                { src: "/prebuilt/designer/work3.jpeg", alt: "Alice project three" },
-                { src: "/prebuilt/designer/varnika.jpeg", alt: "Alice portrait" },
+                {
+                  src: "/prebuilt/designer/work1.jpeg",
+                  alt: "Alice project one",
+                },
+                {
+                  src: "/prebuilt/designer/work2.jpeg",
+                  alt: "Alice project two",
+                },
+                {
+                  src: "/prebuilt/designer/work3.jpeg",
+                  alt: "Alice project three",
+                },
+                {
+                  src: "/prebuilt/designer/varnika.jpeg",
+                  alt: "Alice portrait",
+                },
               ]
             : templateId === "influencer"
               ? [
                   { src: "/prebuilt/inf/ep.jpg", alt: "Podcast episode cover" },
                   { src: "/prebuilt/inf/ep1.jpg", alt: "Podcast episode one" },
                   { src: "/prebuilt/inf/ep2.jpg", alt: "Podcast episode two" },
-                  { src: "/prebuilt/inf/ep3.jpg", alt: "Podcast episode three" },
+                  {
+                    src: "/prebuilt/inf/ep3.jpg",
+                    alt: "Podcast episode three",
+                  },
                 ]
-            : [
-                { src: "/momojis/13.png", alt: "Studio avatar" },
-                { src: "/momojis/41.png", alt: "Creative avatar" },
-                { src: "/momojis/54.png", alt: "Project avatar" },
-                { src: "/momojis/27.png", alt: "Mood avatar" },
-              ],
+              : [
+                  { src: "/momojis/13.png", alt: "Studio avatar" },
+                  { src: "/momojis/41.png", alt: "Creative avatar" },
+                  { src: "/momojis/54.png", alt: "Project avatar" },
+                  { src: "/momojis/27.png", alt: "Mood avatar" },
+                ],
       },
     };
   }
@@ -1222,20 +1237,29 @@ function normalizeLoadedLayout(savedLayout: BlockLayout[]) {
   return savedLayout.map((block) =>
     block.type === "spotify"
       ? { ...block, w: Math.max(block.w, 2), h: 1 }
-      :
-    (block.type === "availability" ||
-      block.type === "link" ||
-      block.type === "resume" ||
-      block.type === "instagram" ||
-      block.type === "gallery" ||
-      block.type === "youtube" ||
-      block.type === "services" ||
-      block.type === "tools" ||
-      block.type === "stats") &&
-    block.w < 2
-      ? { ...block, w: 2 }
-      : block,
+      : (block.type === "availability" ||
+            block.type === "link" ||
+            block.type === "resume" ||
+            block.type === "instagram" ||
+            block.type === "gallery" ||
+            block.type === "youtube" ||
+            block.type === "services" ||
+            block.type === "tools" ||
+            block.type === "stats") &&
+          block.w < 2
+        ? { ...block, w: 2 }
+        : block,
   );
+}
+
+function cloneLayout(layout: BlockLayout[]) {
+  return layout.map((block) => ({ ...block }));
+}
+
+function cloneContent(content: Record<string, BlockContent>) {
+  return Object.fromEntries(
+    Object.entries(content).map(([id, block]) => [id, structuredClone(block)]),
+  ) as Record<string, BlockContent>;
 }
 
 function ShareBentoModal({
@@ -1348,8 +1372,8 @@ function ShareBentoModal({
                   index % 3 === 0
                     ? "#d7ff5f"
                     : index % 3 === 1
-                    ? "#ffffff"
-                    : "#8fb3ff",
+                      ? "#ffffff"
+                      : "#8fb3ff",
               }}
               initial={{ y: -30, opacity: 0, rotate: 0 }}
               animate={{ y: "96vh", opacity: [0, 1, 1, 0], rotate: 260 }}
@@ -1370,99 +1394,108 @@ function ShareBentoModal({
           transition={{ type: "spring", stiffness: 220, damping: 22 }}
         >
           <button
-          type="button"
-          className={styles.shareClose}
-          onClick={onClose}
-          aria-label="Close share popup"
-        >
-          <X size={16} />
-        </button>
+            type="button"
+            className={styles.shareClose}
+            onClick={onClose}
+            aria-label="Close share popup"
+          >
+            <X size={16} />
+          </button>
 
-        <motion.div
-          ref={cardRef}
-          className={styles.sharePreview}
-          initial={{ rotate: -2, scale: 0.94 }}
-          animate={{ rotate: 0, scale: 1 }}
-          transition={{ type: "spring", stiffness: 180, damping: 16, delay: 0.1 }}
-        >
-          <div className={styles.sharePreviewGrid}>
-            <span />
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className={styles.sharePreviewAvatar}>
-            {avatarUrl ? (
-              <NextImage
-                src={avatarUrl}
-                alt={username}
-                width={78}
-                height={78}
-                unoptimized
-              />
-            ) : (
-              username.charAt(0).toUpperCase()
-            )}
-          </div>
-          <strong>@{username}</strong>
-          <Link href="/" className={styles.shareCreateButton}>
-            Create yours
-          </Link>
-        </motion.div>
+          <motion.div
+            ref={cardRef}
+            className={styles.sharePreview}
+            initial={{ rotate: -2, scale: 0.94 }}
+            animate={{ rotate: 0, scale: 1 }}
+            transition={{
+              type: "spring",
+              stiffness: 180,
+              damping: 16,
+              delay: 0.1,
+            }}
+          >
+            <div className={styles.sharePreviewGrid}>
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className={styles.sharePreviewAvatar}>
+              {avatarUrl ? (
+                <NextImage
+                  src={avatarUrl}
+                  alt={username}
+                  width={78}
+                  height={78}
+                  unoptimized
+                />
+              ) : (
+                username.charAt(0).toUpperCase()
+              )}
+            </div>
+            <strong>@{username}</strong>
+            <Link href="/" className={styles.shareCreateButton}>
+              Create yours
+            </Link>
+          </motion.div>
 
-        <div className={styles.shareCopy}>
-          <span className={styles.eyebrow}>You shipped it</span>
-          <h2>Surprise. Your BentoFolio is live.</h2>
-          <p>
-            Share the mini card itself, or send the live profile link. On mobile,
-            Instagram can appear as a story/share target.
-          </p>
-          <div className={styles.shareUrl}>{profileUrl}</div>
-          <div className={styles.shareActions}>
-            <button type="button" onClick={shareCardImage} disabled={sharingImage}>
-              {sharingImage ? <Loader2 size={16} /> : <Sparkles size={16} />}
-              {sharingImage ? "Creating card" : "Share card"}
-            </button>
-            <button type="button" onClick={() => copyText()}>
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-              {copied ? "Copied" : "Copy link"}
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                openShareUrl(
-                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    shareText,
-                  )}&url=${encodeURIComponent(profileUrl)}`,
-                )
-              }
-            >
-              <Share2 size={16} />
-              Twitter
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                openShareUrl(
-                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                    profileUrl,
-                  )}`,
-                )
-              }
-            >
-              <Facebook size={16} />
-              Facebook
-            </button>
-            <button
-              type="button"
-              onClick={openInstagramStory}
-              disabled={sharingImage}
-            >
-              <Instagram size={16} />
-              Instagram story
-            </button>
+          <div className={styles.shareCopy}>
+            <span className={styles.eyebrow}>You shipped it</span>
+            <h2>Surprise. Your BentoFolio is live.</h2>
+            <p>
+              Share the mini card itself, or send the live profile link. On
+              mobile, Instagram can appear as a story/share target.
+            </p>
+            <div className={styles.shareUrl}>{profileUrl}</div>
+            <div className={styles.shareActions}>
+              <button
+                type="button"
+                onClick={shareCardImage}
+                disabled={sharingImage}
+              >
+                {sharingImage ? <Loader2 size={16} /> : <Sparkles size={16} />}
+                {sharingImage ? "Creating card" : "Share card"}
+              </button>
+              <button type="button" onClick={() => copyText()}>
+                {copied ? <Check size={16} /> : <Copy size={16} />}
+                {copied ? "Copied" : "Copy link"}
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  openShareUrl(
+                    `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+                      shareText,
+                    )}&url=${encodeURIComponent(profileUrl)}`,
+                  )
+                }
+              >
+                <Share2 size={16} />
+                Twitter
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  openShareUrl(
+                    `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                      profileUrl,
+                    )}`,
+                  )
+                }
+              >
+                <Facebook size={16} />
+                Facebook
+              </button>
+              <button
+                type="button"
+                onClick={openInstagramStory}
+                disabled={sharingImage}
+              >
+                <Instagram size={16} />
+                Instagram story
+              </button>
+            </div>
           </div>
-        </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
@@ -1487,6 +1520,11 @@ function EditorStudio() {
   const [themeOverride, setThemeOverride] = useState<ThemeId | null>(null);
   const [hasReferralReward, setHasReferralReward] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const savedPortfolioRef = useRef<{
+    layout: BlockLayout[];
+    content: Record<string, BlockContent>;
+  } | null>(null);
+  const hydratedProfileIdRef = useRef<string | null>(null);
   const selectedTheme = themeOverride ?? profile?.theme ?? "dark";
 
   useEffect(() => {
@@ -1505,10 +1543,21 @@ function EditorStudio() {
   }, []);
 
   useEffect(() => {
-    if (profile && profile.layout.length > 0) {
-      setLayout(normalizeLoadedLayout(profile.layout));
-      setContent(normalizeLoadedContent(profile.content, profile.username));
-    }
+    if (!profile || hydratedProfileIdRef.current === profile.id) return;
+
+    const nextLayout = normalizeLoadedLayout(profile.layout || []);
+    const nextContent = normalizeLoadedContent(
+      profile.content || {},
+      profile.username,
+    );
+
+    setLayout(nextLayout);
+    setContent(nextContent);
+    savedPortfolioRef.current = {
+      layout: cloneLayout(nextLayout),
+      content: cloneContent(nextContent),
+    };
+    hydratedProfileIdRef.current = profile.id;
   }, [profile, setContent, setLayout]);
 
   const selectedContent = selectedBlockId ? content[selectedBlockId] : null;
@@ -1520,6 +1569,10 @@ function EditorStudio() {
       content,
       theme: selectedTheme,
     });
+    savedPortfolioRef.current = {
+      layout: cloneLayout(layout),
+      content: cloneContent(content),
+    };
     setStatus("Saved");
 
     const sharePromptKey = profile?.username
@@ -1585,7 +1638,7 @@ function EditorStudio() {
   };
 
   const handleApplyTemplate = async (
-    template: (typeof starterTemplates)[number]
+    template: (typeof starterTemplates)[number],
   ) => {
     if (templateRequiresPro(template) && !hasProAccess) {
       setStatus("This template includes Pro cards");
@@ -1610,19 +1663,21 @@ function EditorStudio() {
     setContent(nextContent);
     selectBlock(null);
     setActiveView("portfolio");
+
     setStatus(`${template.label} template loaded`);
 
-    try {
-      await saveProfile({
-        layout: nextLayout,
-        content: nextContent,
-        theme: selectedTheme,
-      });
-      setStatus(`${template.label} template saved`);
-    } catch {
-      setStatus(`${template.label} loaded, save failed`);
-    }
+    window.setTimeout(() => setStatus(null), 1800);
+  };
 
+  const handleRestorePortfolio = () => {
+    const savedPortfolio = savedPortfolioRef.current;
+    if (!savedPortfolio) return;
+
+    setLayout(cloneLayout(savedPortfolio.layout));
+    setContent(cloneContent(savedPortfolio.content));
+    selectBlock(null);
+    setActiveView("portfolio");
+    setStatus("My portfolio restored");
     window.setTimeout(() => setStatus(null), 1800);
   };
 
@@ -1899,6 +1954,15 @@ function EditorStudio() {
               className={styles.templatePills}
               aria-label="Starter templates"
             >
+              <button
+                className={styles.templateButton}
+                onClick={handleRestorePortfolio}
+                title="Return to your saved portfolio"
+              >
+                <ChevronLeft size={14} />
+                <span>My Portfolio</span>
+                <em>Saved</em>
+              </button>
               {starterTemplates.map((template) => {
                 const requiresPro = templateRequiresPro(template);
                 const locked = requiresPro && !hasProAccess;
@@ -2258,7 +2322,9 @@ function SettingsView({
             )}
           </div>
         </div>
-        {avatarMessage && <p className={styles.settingsNote}>{avatarMessage}</p>}
+        {avatarMessage && (
+          <p className={styles.settingsNote}>{avatarMessage}</p>
+        )}
       </section>
       <section>
         <Globe size={22} />

@@ -30,6 +30,9 @@
 @media (max-width: 480px) {
   .grid {
     --grid-cols: 1;
+    gap: 12px;
+    padding: 12px;
+    grid-auto-rows: auto;
   }
 }
 
@@ -105,10 +108,13 @@
     min-height: 120px;
   }
   .row2 {
-    min-height: 260px;
+    min-height: 220px;
   }
   .row3 {
-    min-height: 400px;
+    min-height: 300px;
+  }
+  .row4 {
+    min-height: 340px;
   }
 }
 

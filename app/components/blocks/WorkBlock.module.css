@@ -264,6 +264,32 @@
   }
 }
 
+@media (max-width: 560px) {
+  .container {
+    min-height: 238px;
+    padding: 14px;
+  }
+
+  .stage {
+    min-height: 170px;
+  }
+
+  .envelopeStack {
+    width: min(92%, 250px);
+    height: 200px;
+  }
+
+  .previewImage {
+    height: 94px;
+  }
+
+  .envelopeBack,
+  .envelopeFront {
+    height: 98px;
+    border-radius: 18px;
+  }
+}
+
 :global([data-theme="light"]) .container {
   color: #171321;
   background:
