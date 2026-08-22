@@ -7,29 +7,21 @@ import html2canvas from "html2canvas";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BarChart3,
-  BriefcaseBusiness,
   Check,
   ChevronLeft,
   ChevronRight,
-  CircleDot,
   Code2,
   Copy,
   Eye,
   Facebook,
-  FileText,
-  FolderGit2,
   Gift,
   Globe,
-  GraduationCap,
   Grid3X3,
-  Images,
   Instagram,
   Layers3,
-  Link as LinkIcon,
   Loader2,
   LogOut,
   Mail,
-  MapPin,
   Moon,
   Plus,
   Save,
@@ -37,14 +29,10 @@ import {
   Share2,
   Sparkles,
   Sun,
-  TrendingUp,
   Trash2,
   Upload,
   User,
-  Users,
-  Wrench,
   X,
-  Youtube,
 } from "lucide-react";
 
 import { BlockEditor } from "./BlockEditor";
@@ -54,6 +42,12 @@ import { useAuth, useProfile } from "@/app/lib/hooks";
 import { importFromGitHub } from "@/app/lib/github";
 import { DEFAULT_MEMOJI_AVATAR } from "@/app/lib/memoji";
 import { generateId } from "@/app/lib/utils";
+import {
+  createDefaultBlockContent,
+  editorBlockLibraryEntries,
+  getDefaultBlockSize,
+  quickCreateBlockTypes,
+} from "@/app/lib/block-registry";
 import {
   AvailabilityBlock,
   EducationBlock,
@@ -92,48 +86,14 @@ const navItems = [
   { id: "settings", label: "Settings", icon: Settings },
 ] as const;
 
-const blockLibrary: {
-  type: BlockType;
-  label: string;
-  icon: React.ComponentType<{ size?: number }>;
-  group: string;
-}[] = [
-  { type: "identity", label: "Identity", icon: User, group: "Profile" },
-  { type: "map", label: "Location", icon: MapPin, group: "Profile" },
-  { type: "availability", label: "Status", icon: CircleDot, group: "Profile" },
-  { type: "social", label: "Social", icon: Users, group: "Profile" },
-  { type: "github", label: "GitHub", icon: Code2, group: "Proof" },
-  { type: "work", label: "Work", icon: BriefcaseBusiness, group: "Proof" },
-  { type: "projects", label: "Projects", icon: FolderGit2, group: "Proof" },
-  { type: "techstack", label: "Stack", icon: Layers3, group: "Proof" },
-  { type: "link", label: "Link", icon: LinkIcon, group: "Content" },
-  { type: "quote", label: "Quote", icon: Sparkles, group: "Content" },
-  { type: "resume", label: "Resume", icon: FileText, group: "Content" },
-  { type: "spotify", label: "Spotify", icon: Eye, group: "Media" },
-  { type: "youtube", label: "YouTube", icon: Youtube, group: "Media" },
-  { type: "gallery", label: "Gallery", icon: Images, group: "Media" },
-  { type: "instagram", label: "Instagram", icon: Instagram, group: "Media" },
-  { type: "experience", label: "Experience", icon: FileText, group: "Work" },
-  { type: "education", label: "Education", icon: GraduationCap, group: "Work" },
-  { type: "saas", label: "SaaS", icon: Globe, group: "Work" },
-  { type: "services", label: "Services", icon: Sparkles, group: "Work" },
-  { type: "tools", label: "Tools", icon: Wrench, group: "Work" },
-  { type: "stats", label: "Stats", icon: TrendingUp, group: "Proof" },
-];
+const blockLibrary = editorBlockLibraryEntries.map((block) => ({
+  type: block.legacyType,
+  label: block.editorLabel,
+  icon: block.icon,
+  group: block.editorGroup,
+}));
 
-const quickCreate: BlockType[] = [
-  "identity",
-  "work",
-  "projects",
-  "techstack",
-  "social",
-  "link",
-  "spotify",
-  "instagram",
-  "gallery",
-  "saas",
-  "education",
-];
+const quickCreate = quickCreateBlockTypes;
 
 const starterTemplates: {
   id: "designer" | "developer" | "influencer" | "pro";
@@ -214,256 +174,11 @@ function templateRequiresPro(template: (typeof starterTemplates)[number]) {
 }
 
 function getBlockSize(type: BlockType) {
-  switch (type) {
-    case "identity":
-      return { w: 4, h: 1 };
-    case "github":
-    case "saas":
-    case "social":
-    case "availability":
-    case "link":
-    case "resume":
-    case "map":
-      return { w: 2, h: 1 };
-    case "projects":
-    case "work":
-    case "education":
-    case "techstack":
-    case "experience":
-      return { w: 2, h: 2 };
-    case "youtube":
-    case "gallery":
-      return { w: 2, h: 2 };
-    case "spotify":
-      return { w: 2, h: 1 };
-    case "services":
-    case "tools":
-    case "stats":
-      return { w: 2, h: 1 };
-    default:
-      return { w: 1, h: 1 };
-  }
+  return getDefaultBlockSize(type);
 }
 
 function createDefaultContent(type: BlockType): BlockContent {
-  switch (type) {
-    case "identity":
-      return {
-        type,
-        data: {
-          name: "Your Name",
-          title: "Product Designer @ YourStudio",
-          avatar: DEFAULT_MEMOJI_AVATAR,
-          bio: "Designing calm products, useful systems, and tiny details people remember.",
-          location: "Remote",
-          email: "hello@example.com",
-          website: "example.com",
-          availability: "Available for work",
-        },
-      };
-    case "map":
-      return { type, data: { location: "Your City", lat: 0, lng: 0 } };
-    case "techstack":
-      return {
-        type,
-        data: {
-          items: [
-            { name: "Next.js", icon: "/icons/tech/nextjs-original.svg" },
-            { name: "React", icon: "/icons/tech/react-original.svg" },
-            { name: "TypeScript", icon: "/icons/tech/typescript-original.svg" },
-          ],
-        },
-      };
-    case "experience":
-      return {
-        type,
-        data: {
-          items: [
-            {
-              company: "Studio",
-              role: "Designer / Developer",
-              period: "2024 - Now",
-            },
-          ],
-        },
-      };
-    case "education":
-      return {
-        type,
-        data: {
-          title: "Education",
-          items: [
-            {
-              school: "Design School",
-              degree: "Product Design",
-              period: "2021 - 2024",
-              description: "Design systems, interaction, and visual craft.",
-            },
-          ],
-        },
-      };
-    case "spotify":
-      return { type, data: { type: "embed", spotifyUrl: "" } };
-    case "youtube":
-      return { type, data: { title: "Featured video", url: "" } };
-    case "gallery":
-      return { type, data: { title: "Gallery", images: [] } };
-    case "instagram":
-      return {
-        type,
-        data: {
-          handle: "@yourhandle",
-          profileUrl: "https://instagram.com/yourhandle",
-          image: "",
-          followers: "12.4k",
-          posts: "186",
-          engagement: "8.7%",
-          featuredPostUrl: "",
-        },
-      };
-    case "services":
-      return {
-        type,
-        data: {
-          title: "What I can help with",
-          items: ["Product design", "Framer", "Web apps", "Brand systems"],
-        },
-      };
-    case "tools":
-      return {
-        type,
-        data: {
-          title: "Tools I use",
-          items: [
-            { name: "Figma", icon: "F" },
-            { name: "Framer", icon: "Fr" },
-            { name: "Notion", icon: "N" },
-          ],
-        },
-      };
-    case "stats":
-      return {
-        type,
-        data: {
-          items: [
-            { value: "6+", label: "Years" },
-            { value: "42", label: "Projects" },
-            { value: "12k", label: "Users reached" },
-            { value: "98%", label: "Happy clients" },
-          ],
-        },
-      };
-    case "link":
-      return {
-        type,
-        data: { url: "hello@example.com", title: "Let's Collaborate" },
-      };
-    case "work":
-      return {
-        type,
-        data: {
-          title: "Recent work",
-          subtitle: "Selected projects",
-          email: "hello@icloud.com",
-          items: [
-            {
-              title: "Mobile portfolio system",
-              client: "Northstar Studio",
-              category: "Product design",
-              year: "2026",
-              image: "",
-              url: "https://example.com",
-            },
-            {
-              title: "Creative dashboard",
-              client: "Bento Labs",
-              category: "Web app",
-              year: "2025",
-              image: "",
-              url: "",
-            },
-          ],
-        },
-      };
-    case "saas":
-      return {
-        type,
-        data: {
-          name: "My SaaS",
-          tagline: "A small product worth sharing.",
-          url: "https://example.com",
-          mrr: 1000,
-          revenue: [100, 240, 420, 680, 900, 1200],
-        },
-      };
-    case "github":
-      return {
-        type,
-        data: {
-          username: "",
-          followers: 0,
-          following: 0,
-          publicRepos: 0,
-          totalStars: 0,
-        },
-      };
-    case "projects":
-      return {
-        type,
-        data: {
-          items: [
-            {
-              name: "New project",
-              description: "Describe what you built.",
-              url: "https://example.com",
-              stars: 0,
-              forks: 0,
-              language: "TypeScript",
-              languageColor: "#3178c6",
-            },
-          ],
-        },
-      };
-    case "social":
-      return {
-        type,
-        data: {
-          items: [
-            { platform: "github", url: "https://github.com" },
-            { platform: "linkedin", url: "https://linkedin.com" },
-            { platform: "website", url: "https://example.com" },
-          ],
-        },
-      };
-    case "availability":
-      return {
-        type,
-        data: {
-          status: "available",
-          message: "Open to selected work.",
-          forHire: true,
-          preferredContact: "hello@example.com",
-          responseTime: "Replies within 24h",
-          timezone: "GMT+1",
-          nextOpening: "2 spots this month",
-          rate: "Projects from $2k",
-          ctaLabel: "Start a project",
-        },
-      };
-    case "quote":
-      return {
-        type,
-        data: {
-          quote: "A short testimonial or belief statement.",
-          author: "Someone Great",
-        },
-      };
-    case "resume":
-      return {
-        type,
-        data: { title: "Resume", fileUrl: "", lastUpdated: "May 2026" },
-      };
-  }
+  return createDefaultBlockContent(type);
 }
 
 function customizeTemplateContent(
