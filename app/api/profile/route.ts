@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { activateBetaFreeProCode } from "@/app/lib/beta-codes";
 import { createClient } from "@/app/lib/supabase/server";
+import {
+  checkUsernameFormat,
+  normalizeUsername,
+  statusFromDatabaseError,
+  usernameMessage,
+} from "@/app/lib/usernames";
 
 function normalizeTheme(theme: unknown) {
   return theme === "light" ? "light" : "dark";
@@ -231,14 +237,17 @@ export async function PUT(request: Request) {
     updates.avatar_url = avatarUrl || null;
   }
   if (username !== undefined) {
-    // Validate username
-    if (!/^[a-zA-Z0-9_-]+$/.test(username) || username.length < 3) {
+    // Format is checked here for a quick answer; reserved, taken and held
+    // names are rejected by the database trigger (mapped below).
+    const name = normalizeUsername(username);
+    const formatStatus = checkUsernameFormat(name);
+    if (formatStatus !== "ok") {
       return NextResponse.json(
-        { error: "Invalid username format" },
+        { error: usernameMessage(formatStatus), usernameStatus: formatStatus },
         { status: 400 }
       );
     }
-    updates.username = username;
+    updates.username = name;
   }
   if (customDomain !== undefined) {
     const { data: profileAccess, error: accessError } = await supabase
@@ -289,10 +298,17 @@ export async function PUT(request: Request) {
     .eq("id", user.id);
 
   if (error) {
-    // Handle unique constraint violation (username taken)
+    const usernameStatus = statusFromDatabaseError(error.message);
+    if (usernameStatus) {
+      return NextResponse.json(
+        { error: usernameMessage(usernameStatus), usernameStatus },
+        { status: usernameStatus === "limit" ? 429 : 409 }
+      );
+    }
+    // Unique constraint violation (username taken in a race)
     if (error.code === "23505") {
       return NextResponse.json(
-        { error: "Username is already taken" },
+        { error: usernameMessage("taken"), usernameStatus: "taken" },
         { status: 409 }
       );
     }

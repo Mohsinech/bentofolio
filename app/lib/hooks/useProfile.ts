@@ -45,6 +45,8 @@ interface UseProfileReturn {
   saving: boolean;
   // Copies the saved draft to the live page.
   publishProfile: () => Promise<void>;
+  // Changes the page address. Returns a message the dialog can show.
+  updateUsername: (username: string) => Promise<{ ok: boolean; message?: string }>;
   publishing: boolean;
   // Pro access comes from the profile record, not admin status.
   hasProAccess: boolean;
@@ -213,6 +215,23 @@ export function useProfile(): UseProfileReturn {
     }
   }, []);
 
+  const updateUsername = useCallback(async (username: string) => {
+    try {
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username }),
+      });
+      if (!response.ok) {
+        return { ok: false, message: await describeSaveFailure(response) };
+      }
+      setProfile((prev) => (prev ? { ...prev, username } : null));
+      return { ok: true };
+    } catch {
+      return { ok: false, message: "You seem to be offline. Try again." };
+    }
+  }, []);
+
   const hasProAccess = Boolean(profile?.isPro);
 
   return {
@@ -224,6 +243,7 @@ export function useProfile(): UseProfileReturn {
     saving,
     publishProfile,
     publishing,
+    updateUsername,
     hasProAccess,
   };
 }

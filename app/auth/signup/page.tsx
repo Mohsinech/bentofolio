@@ -1,11 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Github } from "lucide-react";
 import { createClient } from "@/app/lib/supabase/client";
+import {
+  checkUsernameFormat,
+  normalizeUsername,
+  usernameMessage,
+} from "@/app/lib/usernames";
 import styles from "../auth.module.css";
 
 export default function SignupPage() {
@@ -17,6 +22,13 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  // Live availability for the username field.
+  const [usernameCheck, setUsernameCheck] = useState<{
+    username: string;
+    available: boolean;
+    message: string;
+  } | null>(null);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const [referralCode] = useState(() => {
     if (typeof window === "undefined") return "";
     const params = new URLSearchParams(window.location.search);
@@ -41,6 +53,54 @@ export default function SignupPage() {
     return url.toString();
   };
 
+  const typedUsername = normalizeUsername(username);
+  const typedFormat = typedUsername ? checkUsernameFormat(typedUsername) : null;
+
+  useEffect(() => {
+    if (!typedUsername || typedFormat !== "ok") {
+      setUsernameCheck(null);
+      setCheckingUsername(false);
+      return;
+    }
+    setCheckingUsername(true);
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `/api/username/check?u=${encodeURIComponent(typedUsername)}`,
+          { signal: controller.signal }
+        );
+        if (response.ok && !controller.signal.aborted) {
+          const data = await response.json();
+          setUsernameCheck({
+            username: data.username,
+            available: data.available,
+            message: data.message,
+          });
+        }
+      } catch {
+        // Aborted or offline: signup still works; a taken name falls back
+        // to a placeholder the editor asks to replace.
+      } finally {
+        if (!controller.signal.aborted) setCheckingUsername(false);
+      }
+    }, 350);
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [typedUsername, typedFormat]);
+
+  const usernameHint = !typedUsername
+    ? null
+    : typedFormat !== "ok"
+      ? { ok: false, text: usernameMessage(typedFormat!) }
+      : checkingUsername
+        ? { ok: null, text: "Checking…" }
+        : usernameCheck && usernameCheck.username === typedUsername
+          ? { ok: usernameCheck.available, text: usernameCheck.message }
+          : null;
+
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -48,17 +108,19 @@ export default function SignupPage() {
     const normalizedUsername = username.trim().toLowerCase();
     const normalizedEmail = email.trim();
 
-    // Validate username (alphanumeric, underscores, hyphens only)
-    if (!/^[a-zA-Z0-9_-]+$/.test(normalizedUsername)) {
-      setError(
-        "Username can only contain letters, numbers, underscores, and hyphens"
-      );
+    const formatStatus = checkUsernameFormat(normalizedUsername);
+    if (formatStatus !== "ok") {
+      setError(usernameMessage(formatStatus));
       setLoading(false);
       return;
     }
 
-    if (normalizedUsername.length < 3) {
-      setError("Username must be at least 3 characters");
+    if (
+      usernameCheck &&
+      usernameCheck.username === normalizedUsername &&
+      !usernameCheck.available
+    ) {
+      setError(`bentofolio.dev/${normalizedUsername}: ${usernameCheck.message}`);
       setLoading(false);
       return;
     }
@@ -207,15 +269,40 @@ export default function SignupPage() {
 
         <form className={styles.form} onSubmit={handleEmailSignup}>
           <div className={styles.field}>
-            <label className={styles.label}>Username</label>
+            <label className={styles.label} htmlFor="signup-username">Username</label>
             <input
+              id="signup-username"
               type="text"
               className={styles.input}
               placeholder="yourname"
               value={username}
               onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              autoComplete="username"
+              autoCapitalize="none"
+              spellCheck={false}
+              maxLength={30}
+              aria-describedby="signup-username-hint"
               required
             />
+            <span
+              id="signup-username-hint"
+              aria-live="polite"
+              style={{
+                minHeight: 18,
+                fontSize: 13,
+                color:
+                  usernameHint?.ok === true
+                    ? "#1f7a45"
+                    : usernameHint?.ok === false
+                      ? "#b42318"
+                      : "inherit",
+                opacity: usernameHint?.ok === null ? 0.7 : 1,
+              }}
+            >
+              {usernameHint
+                ? `bentofolio.dev/${typedUsername} · ${usernameHint.text}`
+                : " "}
+            </span>
           </div>
 
           <div className={styles.field}>

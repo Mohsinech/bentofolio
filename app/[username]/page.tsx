@@ -1,7 +1,11 @@
 import { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-import { getProfileByUsername } from "@/app/lib/supabase/profiles";
+import {
+  getProfileByUsername,
+  resolveUsernameRedirect,
+} from "@/app/lib/supabase/profiles";
 import { ProfileClientWrapper } from "./ProfileClientWrapper";
 import { PublicProfileShell } from "./PublicProfileShell";
 import styles from "./profile.module.css";
@@ -52,6 +56,15 @@ export async function generateMetadata({
 export default async function ProfilePage({ params }: PageProps) {
   const { username } = await params;
   const profile = await getProfileByUsername(username);
+
+  if (!profile) {
+    // Renamed in the last 30 days: send visitors to the new address.
+    // Temporary redirect, since the old name is released after 30 days.
+    const currentUsername = await resolveUsernameRedirect(username);
+    if (currentUsername) {
+      redirect(`/${encodeURIComponent(currentUsername)}`);
+    }
+  }
 
   // If no profile found, show 404
   if (!profile) {

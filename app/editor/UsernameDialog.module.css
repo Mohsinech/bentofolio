@@ -1,0 +1,225 @@
+/* Rendered inside .editorShell, so it inherits the editor's light/dark
+   variables (--editor-*). */
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(10, 10, 10, 0.45);
+}
+
+.dialog {
+  width: 100%;
+  max-width: 460px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 24px;
+  background: var(--editor-panel);
+  color: var(--editor-text);
+  border: 1px solid var(--editor-border);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.2);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.head h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--editor-text-muted);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: var(--editor-control-hover);
+}
+
+.lead {
+  margin: 0;
+  color: var(--editor-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  color: var(--editor-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 46px;
+  padding: 0 12px;
+  background: var(--editor-control);
+  border: 1px solid var(--editor-border-strong);
+  border-radius: 10px;
+  font-family: ui-monospace, "Geist Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+}
+
+.inputWrap:focus-within {
+  border-color: var(--editor-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--editor-focus) 22%, transparent);
+}
+
+.inputOk {
+  border-color: #1f9d55;
+}
+
+.inputBad {
+  border-color: var(--editor-danger);
+}
+
+.prefix {
+  color: var(--editor-text-muted);
+  white-space: nowrap;
+}
+
+.inputWrap input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--editor-text);
+  font: inherit;
+}
+
+.okIcon {
+  color: #1f9d55;
+  flex-shrink: 0;
+}
+
+.hint {
+  min-height: 18px;
+  margin: -6px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.ok {
+  color: #1f7a45;
+}
+
+.bad {
+  color: var(--editor-danger);
+}
+
+.muted {
+  color: var(--editor-text-muted);
+}
+
+.suggestions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.suggestions > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.suggestions button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--editor-border-strong);
+  border-radius: 99px;
+  background: var(--editor-control);
+  color: var(--editor-text);
+  font-family: ui-monospace, "Geist Mono", SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.suggestions button:hover {
+  background: var(--editor-control-hover);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primary {
+  background: var(--editor-primary);
+  color: var(--editor-primary-text);
+  border: 1px solid var(--editor-primary);
+}
+
+.primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.secondary {
+  background: transparent;
+  color: var(--editor-text);
+  border: 1px solid var(--editor-border-strong);
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

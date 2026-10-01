@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 
 import { BlockEditor } from "./BlockEditor";
+import { UsernameDialog } from "./UsernameDialog";
+import { isPlaceholderUsername, normalizeUsername } from "@/app/lib/usernames";
 import { EditorProvider, useEditor } from "@/app/lib/editor-context";
 import { useAuth, useProfile } from "@/app/lib/hooks";
 import {
@@ -111,9 +113,13 @@ function EditorStudio() {
     saving,
     publishProfile,
     publishing,
+    updateUsername,
     hasProAccess,
   } = useProfile();
-  const { signOut } = useAuth();
+  const { signOut, githubUsername } = useAuth();
+  // "claim" opens on its own for user_xxxxxxxx accounts; "change" from settings.
+  const [usernameDialog, setUsernameDialog] = useState<"claim" | "change" | null>(null);
+  const claimPromptedRef = useRef(false);
   const {
     layout,
     content,
@@ -188,6 +194,21 @@ function EditorStudio() {
     hydratedProfileIdRef.current = profile.id;
     savedSnapshotRef.current = createSnapshot(nextLayout, nextContent, nextTheme);
   }, [profile, setContent, setLayout]);
+
+  useEffect(() => {
+    if (!profile || claimPromptedRef.current) return;
+    claimPromptedRef.current = true;
+    if (isPlaceholderUsername(profile.username)) setUsernameDialog("claim");
+  }, [profile]);
+
+  async function handleUsernameSave(username: string) {
+    const result = await updateUsername(username);
+    if (result.ok) {
+      setUsernameDialog(null);
+      showStatus(`Your page is now bentofolio.dev/${username}`);
+    }
+    return result;
+  }
 
   useEffect(() => {
     const warnBeforeLeave = (event: BeforeUnloadEvent) => {
@@ -912,7 +933,20 @@ function EditorStudio() {
                   </div>
                   <div>
                     <dt>Public URL</dt>
-                    <dd>{profileUrl || "Not available"}</dd>
+                    <dd>
+                      {profileUrl || "Not available"}{" "}
+                      <button
+                        type="button"
+                        className={styles.inlineLink}
+                        onClick={() =>
+                          setUsernameDialog(
+                            isPlaceholderUsername(profile.username) ? "claim" : "change"
+                          )
+                        }
+                      >
+                        {isPlaceholderUsername(profile.username) ? "Claim name" : "Change"}
+                      </button>
+                    </dd>
                   </div>
                   <div>
                     <dt>Status</dt>
@@ -946,6 +980,19 @@ function EditorStudio() {
             </button>
           )}
         </section>
+        {usernameDialog && (
+          <UsernameDialog
+            mode={usernameDialog}
+            currentUsername={profile.username}
+            initialValue={
+              usernameDialog === "claim" && githubUsername
+                ? normalizeUsername(githubUsername)
+                : ""
+            }
+            onSave={handleUsernameSave}
+            onClose={() => setUsernameDialog(null)}
+          />
+        )}
       </main>
     </>
   );

@@ -21,11 +21,14 @@ export async function getProfileByUsername(
 ): Promise<ProfileData | null> {
   const supabase = await createClient();
 
+  // Case-insensitive: /Mira and /mira are the same page. ilike treats "_"
+  // and "%" as wildcards, so escape them to match the name exactly.
+  const pattern = username.trim().replace(/[\\%_]/g, (c) => `\\${c}`);
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
-    .eq("username", username)
-    .single();
+    .ilike("username", pattern)
+    .maybeSingle();
 
   if (error || !data) {
     return null;
@@ -41,6 +44,18 @@ export async function getProfileByUsername(
     isPro: data.is_pro || false,
     customDomain: data.custom_domain || null,
   };
+}
+
+// Current username for an old one that was changed in the last 30 days.
+export async function resolveUsernameRedirect(
+  username: string
+): Promise<string | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("resolve_username_redirect", {
+    p_username: username,
+  });
+  if (error || typeof data !== "string" || !data) return null;
+  return data;
 }
 
 export async function getCurrentUserProfile(): Promise<ProfileData | null> {

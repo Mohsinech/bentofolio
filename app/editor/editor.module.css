@@ -1148,3 +1148,16 @@
     font-family: var(--font-general), system-ui, sans-serif;
   }
 }
+
+.inlineLink {
+  margin-left: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--editor-selection);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
