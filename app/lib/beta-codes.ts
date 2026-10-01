@@ -1,23 +1,19 @@
 import { createAdminClient } from "@/app/lib/supabase/admin";
 
-const builtInBetaFreeCodes = ["NAOUMI100", "OUAZINI100"];
+// Beta codes live in the `beta_codes` table (see
+// supabase/migrations/010_secure_pro_and_beta_codes.sql). Never list codes in
+// this file: anything here ships in the public repo.
+
+export type BetaCodeStatus =
+  | "activated"
+  | "already_redeemed"
+  | "invalid"
+  | "expired"
+  | "used_up"
+  | "no_profile";
 
 export function normalizeCouponCode(code?: unknown) {
   return typeof code === "string" ? code.trim().toUpperCase() : "";
-}
-
-export function isBetaFreeProCode(code?: unknown) {
-  const normalizedCode = normalizeCouponCode(code);
-  if (!normalizedCode) return false;
-
-  const configuredCodes = (process.env.BETA_FREE_PRO_CODES || "")
-    .split(",")
-    .map((item) => item.trim().toUpperCase())
-    .filter(Boolean);
-
-  return [...builtInBetaFreeCodes, ...configuredCodes].includes(
-    normalizedCode
-  );
 }
 
 export async function activateBetaFreeProCode({
@@ -28,51 +24,66 @@ export async function activateBetaFreeProCode({
   userId: string;
   code?: unknown;
   username?: unknown;
-}) {
+}): Promise<{
+  activated: boolean;
+  status?: BetaCodeStatus;
+  code?: string;
+  error?: unknown;
+}> {
   const normalizedCode = normalizeCouponCode(code);
-
-  if (!isBetaFreeProCode(normalizedCode)) {
-    return { activated: false };
+  if (!normalizedCode) {
+    return { activated: false, status: "invalid" };
   }
 
   const admin = createAdminClient();
-  const updatePayload = {
-    is_pro: true,
-    upgraded_at: new Date().toISOString(),
-    lemon_squeezy_order_id: `beta-free:${normalizedCode}`,
-  };
-  const { data: updatedProfile, error: updateError } = await admin
+
+  // Make sure a profile row exists before redeeming. Only insert when it is
+  // missing, so existing layouts and content are never overwritten.
+  const { data: existing, error: lookupError } = await admin
     .from("profiles")
-    .update(updatePayload)
-    .eq("id", userId)
     .select("id")
+    .eq("id", userId)
     .maybeSingle();
 
-  if (!updateError && updatedProfile?.id) {
-    return { activated: true, code: normalizedCode };
+  if (lookupError) {
+    console.error("Beta code: profile lookup failed:", lookupError);
+    return { activated: false, error: lookupError };
   }
 
-  const normalizedUsername =
-    typeof username === "string" && username.trim().length >= 3
-      ? username.trim().toLowerCase()
-      : `user_${userId.slice(0, 8)}`;
+  if (!existing) {
+    const fallbackUsername =
+      typeof username === "string" && username.trim().length >= 3
+        ? username.trim().toLowerCase()
+        : `user_${userId.slice(0, 8)}`;
 
-  const { error } = await admin.from("profiles").upsert(
-    {
+    const { error: insertError } = await admin.from("profiles").insert({
       id: userId,
-      username: normalizedUsername,
+      username: fallbackUsername,
       theme: "dark",
       layout: [],
       content: {},
-      ...updatePayload,
-    },
-    { onConflict: "id" }
-  );
+    });
+
+    if (insertError) {
+      console.error("Beta code: profile creation failed:", insertError);
+      return { activated: false, error: insertError };
+    }
+  }
+
+  const { data: status, error } = await admin.rpc("redeem_beta_code", {
+    p_code: normalizedCode,
+    p_user_id: userId,
+  });
 
   if (error) {
-    console.error("Beta free code activation failed:", error);
+    console.error("Beta code redemption failed:", error);
     return { activated: false, error };
   }
 
-  return { activated: true, code: normalizedCode };
+  const result = status as BetaCodeStatus;
+  return {
+    activated: result === "activated" || result === "already_redeemed",
+    status: result,
+    code: normalizedCode,
+  };
 }

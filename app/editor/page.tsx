@@ -101,7 +101,7 @@ function createSnapshot(
 }
 
 function EditorStudio() {
-  const { profile, loading, error, saveProfile, saving, hasProAccess } = useProfile();
+  const { profile, loading, error, saveError, saveProfile, saving, hasProAccess } = useProfile();
   const { signOut } = useAuth();
   const {
     layout,
@@ -418,12 +418,19 @@ function EditorStudio() {
   }
 
   async function handleSave() {
-    await saveProfile({
-      layout,
-      content,
-      theme: selectedTheme,
-    });
-    savedSnapshotRef.current = createSnapshot(layout, content, selectedTheme);
+    const snapshot = createSnapshot(layout, content, selectedTheme);
+    try {
+      await saveProfile({
+        layout,
+        content,
+        theme: selectedTheme,
+      });
+    } catch {
+      // saveProfile already set saveError. Stay in the editor and keep the
+      // unsaved changes; the toolbar shows the message and a retry.
+      return;
+    }
+    savedSnapshotRef.current = snapshot;
     showStatus("Saved");
   }
 
@@ -547,16 +554,27 @@ function EditorStudio() {
             <div className={styles.saveCluster}>
               <div
                 className={`${styles.saveState} ${
-                  hasUnsavedChanges ? styles.saveStateUnsaved : styles.saveStateSaved
+                  saveError && !saving
+                    ? styles.saveStateError
+                    : hasUnsavedChanges
+                      ? styles.saveStateUnsaved
+                      : styles.saveStateSaved
                 }`}
                 aria-live="polite"
+                title={saveError && !saving ? saveError : undefined}
               >
                 {saving ? <Loader2 className={styles.spin} size={15} /> : <span className={styles.saveDot} />}
-                <span>{saving ? "Saving" : status || (hasUnsavedChanges ? "Unsaved" : "Saved")}</span>
+                <span>
+                  {saving
+                    ? "Saving"
+                    : saveError
+                      ? saveError
+                      : status || (hasUnsavedChanges ? "Unsaved" : "Saved")}
+                </span>
               </div>
               <button type="button" className={styles.primaryAction} onClick={handleSave} disabled={saving}>
                 {saving ? <Loader2 className={styles.spin} size={14} /> : <Save size={14} />}
-                Save
+                {saveError && !saving ? "Retry" : "Save"}
               </button>
             </div>
             {profileUrl && (

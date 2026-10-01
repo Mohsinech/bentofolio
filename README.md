@@ -38,9 +38,6 @@ LEMON_SQUEEZY_WEBHOOK_SECRET=your_webhook_secret
 # Optional beta fallback while the BentoFolio Lemon Squeezy store is pending.
 NEXT_PUBLIC_BETA_PAYMENT_LINK=your_temporary_payment_or_waitlist_url
 
-# Server-only beta invite codes. These activate Pro without payment.
-BETA_FREE_PRO_CODES=FRIEND_ONE,FRIEND_TWO
-
 RESEND_API_KEY=optional_resend_key
 ```
 
@@ -94,8 +91,10 @@ Use `$9` lifetime for the first beta users.
 - Keep public profiles free.
 - Create a Lemon Squeezy discount code named `BETA90` for 90% off the `$9`
   beta product if you want a public launch coupon.
-- Add private 100% friend codes to `BETA_FREE_PRO_CODES`. When a signed-in
-  user enters one on `/pricing`, BentoFolio marks that profile as Pro directly.
+- Add private 100% friend codes to the `beta_codes` table (see
+  `supabase/migrations/010_secure_pro_and_beta_codes.sql`), with a `max_uses`
+  limit. When a signed-in user enters one on `/pricing`, the server redeems it
+  and marks that profile as Pro. Never put codes in the source code.
 - If the BentoFolio Lemon Squeezy store is not approved yet, set
   `NEXT_PUBLIC_BETA_PAYMENT_LINK` to a temporary payment or waitlist link.
 - After a beta user pays, manually update their profile in Supabase:
