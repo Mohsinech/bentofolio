@@ -11,8 +11,6 @@ import {
   useState,
 } from "react";
 import {
-  ArrowDown,
-  ArrowUp,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -42,8 +40,19 @@ import {
   getBlockDefinition,
   getDefaultBlockSize,
 } from "@/app/lib/block-registry";
-import { mapProfileToV2Portfolio } from "@/app/components/v2-portfolio/mapProfileToV2Portfolio";
-import { V2PortfolioTemplate } from "@/app/components/v2-portfolio/V2PortfolioTemplate";
+import {
+  hasRenderableBlockContent,
+  mapProfileToV2Portfolio,
+} from "@/app/components/v2-portfolio/mapProfileToV2Portfolio";
+import { BentoGrid } from "@/app/components/bento/BentoGrid";
+import { bentoFontClasses } from "@/app/components/bento/fonts";
+import {
+  GRID_LAYOUT_VERSION,
+  resolveLayout,
+  validSizeFor,
+} from "@/app/components/bento/grid-layout";
+import bentoStyles from "@/app/components/bento/bento.module.css";
+import { addItem, moveItem, removeItem, sortByPosition } from "@/app/lib/bento-layout";
 import type { BlockContent, BlockLayout, BlockType, ThemeId } from "@/app/lib/types";
 import { generateId } from "@/app/lib/utils";
 import styles from "./editor.module.css";
@@ -100,7 +109,8 @@ function createSnapshot(
   content: Record<string, BlockContent>,
   theme: ThemeId
 ) {
-  return JSON.stringify({ layout, content, theme });
+  // Position order, so the same arrangement always compares equal.
+  return JSON.stringify({ layout: sortByPosition(layout), content, theme });
 }
 
 function EditorStudio() {
@@ -165,7 +175,7 @@ function EditorStudio() {
     () =>
       profile
         ? createSnapshot(
-            profile.published.layout,
+            resolveLayout(profile.published.layout, profile.published.layoutVersion),
             profile.published.content,
             profile.published.theme
           )
@@ -184,7 +194,8 @@ function EditorStudio() {
   useEffect(() => {
     if (!profile || hydratedProfileIdRef.current === profile.id) return;
 
-    const nextLayout = cloneLayout(profile.layout || []);
+    // Old template layouts open converted to the grid, in their block order.
+    const nextLayout = cloneLayout(resolveLayout(profile.layout, profile.layoutVersion));
     const nextContent = cloneContent(profile.content || {});
     const nextTheme = profile.theme || "light";
 
@@ -326,10 +337,6 @@ function EditorStudio() {
       }),
     [content, hasProAccess, layout, profile?.avatarUrl, profile?.username, selectedTheme]
   );
-  const fixedTemplateBlockIds = useMemo(
-    () => new Set(Object.values(previewData.sourceBlocks || {}).filter(Boolean)),
-    [previewData.sourceBlocks]
-  );
 
   const groupedBlocks = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -420,17 +427,11 @@ function EditorStudio() {
     }
 
     const id = generateId();
-    const size = getDefaultBlockSize(type);
-    const nextBlock: BlockLayout = {
-      id,
-      type,
-      x: 0,
-      y: layout.length,
-      w: size.w,
-      h: size.h,
-    };
+    const defaults = getDefaultBlockSize(type);
+    const size = validSizeFor(type, defaults.w, defaults.h);
 
-    setLayout([...layout, nextBlock]);
+    // First free spot in the grid, top to bottom.
+    setLayout(addItem(layout, { id, type, w: size.w, h: size.h } as BlockLayout));
     setContent({ ...content, [id]: createDefaultBlockContent(type) });
     setLeftTab("structure");
     handleSelectBlock(id);
@@ -445,24 +446,27 @@ function EditorStudio() {
 
     const nextContent = { ...content };
     delete nextContent[id];
-    setLayout(layout.filter((item) => item.id !== id));
+    setLayout(removeItem(layout, id));
     setContent(nextContent);
     selectBlock(null);
     showStatus("Block removed");
   }
 
-  function handleMoveBlock(id: string, direction: -1 | 1) {
-    const index = layout.findIndex((block) => block.id === id);
-    const nextIndex = index + direction;
-
-    if (index < 0 || nextIndex < 0 || nextIndex >= layout.length) return;
-
-    const nextLayout = [...layout];
-    const [block] = nextLayout.splice(index, 1);
-    nextLayout.splice(nextIndex, 0, block);
-    setLayout(nextLayout.map((item, y) => ({ ...item, y })));
-    handleSelectBlock(id);
-    showStatus("Structure updated");
+  function handleDuplicateBlock(id: string) {
+    const source = layout.find((item) => item.id === id);
+    const sourceContent = content[id];
+    if (!source || !sourceContent) return;
+    if (getBlockDefinition(source.type).accessLevel === "pro" && !hasProAccess) {
+      showStatus("This block is Pro");
+      return;
+    }
+    const copyId = generateId();
+    // Add it, then place it right under the original.
+    const withCopy = addItem(layout, { id: copyId, type: source.type, w: source.w, h: source.h } as BlockLayout);
+    setLayout(moveItem(withCopy, copyId, source.x, source.y + source.h));
+    setContent({ ...content, [copyId]: structuredClone(sourceContent) });
+    handleSelectBlock(copyId);
+    showStatus("Block duplicated");
   }
 
   // Saves the draft. Returns false when the save failed (saveError is set and
@@ -474,6 +478,7 @@ function EditorStudio() {
         layout,
         content,
         theme: selectedTheme,
+        layoutVersion: GRID_LAYOUT_VERSION,
       });
     } catch {
       return false;
@@ -768,11 +773,12 @@ function EditorStudio() {
                   </div>
                 ) : (
                   <ol className={styles.structureList}>
-                    {layout.map((block, index) => {
+                    {sortByPosition<BlockLayout>(layout).map((block) => {
                       const definition = getBlockDefinition(block.type);
                       const Icon = definition.icon;
                       const isSelected = selectedBlockId === block.id;
-                      const isFixedTemplateSlot = fixedTemplateBlockIds.has(block.id);
+                      const lockedPro = definition.accessLevel === "pro" && !hasProAccess;
+                      const complete = hasRenderableBlockContent(block.type, content[block.id]);
 
                       return (
                         <li key={block.id}>
@@ -785,31 +791,15 @@ function EditorStudio() {
                             <span>
                               <strong>{definition.v2Name}</strong>
                               <small>
-                                {isFixedTemplateSlot
-                                  ? "Fixed template slot"
-                                  : content[block.id]
-                                    ? "Visible"
-                                    : "Missing content"}
+                                {lockedPro
+                                  ? "Pro · hidden on your page"
+                                  : complete
+                                    ? `${block.w}×${block.h}`
+                                    : "Needs content · hidden"}
                               </small>
                             </span>
                           </button>
                           <div className={styles.structureActions}>
-                            <button
-                              type="button"
-                              onClick={() => handleMoveBlock(block.id, -1)}
-                              disabled={isFixedTemplateSlot || index === 0}
-                              aria-label={`Move ${definition.v2Name} up`}
-                            >
-                              <ArrowUp size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleMoveBlock(block.id, 1)}
-                              disabled={isFixedTemplateSlot || index === layout.length - 1}
-                              aria-label={`Move ${definition.v2Name} down`}
-                            >
-                              <ArrowDown size={13} />
-                            </button>
                             <button
                               type="button"
                               onClick={() => handleRemoveBlock(block.id)}
@@ -848,7 +838,7 @@ function EditorStudio() {
             {layout.length === 0 ? (
               <div className={styles.emptyCanvas}>
                 <h2>Add your introduction</h2>
-                <p>Start with Profile, Projects, Skills, and a CTA to preview your V2 portfolio.</p>
+                <p>Start with Profile, then add projects, skills and a way to contact you. Drag blocks to arrange them.</p>
                 <button type="button" onClick={() => handleAddBlock("identity")}>
                   <Plus size={15} />
                   Add Profile
@@ -864,15 +854,26 @@ function EditorStudio() {
               >
                 <div className={styles.artboardViewport}>
                   <div className={styles.artboard}>
-                    <V2PortfolioTemplate
-                      key={`${selectedTheme}-${previewMode}`}
-                      data={previewData}
-                      mode="editor"
-                      editor={{
-                        selectedBlockId,
-                        onSelectBlock: handleSelectBlock,
-                      }}
-                    />
+                    <div
+                      className={`${bentoStyles.theme} ${bentoFontClasses}`}
+                      data-theme={selectedTheme}
+                      style={{ background: "var(--bento-bg)", padding: previewMode === "mobile" ? 14 : 28, borderRadius: 14 }}
+                    >
+                      <BentoGrid
+                        layout={layout}
+                        content={content}
+                        avatarUrl={profile.avatarUrl}
+                        isPro={Boolean(hasProAccess)}
+                        forceMobile={previewMode === "mobile"}
+                        editor={{
+                          selectedId: selectedBlockId,
+                          onSelect: (id) => (id ? handleSelectBlock(id) : selectBlock(null)),
+                          onLayoutChange: setLayout,
+                          onDuplicate: handleDuplicateBlock,
+                          onDelete: handleRemoveBlock,
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

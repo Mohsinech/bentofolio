@@ -93,6 +93,7 @@ export default async function ProfilePage({ params }: PageProps) {
         theme={profile.theme}
         avatarUrl={profile.avatarUrl}
         layout={profile.layout}
+        layoutVersion={profile.layoutVersion}
         content={profile.content}
       />
     </ProfileClientWrapper>

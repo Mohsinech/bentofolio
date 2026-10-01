@@ -12,6 +12,8 @@ export interface ProfileData {
   theme: ThemeId;
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
+  // 1 = old fixed template (order only), 2 = bento grid positions.
+  layoutVersion: number;
   isPro: boolean;
   customDomain?: string | null;
 }
@@ -41,6 +43,7 @@ export async function getProfileByUsername(
     theme: normalizeTheme(data.theme),
     layout: data.layout || [],
     content: data.content || {},
+    layoutVersion: typeof data.layout_version === "number" ? data.layout_version : 1,
     isPro: data.is_pro || false,
     customDomain: data.custom_domain || null,
   };
@@ -86,6 +89,7 @@ export async function getCurrentUserProfile(): Promise<ProfileData | null> {
     theme: normalizeTheme(data.theme),
     layout: data.layout || [],
     content: data.content || {},
+    layoutVersion: typeof data.layout_version === "number" ? data.layout_version : 1,
     isPro: data.is_pro || false,
     customDomain: data.custom_domain || null,
   };

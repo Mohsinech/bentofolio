@@ -17,7 +17,7 @@ export async function POST() {
 
   const { data: draft, error: draftError } = await supabase
     .from("profile_drafts")
-    .select("layout, content, theme, updated_at")
+    .select("*")
     .eq("profile_id", user.id)
     .maybeSingle();
 
@@ -36,15 +36,18 @@ export async function POST() {
     return NextResponse.json({ published: false, publishedAt: null });
   }
 
+  const live: Record<string, unknown> = {
+    layout: draft.layout,
+    content: draft.content,
+    theme: draft.theme,
+    updated_at: publishedAt,
+    published_at: publishedAt,
+  };
+  if (typeof draft.layout_version === "number") live.layout_version = draft.layout_version;
+
   const { error: publishError } = await supabase
     .from("profiles")
-    .update({
-      layout: draft.layout,
-      content: draft.content,
-      theme: draft.theme,
-      updated_at: publishedAt,
-      published_at: publishedAt,
-    })
+    .update(live)
     .eq("id", user.id);
 
   if (publishError) {
