@@ -50,7 +50,7 @@ import {
   GRID_LAYOUT_VERSION,
   resolveLayout,
   validSizeFor,
-} from "@/app/components/bento/layout";
+} from "@/app/components/bento/grid-layout";
 import bentoStyles from "@/app/components/bento/bento.module.css";
 import { addItem, moveItem, removeItem, sortByPosition } from "@/app/lib/bento-layout";
 import type { BlockContent, BlockLayout, BlockType, ThemeId } from "@/app/lib/types";

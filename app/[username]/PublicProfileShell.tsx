@@ -5,7 +5,7 @@ import { Check } from "lucide-react";
 import type { BlockContent, BlockLayout, ThemeId } from "@/app/lib/types";
 import { BentoGrid } from "@/app/components/bento/BentoGrid";
 import { bentoFontClasses } from "@/app/components/bento/fonts";
-import { publicLayout, resolveLayout } from "@/app/components/bento/layout";
+import { publicLayout, resolveLayout } from "@/app/components/bento/grid-layout";
 import styles from "@/app/components/bento/bento.module.css";
 import { ShareButton } from "./ShareButton";
 

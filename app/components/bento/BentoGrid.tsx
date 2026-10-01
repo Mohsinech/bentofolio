@@ -31,7 +31,7 @@ import {
   hasRenderableBlockContent,
 } from "@/app/components/v2-portfolio/mapProfileToV2Portfolio";
 import { BentoBlockBody, FULL_BLEED_TYPES, OWN_SURFACE_TYPES } from "./BentoBlocks";
-import { supportedSizes } from "./layout";
+import { supportedSizes } from "./grid-layout";
 import styles from "./bento.module.css";
 
 export interface BentoEditorControls {
