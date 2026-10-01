@@ -149,7 +149,7 @@ function firstBlockForMode<T extends BlockContent["type"]>(
   return block?.type === type ? (block as Extract<BlockContent, { type: T }>) : undefined;
 }
 
-function draftMessageForBlock(type: BlockType) {
+export function draftMessageForBlock(type: BlockType) {
   switch (type) {
     case "identity":
       return "Add your introduction";
@@ -175,7 +175,7 @@ function draftMessageForBlock(type: BlockType) {
   }
 }
 
-function normalizeHref(value?: string) {
+export function normalizeHref(value?: string) {
   if (!isValidHref(value)) return undefined;
   const trimmed = value.trim();
 
@@ -412,7 +412,7 @@ function mapContact(link?: LinkContent, mode: "public" | "editor" = "public") {
   };
 }
 
-function hasValidCoordinates(map?: MapContent) {
+export function hasValidCoordinates(map?: MapContent) {
   return Boolean(
     map &&
       Number.isFinite(map.lat) &&
@@ -427,7 +427,7 @@ function clampNumber(value: number, min: number, max: number) {
   return Math.min(Math.max(value, min), max);
 }
 
-function mapEmbedUrl(lat: number, lng: number, zoom: number) {
+export function mapEmbedUrl(lat: number, lng: number, zoom: number) {
   const safeZoom = clampNumber(Math.round(zoom), 1, 19);
   const longitudeSpan = (360 / 2 ** safeZoom) * 1.2;
   const latitudeSpan = (170 / 2 ** safeZoom) * 1.2;

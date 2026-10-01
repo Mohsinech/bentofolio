@@ -16,17 +16,23 @@ type ServerClient = Awaited<ReturnType<typeof createClient>>;
 
 // Postgres "undefined_table": migration 011 has not been run.
 const UNDEFINED_TABLE = "42P01";
+// Postgres "undefined_column": migration 013 has not been run.
+const UNDEFINED_COLUMN = "42703";
+
+function isLayoutVersion(value: unknown): value is number {
+  return value === 1 || value === 2;
+}
 
 async function saveDraft(
   supabase: ServerClient,
   userId: string,
-  fields: { layout?: unknown; content?: unknown; theme?: unknown }
+  fields: { layout?: unknown; content?: unknown; theme?: unknown; layoutVersion?: unknown }
 ): Promise<"ok" | "no_draft_table" | { error: string }> {
   // Fill any field that wasn't sent from the current draft, or from the live
   // page when there is no draft yet, so a partial save never blanks the rest.
   const { data: existing, error: draftReadError } = await supabase
     .from("profile_drafts")
-    .select("layout, content, theme")
+    .select("*")
     .eq("profile_id", userId)
     .maybeSingle();
 
@@ -39,23 +45,30 @@ async function saveDraft(
   if (!base) {
     const { data: live, error: liveError } = await supabase
       .from("profiles")
-      .select("layout, content, theme")
+      .select("*")
       .eq("id", userId)
       .single();
     if (liveError) return { error: liveError.message };
     base = live;
   }
 
-  const { error } = await supabase.from("profile_drafts").upsert(
-    {
-      profile_id: userId,
-      layout: fields.layout !== undefined ? fields.layout : base?.layout ?? [],
-      content: fields.content !== undefined ? fields.content : base?.content ?? {},
-      theme: normalizeTheme(fields.theme !== undefined ? fields.theme : base?.theme),
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "profile_id" }
-  );
+  const row: Record<string, unknown> = {
+    profile_id: userId,
+    layout: fields.layout !== undefined ? fields.layout : base?.layout ?? [],
+    content: fields.content !== undefined ? fields.content : base?.content ?? {},
+    theme: normalizeTheme(fields.theme !== undefined ? fields.theme : base?.theme),
+    updated_at: new Date().toISOString(),
+  };
+  const version = isLayoutVersion(fields.layoutVersion) ? fields.layoutVersion : base?.layout_version;
+  if (isLayoutVersion(version)) row.layout_version = version;
+
+  let { error } = await supabase.from("profile_drafts").upsert(row, { onConflict: "profile_id" });
+
+  // Migration 013 not applied yet: save without the version.
+  if (error?.code === UNDEFINED_COLUMN && "layout_version" in row) {
+    delete row.layout_version;
+    ({ error } = await supabase.from("profile_drafts").upsert(row, { onConflict: "profile_id" }));
+  }
 
   return error ? { error: error.message } : "ok";
 }
@@ -165,7 +178,7 @@ export async function GET() {
   // yet) or no draft both mean "the editor starts from the live page".
   const { data: draft } = await supabase
     .from("profile_drafts")
-    .select("layout, content, theme, updated_at")
+    .select("*")
     .eq("profile_id", user.id)
     .maybeSingle();
 
@@ -193,10 +206,11 @@ export async function PUT(request: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
-  const { layout, content, theme, username, customDomain, avatarUrl } = body as {
+  const { layout, content, theme, layoutVersion, username, customDomain, avatarUrl } = body as {
     layout?: unknown;
     content?: unknown;
     theme?: unknown;
+    layoutVersion?: unknown;
     username?: string;
     customDomain?: string | null;
     avatarUrl?: string | null;
@@ -211,13 +225,14 @@ export async function PUT(request: Request) {
     layout !== undefined || content !== undefined || theme !== undefined;
 
   if (touchesDraft) {
-    const draftResult = await saveDraft(supabase, user.id, { layout, content, theme });
+    const draftResult = await saveDraft(supabase, user.id, { layout, content, theme, layoutVersion });
 
     if (draftResult === "no_draft_table") {
       // Migration 011 not applied yet: keep the old behaviour and save live.
       if (layout !== undefined) updates.layout = layout;
       if (content !== undefined) updates.content = content;
       if (theme !== undefined) updates.theme = normalizeTheme(theme);
+      if (isLayoutVersion(layoutVersion)) updates.layout_version = layoutVersion;
     } else if (draftResult !== "ok") {
       return NextResponse.json({ error: draftResult.error }, { status: 500 });
     }

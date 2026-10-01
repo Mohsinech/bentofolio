@@ -11,6 +11,12 @@ interface PageState {
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
   theme: ThemeId;
+  // 1 = old fixed template (order only), 2 = bento grid positions.
+  layoutVersion: number;
+}
+
+function layoutVersionOf(value: unknown): number {
+  return typeof value === "number" ? value : 1;
 }
 
 interface ProfileData extends PageState {
@@ -38,7 +44,7 @@ interface UseProfileReturn {
     updates: Partial<
       Pick<
         ProfileData,
-        "layout" | "content" | "theme" | "customDomain" | "avatarUrl"
+        "layout" | "content" | "theme" | "layoutVersion" | "customDomain" | "avatarUrl"
       >
     >
   ) => Promise<void>;
@@ -103,12 +109,14 @@ export function useProfile(): UseProfileReturn {
           layout: data.layout || [],
           content: data.content || {},
           theme: normalizeTheme(data.theme),
+          layoutVersion: layoutVersionOf(data.layout_version),
         };
         const draft: PageState | null = data.draft
           ? {
               layout: data.draft.layout || [],
               content: data.draft.content || {},
               theme: normalizeTheme(data.draft.theme),
+              layoutVersion: layoutVersionOf(data.draft.layout_version),
             }
           : null;
         setProfile({
@@ -136,7 +144,7 @@ export function useProfile(): UseProfileReturn {
       updates: Partial<
         Pick<
           ProfileData,
-          "layout" | "content" | "theme" | "customDomain" | "avatarUrl"
+          "layout" | "content" | "theme" | "layoutVersion" | "customDomain" | "avatarUrl"
         >
       >
     ) => {
@@ -196,7 +204,12 @@ export function useProfile(): UseProfileReturn {
         prev
           ? {
               ...prev,
-              published: { layout: prev.layout, content: prev.content, theme: prev.theme },
+              published: {
+                layout: prev.layout,
+                content: prev.content,
+                theme: prev.theme,
+                layoutVersion: prev.layoutVersion,
+              },
               publishedAt: data.publishedAt || prev.publishedAt,
             }
           : null
