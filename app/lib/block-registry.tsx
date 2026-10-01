@@ -55,7 +55,10 @@ export type BlockCapability =
   | "images"
   | "motion"
   | "downloads"
-  | "externalLinks";
+  | "externalLinks"
+  | "editableLabels"
+  | "autocomplete"
+  | "actions";
 
 export type BlockLegacyStatus =
   | "current"
@@ -105,6 +108,18 @@ export interface BlockRegistryEntry {
   editorLabel: string;
   editorGroup: string;
   codeVariant?: boolean;
+  defaultEyebrow?: string;
+  defaultHeading?: string;
+  editableEyebrow?: boolean;
+  editableHeading?: boolean;
+  requiredFields?: string[];
+  optionalFields?: string[];
+  mediaCapability?: "none" | "optional" | "required";
+  autocompleteSources?: string[];
+  actionCapability?: "none" | "optional" | "required";
+  legacyAliases?: string[];
+  publicValidation?: string;
+  editorDraftMessage?: string;
   defaultContent: () => BlockContent;
 }
 
@@ -121,25 +136,38 @@ function createDefaultContentMap(): { [Type in BlockType]: () => Extract<BlockCo
         email: "hello@example.com",
         website: "example.com",
         availability: "Available for work",
+        headline: "Designing useful digital products",
+        eyebrow: "Available for work",
+        portraitType: "memoji",
+        ctaLabel: "Start a project",
       },
     }),
     map: () => ({
       type: "map",
-      data: { location: "Your City", lat: 0, lng: 0 },
+      data: {
+        location: "Your City",
+        lat: 0,
+        lng: 0,
+        eyebrow: "LOCATION",
+        heading: "Your City",
+        variant: "text",
+        zoom: 12,
+      },
     }),
     techstack: () => ({
       type: "techstack",
       data: {
-        items: [
-          { name: "Next.js", icon: "/icons/tech/nextjs-original.svg" },
-          { name: "React", icon: "/icons/tech/react-original.svg" },
-          { name: "TypeScript", icon: "/icons/tech/typescript-original.svg" },
-        ],
+        eyebrow: "Skills",
+        heading: "Tools I use",
+        variant: "chips",
+        items: [],
       },
     }),
     experience: () => ({
       type: "experience",
       data: {
+        eyebrow: "CAREER",
+        heading: "Experience",
         items: [
           {
             company: "Studio",
@@ -152,7 +180,13 @@ function createDefaultContentMap(): { [Type in BlockType]: () => Extract<BlockCo
     spotify: () => ({ type: "spotify", data: { type: "embed", spotifyUrl: "" } }),
     link: () => ({
       type: "link",
-      data: { url: "hello@example.com", title: "Let's Collaborate" },
+      data: {
+        url: "",
+        title: "Let's collaborate",
+        eyebrow: "Start here",
+        actionType: "email",
+        variant: "surface",
+      },
     }),
     work: () => ({
       type: "work",
@@ -184,24 +218,23 @@ function createDefaultContentMap(): { [Type in BlockType]: () => Extract<BlockCo
       type: "education",
       data: {
         title: "Education",
-        items: [
-          {
-            school: "Design School",
-            degree: "Product Design",
-            period: "2021 - 2024",
-            description: "Design systems, interaction, and visual craft.",
-          },
-        ],
+        eyebrow: "Education",
+        heading: "Education",
+        variant: "timeline",
+        items: [],
       },
     }),
     saas: () => ({
       type: "saas",
       data: {
-        name: "My SaaS",
-        tagline: "A small product worth sharing.",
-        url: "https://example.com",
-        mrr: 1000,
-        revenue: [100, 240, 420, 680, 900, 1200],
+        name: "",
+        tagline: "",
+        url: "",
+        mrr: 0,
+        revenue: [],
+        eyebrow: "Metrics",
+        heading: "Proof in numbers",
+        variant: "grid",
       },
     }),
     github: () => ({
@@ -233,11 +266,10 @@ function createDefaultContentMap(): { [Type in BlockType]: () => Extract<BlockCo
     social: () => ({
       type: "social",
       data: {
-        items: [
-          { platform: "github", url: "https://github.com" },
-          { platform: "linkedin", url: "https://linkedin.com" },
-          { platform: "website", url: "https://example.com" },
-        ],
+        eyebrow: "Connect",
+        heading: "Social Links",
+        variant: "icons",
+        items: [],
       },
     }),
     availability: () => ({
@@ -257,13 +289,22 @@ function createDefaultContentMap(): { [Type in BlockType]: () => Extract<BlockCo
     quote: () => ({
       type: "quote",
       data: {
-        quote: "A short testimonial or belief statement.",
-        author: "Someone Great",
+        quote: "",
+        author: "",
+        eyebrow: "Proof",
+        heading: "Testimonial",
+        variant: "quote",
       },
     }),
     resume: () => ({
       type: "resume",
-      data: { title: "Resume", fileUrl: "", lastUpdated: "May 2026" },
+      data: {
+        title: "Resume",
+        fileUrl: "",
+        eyebrow: "Resume",
+        buttonLabel: "Download resume",
+        variant: "compact",
+      },
     }),
     gallery: () => ({ type: "gallery", data: { title: "Gallery", images: [] } }),
     youtube: () => ({ type: "youtube", data: { title: "Featured video", url: "" } }),
@@ -278,22 +319,19 @@ function createDefaultContentMap(): { [Type in BlockType]: () => Extract<BlockCo
       type: "tools",
       data: {
         title: "Tools I use",
-        items: [
-          { name: "Figma", icon: "F" },
-          { name: "Framer", icon: "Fr" },
-          { name: "Notion", icon: "N" },
-        ],
+        eyebrow: "Skills",
+        heading: "Tools I use",
+        variant: "chips",
+        items: [],
       },
     }),
     stats: () => ({
       type: "stats",
       data: {
-        items: [
-          { value: "6+", label: "Years" },
-          { value: "42", label: "Projects" },
-          { value: "12k", label: "Users reached" },
-          { value: "98%", label: "Happy clients" },
-        ],
+        eyebrow: "Metrics",
+        heading: "Proof in numbers",
+        variant: "grid",
+        items: [],
       },
     }),
     instagram: () => ({
@@ -330,6 +368,28 @@ export const blockRegistry = {
     rendererKey: "IdentityBlock",
     editorLabel: "Identity",
     editorGroup: "Profile",
+    defaultEyebrow: "Available for work",
+    defaultHeading: "Profile",
+    editableEyebrow: true,
+    editableHeading: false,
+    requiredFields: ["name", "title or headline"],
+    optionalFields: [
+      "bio",
+      "avatar",
+      "location",
+      "email",
+      "website",
+      "availability",
+      "portraitType",
+      "portraitFocalPoint",
+      "ctaLabel",
+    ],
+    mediaCapability: "optional",
+    autocompleteSources: ["professionalTitles"],
+    actionCapability: "optional",
+    legacyAliases: ["identity"],
+    publicValidation: "Requires a meaningful name plus a professional title or headline.",
+    editorDraftMessage: "Add your name and professional title.",
     defaultContent: defaultContentMap.identity,
   },
   map: {
@@ -342,12 +402,24 @@ export const blockRegistry = {
     defaultSize: { w: 2, h: 1 },
     supportedSizes: ["small", "medium"],
     accessLevel: "free",
-    freeCapabilities: ["basicVariants"],
+    freeCapabilities: ["basicVariants", "externalLinks"],
     proCapabilities: ["advancedVariants"],
     legacyStatus: "merged",
     rendererKey: "MapBlock",
     editorLabel: "Location",
     editorGroup: "Profile",
+    defaultEyebrow: "LOCATION",
+    defaultHeading: "Location",
+    editableEyebrow: true,
+    editableHeading: true,
+    requiredFields: ["location"],
+    optionalFields: ["description", "timezone", "variant", "mapUrl", "actionUrl", "zoom"],
+    mediaCapability: "optional",
+    autocompleteSources: ["locations", "timezones"],
+    actionCapability: "optional",
+    legacyAliases: ["map"],
+    publicValidation: "Renders only when a meaningful location is present.",
+    editorDraftMessage: "Add your location.",
     defaultContent: defaultContentMap.map,
   },
   techstack: {
@@ -366,6 +438,18 @@ export const blockRegistry = {
     rendererKey: "TechStackBlock",
     editorLabel: "Stack",
     editorGroup: "Proof",
+    defaultEyebrow: "SKILLS",
+    defaultHeading: "Tools I use",
+    editableEyebrow: true,
+    editableHeading: true,
+    requiredFields: ["items[].name"],
+    optionalFields: ["category", "items[].icon", "items[].category", "variant"],
+    mediaCapability: "optional",
+    autocompleteSources: ["skills"],
+    actionCapability: "none",
+    legacyAliases: ["techstack", "tools"],
+    publicValidation: "Renders only non-blank skill names.",
+    editorDraftMessage: "Add your first skill or tool.",
     defaultContent: defaultContentMap.techstack,
   },
   experience: {
@@ -384,6 +468,29 @@ export const blockRegistry = {
     rendererKey: "ExperienceBlock",
     editorLabel: "Experience",
     editorGroup: "Work",
+    defaultEyebrow: "CAREER",
+    defaultHeading: "Experience",
+    editableEyebrow: true,
+    editableHeading: true,
+    requiredFields: ["items[].company or items[].role"],
+    optionalFields: [
+      "items[].period",
+      "items[].description",
+      "items[].location",
+      "items[].employmentType",
+      "items[].startDate",
+      "items[].endDate",
+      "items[].isCurrent",
+      "items[].logo",
+      "items[].companyUrl",
+      "variant",
+    ],
+    mediaCapability: "optional",
+    autocompleteSources: ["professionalTitles", "employmentTypes"],
+    actionCapability: "optional",
+    legacyAliases: ["experience"],
+    publicValidation: "Renders only entries with company or role.",
+    editorDraftMessage: "Add a role, company, or period.",
     defaultContent: defaultContentMap.experience,
   },
   spotify: {
@@ -420,6 +527,24 @@ export const blockRegistry = {
     rendererKey: "LinkBlock",
     editorLabel: "Link",
     editorGroup: "Content",
+    defaultEyebrow: "Start here",
+    defaultHeading: "Let's collaborate",
+    editableEyebrow: true,
+    editableHeading: true,
+    requiredFields: ["title", "url"],
+    optionalFields: [
+      "icon",
+      "description",
+      "buttonLabel",
+      "actionType",
+      "variant",
+      "openInNewTab",
+      "emailSubject",
+      "emailBody",
+    ],
+    actionCapability: "required",
+    publicValidation: "Requires a meaningful title and valid action destination.",
+    editorDraftMessage: "Add a call to action.",
     defaultContent: defaultContentMap.link,
   },
   work: {
@@ -529,6 +654,18 @@ export const blockRegistry = {
     rendererKey: "SocialBlock",
     editorLabel: "Social",
     editorGroup: "Profile",
+    defaultEyebrow: "Connect",
+    defaultHeading: "Social Links",
+    editableEyebrow: true,
+    editableHeading: true,
+    requiredFields: ["items[].url"],
+    optionalFields: ["items[].platform", "items[].username", "variant"],
+    mediaCapability: "none",
+    autocompleteSources: ["socialPlatforms"],
+    actionCapability: "required",
+    legacyAliases: ["social"],
+    publicValidation: "Renders only items with valid destinations.",
+    editorDraftMessage: "Add your social links.",
     defaultContent: defaultContentMap.social,
   },
   availability: {
@@ -655,6 +792,18 @@ export const blockRegistry = {
     rendererKey: "ToolsBlock",
     editorLabel: "Tools",
     editorGroup: "Work",
+    defaultEyebrow: "SKILLS",
+    defaultHeading: "Tools I use",
+    editableEyebrow: true,
+    editableHeading: true,
+    requiredFields: ["items[].name"],
+    optionalFields: ["title", "category", "items[].icon", "items[].category", "variant"],
+    mediaCapability: "optional",
+    autocompleteSources: ["skills"],
+    actionCapability: "none",
+    legacyAliases: ["tools", "techstack"],
+    publicValidation: "Renders only non-blank tool names.",
+    editorDraftMessage: "Add your first skill or tool.",
     defaultContent: defaultContentMap.tools,
   },
   stats: {
@@ -717,9 +866,7 @@ export const editorBlockOrder = [
   "instagram",
   "experience",
   "education",
-  "saas",
   "services",
-  "tools",
   "stats",
 ] satisfies BlockType[];
 

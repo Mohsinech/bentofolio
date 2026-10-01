@@ -1,15 +1,43 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import { usePathname } from "next/navigation";
 import { Check, Loader2, Send, X } from "lucide-react";
 import styles from "./FeedbackWidget.module.css";
 
+const PRODUCT_ROUTES = new Set([
+  "",
+  "auth",
+  "contact",
+  "discover",
+  "editor",
+  "examples",
+  "invite",
+  "pricing",
+  "v2-preview",
+]);
+
+function isPublicPortfolioPath(pathname: string) {
+  const segments = pathname.split("/").filter(Boolean);
+
+  if (segments[0] === "editor" || segments[0] === "v2-preview") return true;
+
+  if (segments.length !== 1) return false;
+
+  return !PRODUCT_ROUTES.has(segments[0]);
+}
+
 export function FeedbackWidget() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+
+  if (isPublicPortfolioPath(pathname || "/")) {
+    return null;
+  }
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();

@@ -2,7 +2,6 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import { getProfileByUsername } from "@/app/lib/supabase/profiles";
-import { Watermark } from "@/app/components/Watermark";
 import { ProfileClientWrapper } from "./ProfileClientWrapper";
 import { PublicProfileShell } from "./PublicProfileShell";
 import styles from "./profile.module.css";
@@ -78,10 +77,11 @@ export default async function ProfilePage({ params }: PageProps) {
       <PublicProfileShell
         username={profile.username}
         isPro={profile.isPro}
+        theme={profile.theme}
+        avatarUrl={profile.avatarUrl}
         layout={profile.layout}
         content={profile.content}
       />
-      <Watermark show={false} />
     </ProfileClientWrapper>
   );
 }

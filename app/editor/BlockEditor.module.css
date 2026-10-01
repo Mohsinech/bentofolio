@@ -88,6 +88,92 @@
   line-height: 1.4;
 }
 
+.segmentControl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--editor-border, var(--border-subtle));
+  border-radius: 10px;
+  background: var(--editor-control, rgba(255, 255, 255, 0.035));
+}
+
+.segmentControl button {
+  min-height: 34px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--editor-text-muted, var(--text-muted));
+  cursor: pointer;
+  font-family: var(--font-editor-heading);
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.segmentControl button:hover {
+  background: var(--editor-control-hover, rgba(255, 255, 255, 0.075)) !important;
+  border-color: var(--editor-border, var(--border-subtle)) !important;
+  color: var(--editor-text, var(--text-primary)) !important;
+}
+
+.segmentControlActive {
+  background: var(--editor-panel-secondary, rgba(255, 255, 255, 0.075)) !important;
+  border-color: var(--editor-border, var(--border-subtle)) !important;
+  color: var(--editor-text, var(--text-primary)) !important;
+  box-shadow: none;
+}
+
+.memojiPicker {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.memojiPicker button {
+  display: grid;
+  place-items: center;
+  min-height: 54px;
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.memojiPicker img {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.memojiActive {
+  border-color: #5b8cff !important;
+  box-shadow: 0 0 0 2px rgba(91, 140, 255, 0.22);
+}
+
+.secondaryEditorButton {
+  width: fit-content;
+  min-height: 34px;
+  margin-top: 10px;
+  padding: 0 10px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-editor-heading);
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.secondaryEditorButton:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
 .label {
   font-size: 0.7rem;
   font-weight: 600;
@@ -262,6 +348,88 @@
   color: rgba(255, 255, 255, 0.46);
   font-size: 0.72rem;
   line-height: 1.35;
+}
+
+:global([data-editor-theme="light"]) .githubImportHeader {
+  border-color: rgba(41, 41, 41, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(244, 241, 234, 0.94)),
+    rgba(255, 255, 255, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.92),
+    0 12px 28px rgba(24, 22, 18, 0.055);
+}
+
+:global([data-editor-theme="light"]) .githubImportHeader > svg {
+  border: 1px solid rgba(41, 41, 41, 0.12);
+  background: rgba(41, 41, 41, 0.045);
+  color: #292929;
+}
+
+:global([data-editor-theme="light"]) .githubImportHeader strong {
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .githubImportHeader span {
+  color: rgba(23, 19, 33, 0.62);
+}
+
+:global([data-editor-theme="light"]) .techCategoryBtn {
+  border-color: rgba(41, 41, 41, 0.14);
+  background: rgba(255, 253, 248, 0.82);
+  color: rgba(23, 19, 33, 0.66);
+}
+
+:global([data-editor-theme="light"]) .techCategoryBtn:hover {
+  border-color: rgba(41, 41, 41, 0.22);
+  background: rgba(41, 41, 41, 0.055);
+  color: #171321;
+  transform: translateY(-1px);
+}
+
+:global([data-editor-theme="light"]) .techCategoryBtn.active {
+  border-color: rgba(41, 41, 41, 0.18);
+  background: #f1ede4;
+  color: #171321;
+  box-shadow: inset 0 -2px 0 #e5ff64;
+}
+
+:global([data-editor-theme="light"]) .techSuggestion {
+  border-color: rgba(41, 41, 41, 0.14);
+  background: rgba(255, 253, 248, 0.86);
+  color: #171321;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+:global([data-editor-theme="light"]) .techSuggestion:hover:not(.added) {
+  border-color: rgba(41, 41, 41, 0.24);
+  background: #f1ede4;
+  transform: translateY(-1px);
+}
+
+:global([data-editor-theme="light"]) .techSuggestion.added {
+  opacity: 0.46;
+}
+
+:global([data-editor-theme="light"]) .techSuggestionName,
+:global([data-editor-theme="light"]) .techChipName {
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .techChip {
+  border-color: rgba(41, 41, 41, 0.16);
+  background: #fffdf8;
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .techChipRemove {
+  background: rgba(41, 41, 41, 0.055);
+  color: rgba(23, 19, 33, 0.56);
+}
+
+:global([data-editor-theme="light"]) .techChipRemove:hover {
+  background: rgba(185, 28, 28, 0.12);
+  color: #991b1b;
 }
 
 .importButton {
@@ -503,6 +671,37 @@
 .removeButton:hover {
   background: #dc2626;
   transform: scale(1.05);
+}
+
+.arrayMoveActions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.arrayMoveButton {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-editor-heading);
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.arrayMoveButton:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+}
+
+.arrayMoveButton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .addButton {
@@ -1058,6 +1257,11 @@
   background: #18181a;
 }
 
+.autocompleteOptionActive {
+  border-color: rgba(91, 140, 255, 0.48) !important;
+  background: rgba(91, 140, 255, 0.14) !important;
+}
+
 :global([data-theme="light"]) .empty {
   color: rgba(23, 19, 33, 0.54);
 }
@@ -1083,11 +1287,11 @@
 :global([data-theme="light"]) .smallSelect,
 :global([data-theme="light"]) .urlInput {
   background: rgba(255, 255, 255, 0.84);
-  border-color: rgba(124, 58, 237, 0.16);
+  border-color: rgba(41, 41, 41, 0.14);
   color: #171321;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.92),
-    0 10px 26px rgba(80, 46, 140, 0.055);
+    0 10px 26px rgba(24, 22, 18, 0.045);
 }
 
 :global([data-theme="light"]) .input::placeholder,
@@ -1105,15 +1309,15 @@
 :global([data-theme="light"]) .smallSelect:focus,
 :global([data-theme="light"]) .urlInput:focus {
   background: #ffffff;
-  border-color: rgba(124, 58, 237, 0.42);
+  border-color: rgba(41, 41, 41, 0.32);
   box-shadow:
-    0 0 0 3px rgba(124, 58, 237, 0.1),
-    0 14px 34px rgba(80, 46, 140, 0.08);
+    0 0 0 3px rgba(229, 255, 100, 0.34),
+    0 14px 34px rgba(24, 22, 18, 0.07);
 }
 
 :global([data-theme="light"]) .select,
 :global([data-theme="light"]) .smallSelect {
-  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4L6 8L10 4' stroke='%237c3aed' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 12 12' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 4L6 8L10 4' stroke='%23292929' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 
 :global([data-theme="light"]) .select option,
@@ -1129,13 +1333,13 @@
 :global([data-theme="light"]) .techCategoryBtn,
 :global([data-theme="light"]) .techSuggestion,
 :global([data-theme="light"]) .autocompleteDropdown {
-  border-color: rgba(124, 58, 237, 0.13);
+  border-color: rgba(41, 41, 41, 0.12);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(250, 247, 255, 0.84)),
+    linear-gradient(180deg, rgba(255, 253, 248, 0.96), rgba(244, 241, 234, 0.9)),
     rgba(255, 255, 255, 0.78);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 14px 34px rgba(80, 46, 140, 0.07);
+    0 14px 34px rgba(24, 22, 18, 0.06);
 }
 
 :global([data-theme="light"]) .imageDropzone,
@@ -1169,8 +1373,8 @@
 :global([data-theme="light"]) .techCategoryBtn:hover,
 :global([data-theme="light"]) .techSuggestion:hover:not(.added),
 :global([data-theme="light"]) .autocompleteOption:hover {
-  border-color: rgba(124, 58, 237, 0.18);
-  background: rgba(124, 58, 237, 0.085);
+  border-color: rgba(41, 41, 41, 0.18);
+  background: rgba(41, 41, 41, 0.055);
 }
 
 :global([data-theme="light"]) .locationSuggestions small {
@@ -1194,6 +1398,97 @@
 :global([data-theme="light"]) .addButton:hover {
   border-color: #6d28d9;
   background: #6d28d9;
+}
+
+:global([data-editor-theme="light"]) .techCategoryBtn {
+  border-color: rgba(41, 41, 41, 0.14);
+  background: rgba(255, 253, 248, 0.82);
+  color: rgba(23, 19, 33, 0.66);
+}
+
+:global([data-editor-theme="light"]) .techCategoryBtn:hover {
+  border-color: rgba(41, 41, 41, 0.22);
+  background: rgba(41, 41, 41, 0.055);
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .techCategoryBtn.active {
+  border-color: rgba(41, 41, 41, 0.18);
+  background: #f1ede4;
+  color: #171321;
+  box-shadow: inset 0 -2px 0 #e5ff64;
+}
+
+:global([data-editor-theme="light"]) .techSuggestion {
+  border-color: rgba(41, 41, 41, 0.14);
+  background: rgba(255, 253, 248, 0.86);
+  color: #171321;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+:global([data-editor-theme="light"]) .techSuggestion:hover:not(.added) {
+  border-color: rgba(41, 41, 41, 0.24);
+  background: #f1ede4;
+}
+
+:global([data-editor-theme="light"]) .techSuggestionName,
+:global([data-editor-theme="light"]) .techChipName {
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .techChip {
+  border-color: rgba(41, 41, 41, 0.16);
+  background: #fffdf8;
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .arrayItem,
+:global([data-editor-theme="light"]) .filePreview {
+  border-color: rgba(41, 41, 41, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(244, 241, 234, 0.92)),
+    rgba(255, 255, 255, 0.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 12px 28px rgba(24, 22, 18, 0.045);
+}
+
+:global([data-editor-theme="light"]) .imageDropzone,
+:global([data-editor-theme="light"]) .imageDropzoneSmall,
+:global([data-editor-theme="light"]) .fileDropzone {
+  border-color: rgba(41, 41, 41, 0.16);
+  background: rgba(255, 253, 248, 0.82);
+  color: rgba(23, 19, 33, 0.58);
+}
+
+:global([data-editor-theme="light"]) .imageDropzone:hover,
+:global([data-editor-theme="light"]) .imageDropzoneSmall:hover,
+:global([data-editor-theme="light"]) .fileDropzone:hover {
+  border-color: rgba(41, 41, 41, 0.28);
+  background: #f1ede4;
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .companyLogoPreview,
+:global([data-editor-theme="light"]) .imagePreview,
+:global([data-editor-theme="light"]) .imagePreviewSmall {
+  border-color: rgba(41, 41, 41, 0.14);
+  background: #fffdf8;
+  color: #171321;
+}
+
+:global([data-editor-theme="light"]) .removeButton,
+:global([data-editor-theme="light"]) .imageRemoveButton {
+  border-color: rgba(153, 27, 27, 0.14);
+  background: rgba(185, 28, 28, 0.08);
+  color: #991b1b;
+}
+
+:global([data-editor-theme="light"]) .removeButton:hover,
+:global([data-editor-theme="light"]) .imageRemoveButton:hover {
+  border-color: rgba(153, 27, 27, 0.26);
+  background: rgba(185, 28, 28, 0.14);
+  color: #7f1d1d;
 }
 
 :global([data-theme="light"]) .removeButton,

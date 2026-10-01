@@ -140,7 +140,13 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       },
       link: {
         type: "link",
-        data: { url: "hello@example.com", title: "Let's Collaborate" },
+        data: {
+          url: "",
+          title: "Let's collaborate",
+          eyebrow: "Start here",
+          actionType: "email",
+          variant: "surface",
+        },
       },
       work: {
         type: "work",
@@ -209,16 +215,10 @@ export function EditorProvider({ children }: { children: ReactNode }) {
       social: {
         type: "social",
         data: {
-          items: [
-            { platform: "github", url: "https://github.com/yourusername" },
-            { platform: "twitter", url: "https://twitter.com/yourusername" },
-            {
-              platform: "linkedin",
-              url: "https://linkedin.com/in/yourusername",
-            },
-            { platform: "dribbble", url: "https://dribbble.com/yourusername" },
-            { platform: "website", url: "https://yourwebsite.com" },
-          ],
+          eyebrow: "Connect",
+          heading: "Social Links",
+          variant: "icons",
+          items: [],
         },
       },
       availability: {

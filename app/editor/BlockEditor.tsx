@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   X,
   Plus,
@@ -13,18 +13,158 @@ import {
 } from "lucide-react";
 import NextImage from "next/image";
 import { useEditor } from "@/app/lib/editor-context";
-import { BlockContent } from "@/app/lib/types";
+import { BlockContent, IdentityContent } from "@/app/lib/types";
 import { importFromGitHub } from "@/app/lib/github";
 import { getCompanyLogo } from "@/app/lib/company-logos";
+import { DEFAULT_MEMOJI_AVATAR } from "@/app/lib/memoji";
 import {
   techStack,
   getTechSuggestions,
+  getTechByName,
   techCategories,
   getTechsByCategory,
   TechItem,
 } from "@/app/lib/tech-stack";
 import { getTechIconUrl, techIcons } from "@/app/lib/tech-icons";
 import styles from "./BlockEditor.module.css";
+
+const PROFESSIONAL_TITLE_SUGGESTIONS = [
+  "Software Engineer",
+  "Frontend Developer",
+  "Full-Stack Developer",
+  "Product Designer",
+  "UI/UX Designer",
+  "Graphic Designer",
+  "Digital Marketer",
+  "Content Creator",
+  "Freelancer",
+  "Founder",
+];
+
+const EMPLOYMENT_TYPE_SUGGESTIONS = [
+  "Full-time",
+  "Part-time",
+  "Freelance",
+  "Contract",
+  "Internship",
+  "Apprenticeship",
+  "Volunteer",
+  "Self-employed",
+];
+
+const SOCIAL_PLATFORM_SUGGESTIONS = [
+  "GitHub",
+  "LinkedIn",
+  "Instagram",
+  "X/Twitter",
+  "Behance",
+  "Dribbble",
+  "YouTube",
+  "TikTok",
+  "Facebook",
+  "Threads",
+  "Website",
+  "Email",
+  "Other",
+];
+
+const SKILL_CATEGORY_SUGGESTIONS = ["Development", "Design", "Marketing", "Productivity", "Other"];
+const TIMEZONE_SUGGESTIONS = [
+  "Africa/Casablanca",
+  "Europe/London",
+  "Europe/Paris",
+  "America/New_York",
+  "America/Los_Angeles",
+  "Asia/Dubai",
+];
+const MEMOJI_OPTIONS = [
+  DEFAULT_MEMOJI_AVATAR,
+  "/momojis/1.png",
+  "/momojis/2.png",
+  "/momojis/3.png",
+  "/momojis/4.png",
+  "/momojis/5.png",
+  "/momojis/6.png",
+  "/momojis/7.png",
+];
+
+function normalizeWebsiteInput(value: string) {
+  const trimmed = value.trim();
+  if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed)) return `mailto:${trimmed}`;
+  if (!trimmed || /^[a-z][a-z\d+.-]*:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
+const locationSuggestionCache = new Map<string, LocationSuggestion[]>();
+
+function normalizeSocialPlatform(value: string) {
+  const normalized = value.trim().toLowerCase();
+  if (normalized === "x/twitter" || normalized === "twitter" || normalized === "x") return "twitter";
+  if (normalized === "other") return "other";
+  return normalized.replace(/[^a-z]/g, "");
+}
+
+function isLikelySocialUrl(platform: string, value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  const normalizedPlatform = normalizeSocialPlatform(platform);
+  if (normalizedPlatform === "email") {
+    return /^mailto:[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(trimmed) || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed);
+  }
+
+  try {
+    const url = new URL(/^[a-z][a-z\d+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function normalizeActionDestination(value: string, actionType?: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (actionType === "email" || actionType === "copy-email") {
+    if (trimmed.startsWith("mailto:")) return trimmed;
+    if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed)) return `mailto:${trimmed}`;
+    return trimmed;
+  }
+  return normalizeWebsiteInput(trimmed);
+}
+
+function isLikelyCtaDestination(actionType: string | undefined, value: string) {
+  const trimmed = value.trim();
+  if (!trimmed) return true;
+  if (actionType === "email" || actionType === "copy-email") {
+    return /^mailto:[^@\s]+@[^@\s]+\.[^@\s]+$/i.test(trimmed) || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(trimmed);
+  }
+
+  try {
+    const url = new URL(/^[a-z][a-z\d+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function initialsForSkill(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+}
+
+function formatStructuredPeriod(item: {
+  startDate?: string;
+  endDate?: string;
+  isCurrent?: boolean;
+  period?: string;
+}) {
+  if (item.startDate || item.endDate || item.isCurrent) {
+    return [item.startDate, item.isCurrent ? "Present" : item.endDate].filter(Boolean).join(" - ");
+  }
+
+  return item.period || "";
+}
 
 interface BlockEditorProps {
   embedded?: boolean;
@@ -88,6 +228,14 @@ interface BlockFieldsProps {
 
 function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
   const handleChange = (field: string, value: unknown) => {
+    if (content.type === "identity" && field === "availabilityLabel") {
+      onUpdate(blockId, {
+        ...content,
+        data: { ...content.data, eyebrow: value as string, availability: value as string },
+      });
+      return;
+    }
+
     onUpdate(blockId, {
       ...content,
       data: { ...content.data, [field]: value },
@@ -96,59 +244,23 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
 
   switch (content.type) {
     case "identity":
-      return (
-        <>
-          <Field
-            label="Name"
-            value={content.data.name}
-            onChange={(v) => handleChange("name", v)}
-          />
-          <Field
-            label="Title"
-            value={content.data.title}
-            onChange={(v) => handleChange("title", v)}
-          />
-          <ImageUploadField
-            label="Memoji"
-            value={content.data.avatar}
-            onChange={(v) => handleChange("avatar", v)}
-          />
-          <Field
-            label="Availability"
-            value={content.data.availability || ""}
-            onChange={(v) => handleChange("availability", v)}
-            placeholder="Available for work"
-          />
-          <Field
-            label="Location"
-            value={content.data.location || ""}
-            onChange={(v) => handleChange("location", v)}
-            placeholder="Remote"
-          />
-          <Field
-            label="Email"
-            value={content.data.email || ""}
-            onChange={(v) => handleChange("email", v)}
-            placeholder="hello@example.com"
-          />
-          <Field
-            label="Website"
-            value={content.data.website || ""}
-            onChange={(v) => handleChange("website", v)}
-            placeholder="example.com"
-          />
-          <Field
-            label="Bio"
-            value={content.data.bio || ""}
-            onChange={(v) => handleChange("bio", v)}
-            multiline
-          />
-        </>
-      );
+      return <ProfileFields content={content.data} onChange={handleChange} />;
 
     case "map":
       return (
         <>
+          <Field
+            label="Eyebrow"
+            value={content.data.eyebrow || ""}
+            onChange={(value) => handleChange("eyebrow", value)}
+            placeholder="LOCATION"
+          />
+          <Field
+            label="Heading"
+            value={content.data.heading || ""}
+            onChange={(value) => handleChange("heading", value)}
+            placeholder={content.data.location || "Casablanca, Morocco"}
+          />
           <LocationAutocompleteField
             value={content.data.location}
             onChange={(value) => handleChange("location", value)}
@@ -158,11 +270,57 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 data: {
                   ...content.data,
                   location: place.label,
+                  heading: content.data.heading || place.label,
                   lat: place.lat,
                   lng: place.lng,
+                  variant: content.data.variant || "map",
                 },
               });
             }}
+          />
+          <div className={styles.field}>
+            <label className={styles.label}>Short description</label>
+            <textarea
+              className={styles.textarea}
+              value={content.data.description || ""}
+              onChange={(event) => handleChange("description", event.target.value)}
+              placeholder="Available for remote work worldwide."
+              rows={3}
+            />
+            <p className={styles.fieldHint}>
+              {(content.data.description || "").length}/120 characters suggested
+            </p>
+          </div>
+          <FreeTextCombobox
+            label="Timezone"
+            value={content.data.timezone || ""}
+            onChange={(value) => handleChange("timezone", value)}
+            suggestions={TIMEZONE_SUGGESTIONS}
+            placeholder="Africa/Casablanca"
+          />
+          <SelectField
+            label="Display style"
+            value={content.data.variant || (content.data.lat && content.data.lng ? "map" : "text")}
+            onChange={(value) => handleChange("variant", value)}
+            options={[
+              { value: "map", label: "Map" },
+              { value: "text", label: "Text" },
+            ]}
+          />
+          <Field
+            label="Map zoom"
+            value={String(content.data.zoom || 12)}
+            onChange={(value) => handleChange("zoom", Number(value) || 12)}
+            type="number"
+            placeholder="12"
+          />
+          <Field
+            label="Optional action URL"
+            value={content.data.actionUrl || ""}
+            onChange={(value) => handleChange("actionUrl", value)}
+            onBlur={(value) => handleChange("actionUrl", normalizeWebsiteInput(value))}
+            placeholder="https://maps.google.com/..."
+            type="url"
           />
         </>
       );
@@ -170,27 +328,112 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
     case "github":
       return (
         <GitHubImportEditor
-          username={content.data.username}
-          onImport={(githubContent) =>
+          content={content.data}
+          onChange={(githubContent) =>
             onUpdate(blockId, { type: "github", data: githubContent })
+          }
+          onImport={(githubContent) =>
+            onUpdate(blockId, {
+              type: "github",
+              data: { ...content.data, ...githubContent },
+            })
           }
         />
       );
 
     case "link":
+      const actionType =
+        content.data.actionType === "copy-email" ? "copy-email" : "email";
       return (
         <>
           <Field
-            label="Title"
-            value={content.data.title}
-            onChange={(v) => handleChange("title", v)}
-            placeholder="Let's Collaborate"
+            label="Eyebrow"
+            value={content.data.eyebrow ?? ""}
+            onChange={(v) => handleChange("eyebrow", v)}
+            placeholder="Start here"
+          />
+          <div className={styles.field}>
+            <label className={styles.label}>Main heading</label>
+            <textarea
+              className={styles.textarea}
+              value={content.data.title}
+              onChange={(event) => handleChange("title", event.target.value)}
+              placeholder="Let's collaborate"
+              rows={2}
+            />
+            <p className={styles.fieldHint}>
+              {content.data.title.length}/48 characters suggested
+            </p>
+          </div>
+          <div className={styles.field}>
+            <label className={styles.label}>Description</label>
+            <textarea
+              className={styles.textarea}
+              value={content.data.description || ""}
+              onChange={(event) => handleChange("description", event.target.value)}
+              placeholder="Tell me about your project and I'll reply within 24 hours."
+              rows={3}
+            />
+            <p className={styles.fieldHint}>
+              {(content.data.description || "").length}/120 characters suggested
+            </p>
+          </div>
+          <SelectField
+            label="Action type"
+            value={actionType}
+            onChange={(value) => handleChange("actionType", value)}
+            options={[
+              { value: "email", label: "Send email" },
+              { value: "copy-email", label: "Copy email" },
+            ]}
           />
           <Field
-            label="Email or URL"
+            label="Destination"
             value={content.data.url}
             onChange={(v) => handleChange("url", v)}
+            onBlur={(value) => handleChange("url", normalizeActionDestination(value, actionType))}
             placeholder="hello@example.com"
+            type="email"
+          />
+          {content.data.url && !isLikelyCtaDestination(actionType, content.data.url) && (
+            <p className={styles.fieldHint}>Enter a valid destination for this action type.</p>
+          )}
+          {actionType === "email" && (
+            <>
+              <Field
+                label="Email subject"
+                value={content.data.emailSubject || ""}
+                onChange={(v) => handleChange("emailSubject", v)}
+                placeholder="Project inquiry"
+              />
+              <div className={styles.field}>
+                <label className={styles.label}>Email body</label>
+                <textarea
+                  className={styles.textarea}
+                  value={content.data.emailBody || ""}
+                  onChange={(event) => handleChange("emailBody", event.target.value)}
+                  placeholder="Hi, I'd like to discuss..."
+                  rows={3}
+                />
+              </div>
+            </>
+          )}
+          <Field
+            label="Button label"
+            value={content.data.buttonLabel || ""}
+            onChange={(v) => handleChange("buttonLabel", v)}
+            placeholder="Start a project"
+          />
+          <SelectField
+            label="Visual style"
+            value={content.data.variant || "surface"}
+            onChange={(value) => handleChange("variant", value)}
+            options={[
+              { value: "surface", label: "Surface" },
+              { value: "contrast", label: "Contrast" },
+              { value: "accent", label: "Accent" },
+              { value: "outline", label: "Outline" },
+            ]}
           />
         </>
       );
@@ -434,64 +677,130 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
 
     case "techstack":
       return (
-        <TechStackEditor
-          items={content.data.items}
-          onChange={(items) => handleChange("items", items)}
-        />
+        <>
+          <Field
+            label="Eyebrow"
+            value={content.data.eyebrow || ""}
+            onChange={(v) => handleChange("eyebrow", v)}
+            placeholder="SKILLS"
+          />
+          <Field
+            label="Heading"
+            value={content.data.heading || ""}
+            onChange={(v) => handleChange("heading", v)}
+            placeholder="Tools I use"
+          />
+          <FreeTextCombobox
+            label="Category"
+            value={content.data.category || ""}
+            onChange={(v) => handleChange("category", v)}
+            suggestions={SKILL_CATEGORY_SUGGESTIONS}
+            placeholder="Development, Design..."
+          />
+          <TechStackEditor
+            items={content.data.items}
+            onChange={(items) => handleChange("items", items)}
+          />
+        </>
       );
 
     case "social":
       return (
-        <ArrayField
-          label="Social Links"
-          items={content.data.items}
-          renderItem={(item, i) => (
-            <div className={styles.arrayItemColumn}>
-              <select
-                className={styles.select}
-                value={item.platform}
-                onChange={(e) => {
-                  const newItems = [...content.data.items];
-                  newItems[i] = {
-                    ...item,
-                    platform: e.target.value as typeof item.platform,
-                  };
-                  handleChange("items", newItems);
-                }}
-              >
-                <option value="github">GitHub</option>
-                <option value="twitter">Twitter</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="youtube">YouTube</option>
-                <option value="instagram">Instagram</option>
-                <option value="dribbble">Dribbble</option>
-                <option value="behance">Behance</option>
-                <option value="website">Website</option>
-                <option value="email">Email</option>
-              </select>
-              <input
-                className={styles.input}
-                value={item.url}
-                onChange={(e) => {
-                  const newItems = [...content.data.items];
-                  newItems[i] = { ...item, url: e.target.value };
-                  handleChange("items", newItems);
-                }}
-                placeholder="URL"
-              />
-            </div>
-          )}
-          onAdd={() =>
-            handleChange("items", [
-              ...content.data.items,
-              { platform: "website" as const, url: "" },
-            ])
-          }
-          onRemove={(i) => {
-            const newItems = content.data.items.filter((_, idx) => idx !== i);
-            handleChange("items", newItems);
-          }}
-        />
+        <>
+          <Field
+            label="Eyebrow"
+            value={content.data.eyebrow || ""}
+            onChange={(v) => handleChange("eyebrow", v)}
+            placeholder="Connect"
+          />
+          <Field
+            label="Heading"
+            value={content.data.heading || ""}
+            onChange={(v) => handleChange("heading", v)}
+            placeholder="Social Links"
+          />
+          <SelectField
+            label="Layout style"
+            value={content.data.variant || "icons"}
+            onChange={(value) => handleChange("variant", value)}
+            options={[
+              { value: "icons", label: "Icons" },
+              { value: "labels", label: "Labels" },
+              { value: "list", label: "List" },
+            ]}
+          />
+          <ArrayField
+            label="Social Links"
+            items={content.data.items}
+            renderItem={(item, i) => (
+              <div className={styles.arrayItemColumn}>
+                <FreeTextCombobox
+                  label="Platform"
+                  value={item.platform || ""}
+                  onChange={(value) => {
+                    const newItems = [...content.data.items];
+                    newItems[i] = {
+                      ...item,
+                      platform: normalizeSocialPlatform(value) as typeof item.platform,
+                    };
+                    handleChange("items", newItems);
+                  }}
+                  suggestions={SOCIAL_PLATFORM_SUGGESTIONS}
+                  placeholder="GitHub, Website, Other..."
+                />
+                <input
+                  className={styles.input}
+                  value={item.username || ""}
+                  onChange={(e) => {
+                    const newItems = [...content.data.items];
+                    newItems[i] = { ...item, username: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Label or username"
+                />
+                <input
+                  className={styles.input}
+                  value={item.url}
+                  onChange={(e) => {
+                    const newItems = [...content.data.items];
+                    newItems[i] = { ...item, url: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  onBlur={(event) => {
+                    const newItems = [...content.data.items];
+                    newItems[i] = { ...item, url: normalizeWebsiteInput(event.target.value) };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="https://... or hello@example.com"
+                />
+                {item.url && !isLikelySocialUrl(item.platform, item.url) && (
+                  <p className={styles.fieldHint}>Enter a valid URL or email address.</p>
+                )}
+              </div>
+            )}
+            onAdd={() =>
+              handleChange(
+                "items",
+                content.data.items.some((item) => !item.url.trim())
+                  ? content.data.items
+                  : [
+                      ...content.data.items,
+                      { platform: "website" as const, url: "", username: "" },
+                    ]
+              )
+            }
+            onRemove={(i) => {
+              const newItems = content.data.items.filter((_, idx) => idx !== i);
+              handleChange("items", newItems);
+            }}
+            onMove={(from, to) => {
+              const newItems = [...content.data.items];
+              const [item] = newItems.splice(from, 1);
+              newItems.splice(to, 0, item);
+              handleChange("items", newItems);
+            }}
+          />
+        </>
       );
 
     case "spotify":
@@ -512,6 +821,18 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
     case "experience":
       return (
         <>
+          <Field
+            label="Eyebrow"
+            value={content.data.eyebrow || ""}
+            onChange={(v) => handleChange("eyebrow", v)}
+            placeholder="CAREER"
+          />
+          <Field
+            label="Heading"
+            value={content.data.heading || ""}
+            onChange={(v) => handleChange("heading", v)}
+            placeholder="Experience"
+          />
           <ArrayField
             label="Work Experience"
             items={content.data.items || []}
@@ -541,23 +862,84 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                       newItems[i] = {
                         ...item,
                         company,
-                        logo: getCompanyLogo(company) || "",
                       };
                       handleChange("items", newItems);
                     }}
                     placeholder="Upwork, Facebook, Figma..."
                   />
                 </div>
-                <input
-                  className={styles.input}
+                <FreeTextCombobox
+                  label="Role"
                   value={item.role || ""}
-                  onChange={(e) => {
+                  onChange={(value) => {
                     const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, role: e.target.value };
+                    newItems[i] = { ...item, role: value };
                     handleChange("items", newItems);
                   }}
-                  placeholder="Role"
+                  suggestions={PROFESSIONAL_TITLE_SUGGESTIONS}
+                  placeholder="Product Designer"
                 />
+                <FreeTextCombobox
+                  label="Employment type"
+                  value={item.employmentType || ""}
+                  onChange={(value) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, employmentType: value };
+                    handleChange("items", newItems);
+                  }}
+                  suggestions={EMPLOYMENT_TYPE_SUGGESTIONS}
+                  placeholder="Full-time, Freelance..."
+                />
+                <input
+                  className={styles.smallInput}
+                  value={item.startDate || ""}
+                  type="month"
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = {
+                      ...item,
+                      startDate: e.target.value,
+                      period: formatStructuredPeriod({ ...item, startDate: e.target.value }),
+                    };
+                    handleChange("items", newItems);
+                  }}
+                  aria-label="Start date"
+                />
+                <CheckboxField
+                  label="Currently working here"
+                  checked={Boolean(item.isCurrent)}
+                  onChange={(checked) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = {
+                      ...item,
+                      isCurrent: checked,
+                      endDate: checked ? "" : item.endDate,
+                      period: formatStructuredPeriod({
+                        ...item,
+                        isCurrent: checked,
+                        endDate: checked ? "" : item.endDate,
+                      }),
+                    };
+                    handleChange("items", newItems);
+                  }}
+                />
+                {!item.isCurrent && (
+                  <input
+                    className={styles.smallInput}
+                    value={item.endDate || ""}
+                    type="month"
+                    onChange={(e) => {
+                      const newItems = [...(content.data.items || [])];
+                      newItems[i] = {
+                        ...item,
+                        endDate: e.target.value,
+                        period: formatStructuredPeriod({ ...item, endDate: e.target.value }),
+                      };
+                      handleChange("items", newItems);
+                    }}
+                    aria-label="End date"
+                  />
+                )}
                 <input
                   className={styles.smallInput}
                   value={item.period || ""}
@@ -566,7 +948,48 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                     newItems[i] = { ...item, period: e.target.value };
                     handleChange("items", newItems);
                   }}
-                  placeholder="2022 - Present"
+                  placeholder="Legacy period, e.g. 2022 - Present"
+                />
+                <input
+                  className={styles.input}
+                  value={item.location || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, location: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="Remote, San Francisco..."
+                />
+                <textarea
+                  className={styles.textarea}
+                  value={item.description || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, description: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="What did you do there?"
+                  rows={3}
+                />
+                <ImageUploadField
+                  label="Company logo"
+                  value={item.logo || ""}
+                  onChange={(logo) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, logo };
+                    handleChange("items", newItems);
+                  }}
+                  small
+                />
+                <input
+                  className={styles.input}
+                  value={item.companyUrl || ""}
+                  onChange={(e) => {
+                    const newItems = [...(content.data.items || [])];
+                    newItems[i] = { ...item, companyUrl: e.target.value };
+                    handleChange("items", newItems);
+                  }}
+                  placeholder="https://company.com"
                 />
               </div>
             )}
@@ -580,6 +1003,12 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
               const newItems = (content.data.items || []).filter(
                 (_, idx) => idx !== i,
               );
+              handleChange("items", newItems);
+            }}
+            onMove={(from, to) => {
+              const newItems = [...(content.data.items || [])];
+              const [item] = newItems.splice(from, 1);
+              newItems.splice(to, 0, item);
               handleChange("items", newItems);
             }}
           />
@@ -950,25 +1379,50 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
       return (
         <>
           <Field
-            label="Title"
-            value={content.data.title || ""}
-            onChange={(v) => handleChange("title", v)}
+            label="Eyebrow"
+            value={content.data.eyebrow || ""}
+            onChange={(v) => handleChange("eyebrow", v)}
+            placeholder="SKILLS"
+          />
+          <Field
+            label="Heading"
+            value={content.data.heading || content.data.title || ""}
+            onChange={(v) => {
+              onUpdate(blockId, {
+                ...content,
+                data: { ...content.data, heading: v, title: v },
+              });
+            }}
+            placeholder="Tools I use"
+          />
+          <FreeTextCombobox
+            label="Category"
+            value={content.data.category || ""}
+            onChange={(v) => handleChange("category", v)}
+            suggestions={SKILL_CATEGORY_SUGGESTIONS}
+            placeholder="Design, Development..."
           />
           <ArrayField
             label="Tools"
             items={content.data.items || []}
             renderItem={(item, i) => (
               <div className={styles.arrayItemColumn}>
-                <input
-                  className={styles.input}
+                <FreeTextCombobox
+                  label="Tool"
                   value={item.name || ""}
-                  onChange={(event) => {
+                  onChange={(value) => {
                     const items = [...(content.data.items || [])];
-                    items[i] = { ...item, name: event.target.value };
+                    const known = getTechByName(value);
+                    items[i] = {
+                      ...item,
+                      name: value,
+                      icon: known?.icon || item.icon || initialsForSkill(value),
+                      category: known?.category || item.category,
+                    };
                     handleChange("items", items);
                   }}
+                  suggestions={techIcons.map((icon) => icon.name)}
                   placeholder="Figma"
-                  list="tool-name-suggestions"
                 />
                 <input
                   className={styles.smallInput}
@@ -989,12 +1443,13 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
                 (content.data.items || []).filter((_, idx) => idx !== i),
               )
             }
+            onMove={(from, to) => {
+              const items = [...(content.data.items || [])];
+              const [item] = items.splice(from, 1);
+              items.splice(to, 0, item);
+              handleChange("items", items);
+            }}
           />
-          <datalist id="tool-name-suggestions">
-            {techIcons.map((icon) => (
-              <option key={icon.name} value={icon.name} />
-            ))}
-          </datalist>
         </>
       );
 
@@ -1047,21 +1502,44 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
 }
 
 function GitHubImportEditor({
-  username,
+  content,
+  onChange,
   onImport,
 }: {
-  username: string;
+  content: Extract<BlockContent, { type: "github" }>["data"];
+  onChange: (content: Extract<BlockContent, { type: "github" }>["data"]) => void;
   onImport: (content: Extract<BlockContent, { type: "github" }>["data"]) => void;
 }) {
-  const [input, setInput] = useState(username || "");
+  const [input, setInput] = useState(content.profileUrl || content.username || "");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setInput(content.profileUrl || content.username || "");
+  }, [content.profileUrl, content.username]);
 
   const cleanUsername = input
     .trim()
     .replace(/^@/, "")
     .replace(/^https?:\/\/github\.com\//, "")
     .replace(/\/.*$/, "");
+
+  const handleInputChange = (value: string) => {
+    setInput(value);
+    setMessage(null);
+
+    const nextUsername = value
+      .trim()
+      .replace(/^@/, "")
+      .replace(/^https?:\/\/github\.com\//, "")
+      .replace(/\/.*$/, "");
+
+    onChange({
+      ...content,
+      username: nextUsername,
+      profileUrl: value.trim().startsWith("http") ? value.trim() : "",
+    });
+  };
 
   const handleImport = async () => {
     if (!cleanUsername || loading) return;
@@ -1094,7 +1572,7 @@ function GitHubImportEditor({
       <input
         className={styles.input}
         value={input}
-        onChange={(event) => setInput(event.target.value)}
+        onChange={(event) => handleInputChange(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
             event.preventDefault();
@@ -1160,6 +1638,7 @@ interface FieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  onBlur?: (value: string) => void;
   type?: string;
   multiline?: boolean;
   placeholder?: string;
@@ -1169,6 +1648,7 @@ function Field({
   label,
   value,
   onChange,
+  onBlur,
   type = "text",
   multiline,
   placeholder,
@@ -1187,6 +1667,7 @@ function Field({
           className={styles.textarea}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={(e) => onBlur?.(e.target.value)}
           rows={3}
           placeholder={placeholder}
         />
@@ -1196,6 +1677,7 @@ function Field({
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={(e) => onBlur?.(e.target.value)}
           placeholder={placeholder}
           autoComplete="on"
           list={listId}
@@ -1310,12 +1792,22 @@ function LocationAutocompleteField({
   const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const listId = useId();
 
   useEffect(() => {
     const query = value.trim();
-    if (query.length < 2) {
+    if (query.length < 3) {
       setSuggestions([]);
       setOpen(false);
+      return;
+    }
+
+    const cacheKey = query.toLowerCase();
+    const cached = locationSuggestionCache.get(cacheKey);
+    if (cached) {
+      setSuggestions(cached);
+      setOpen(cached.length > 0);
       return;
     }
 
@@ -1328,8 +1820,8 @@ function LocationAutocompleteField({
           { signal: controller.signal },
         );
         const places = (await response.json()) as NominatimPlace[];
-        setSuggestions(
-          places.map((place) => {
+        const mappedPlaces = places
+          .map((place) => {
             const city =
               place.address?.city ||
               place.address?.town ||
@@ -1346,9 +1838,13 @@ function LocationAutocompleteField({
               lat: Number(place.lat),
               lng: Number(place.lon),
             };
-          }),
-        );
-        setOpen(true);
+          })
+          .filter((place) => Number.isFinite(place.lat) && Number.isFinite(place.lng));
+
+        locationSuggestionCache.set(cacheKey, mappedPlaces);
+        setSuggestions(mappedPlaces);
+        setOpen(mappedPlaces.length > 0);
+        setActiveIndex(0);
       } catch (error) {
         if ((error as DOMException).name !== "AbortError") {
           setSuggestions([]);
@@ -1356,13 +1852,19 @@ function LocationAutocompleteField({
       } finally {
         setLoading(false);
       }
-    }, 280);
+    }, 420);
 
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
   }, [value]);
+
+  function selectSuggestion(place: LocationSuggestion) {
+    onSelect(place);
+    setOpen(false);
+    setActiveIndex(0);
+  }
 
   return (
     <div className={styles.field}>
@@ -1373,24 +1875,56 @@ function LocationAutocompleteField({
           className={`${styles.input} ${styles.locationInput}`}
           type="text"
           value={value}
-          onChange={(event) => onChange(event.target.value)}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={open && suggestions[activeIndex] ? `${listId}-${activeIndex}` : undefined}
+          onChange={(event) => {
+            onChange(event.target.value);
+            setActiveIndex(0);
+          }}
           onFocus={() => suggestions.length > 0 && setOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setOpen(false);
+              return;
+            }
+
+            if (!open || suggestions.length === 0) return;
+
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setActiveIndex((index) => Math.min(index + 1, suggestions.length - 1));
+            }
+
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setActiveIndex((index) => Math.max(index - 1, 0));
+            }
+
+            if (event.key === "Enter") {
+              event.preventDefault();
+              selectSuggestion(suggestions[activeIndex]);
+            }
+          }}
           placeholder="Search a city, country, or place"
         />
         {loading && <Loader2 size={15} className={styles.locationSpinner} />}
       </div>
 
       {open && suggestions.length > 0 && (
-        <div className={styles.locationSuggestions}>
-          {suggestions.map((place) => (
+        <div className={styles.locationSuggestions} id={listId} role="listbox">
+          {suggestions.map((place, index) => (
             <button
               key={place.id}
+              id={`${listId}-${index}`}
               type="button"
+              role="option"
+              aria-selected={index === activeIndex}
+              className={index === activeIndex ? styles.autocompleteOptionActive : undefined}
               onMouseDown={(event) => event.preventDefault()}
-              onClick={() => {
-                onSelect(place);
-                setOpen(false);
-              }}
+              onClick={() => selectSuggestion(place)}
             >
               <MapPin size={14} />
               <span>
@@ -1432,6 +1966,257 @@ function SelectField({ label, value, options, onChange }: SelectFieldProps) {
   );
 }
 
+function ProfileFields({
+  content,
+  onChange,
+}: {
+  content: IdentityContent;
+  onChange: (field: string, value: unknown) => void;
+}) {
+  const portraitType = content.portraitType || "memoji";
+  const availability = content.eyebrow ?? content.availability ?? "";
+  const bioLength = content.bio?.length || 0;
+
+  return (
+    <>
+      <Field
+        label="Name"
+        value={content.name || ""}
+        onChange={(value) => onChange("name", value)}
+        placeholder="Alice Chen"
+      />
+      <FreeTextCombobox
+        label="Professional title"
+        value={content.title || ""}
+        onChange={(value) => onChange("title", value)}
+        suggestions={PROFESSIONAL_TITLE_SUGGESTIONS}
+        placeholder="Product Designer"
+      />
+      <Field
+        label="Main headline"
+        value={content.headline || ""}
+        onChange={(value) => onChange("headline", value)}
+        placeholder="Designing sharp products people remember."
+        multiline
+      />
+      <div className={styles.field}>
+        <label className={styles.label}>Introduction</label>
+        <textarea
+          className={styles.textarea}
+          value={content.bio || ""}
+          onChange={(event) => onChange("bio", event.target.value)}
+          rows={4}
+          placeholder="A short note about what you do, who you help, and how you work."
+        />
+        <p className={styles.fieldHint}>{bioLength}/240 characters suggested</p>
+      </div>
+      <div className={styles.field}>
+        <label className={styles.label}>Portrait</label>
+        <div className={styles.segmentControl} role="group" aria-label="Portrait type">
+          {(["photo", "memoji", "none"] as const).map((type) => (
+            <button
+              key={type}
+              type="button"
+              className={portraitType === type ? styles.segmentControlActive : ""}
+              onClick={() => {
+                onChange("portraitType", type);
+                if (type === "memoji" && !content.avatar) {
+                  onChange("avatar", DEFAULT_MEMOJI_AVATAR);
+                }
+              }}
+              aria-pressed={portraitType === type}
+            >
+              {type[0].toUpperCase() + type.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+      {portraitType === "photo" && (
+        <>
+          <ImageUploadField
+            label="Photo"
+            value={content.avatar || ""}
+            onChange={(value) => onChange("avatar", value)}
+          />
+          <SelectField
+            label="Focal point"
+            value={content.portraitFocalPoint || "center top"}
+            onChange={(value) => onChange("portraitFocalPoint", value)}
+            options={[
+              { value: "center top", label: "Top" },
+              { value: "center center", label: "Center" },
+              { value: "center bottom", label: "Bottom" },
+            ]}
+          />
+        </>
+      )}
+      {portraitType === "memoji" && (
+        <div className={styles.field}>
+          <label className={styles.label}>Memoji</label>
+          <div className={styles.memojiPicker}>
+            {MEMOJI_OPTIONS.map((src) => (
+              <button
+                key={src}
+                type="button"
+                className={content.avatar === src ? styles.memojiActive : ""}
+                onClick={() => onChange("avatar", src)}
+                aria-label="Select memoji"
+                aria-pressed={content.avatar === src}
+              >
+                <NextImage src={src} alt="" width={42} height={42} />
+              </button>
+            ))}
+          </div>
+          {content.avatar && (
+            <button
+              type="button"
+              className={styles.secondaryEditorButton}
+              onClick={() => onChange("avatar", "")}
+            >
+              Remove memoji
+            </button>
+          )}
+        </div>
+      )}
+      {portraitType === "none" && (
+        <p className={styles.fieldHint}>
+          No portrait card will render publicly. The identity card expands into that space.
+        </p>
+      )}
+      <Field
+        label="Availability label"
+        value={availability}
+        onChange={(value) => {
+          onChange("availabilityLabel", value);
+        }}
+        placeholder="Available for freelance"
+      />
+      <Field
+        label="Location"
+        value={content.location || ""}
+        onChange={(value) => onChange("location", value)}
+        placeholder="London, UK"
+      />
+      <Field
+        label="Email"
+        value={content.email || ""}
+        onChange={(value) => onChange("email", value)}
+        placeholder="hello@example.com"
+        type="email"
+      />
+      <Field
+        label="Website"
+        value={content.website || ""}
+        onChange={(value) => onChange("website", value)}
+        onBlur={(value) => onChange("website", normalizeWebsiteInput(value))}
+        placeholder="example.com"
+        type="url"
+      />
+    </>
+  );
+}
+
+interface FreeTextComboboxProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  suggestions: string[];
+  placeholder?: string;
+}
+
+function FreeTextCombobox({
+  label,
+  value,
+  onChange,
+  suggestions,
+  placeholder,
+}: FreeTextComboboxProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const reactId = useId();
+  const listId = `combobox-${reactId}`;
+  const query = value.trim().toLowerCase();
+  const filtered = suggestions
+    .filter((suggestion) => !query || suggestion.toLowerCase().includes(query))
+    .slice(0, 8);
+
+  const selectSuggestion = (suggestion: string) => {
+    onChange(suggestion);
+    setIsOpen(false);
+    setActiveIndex(0);
+  };
+
+  return (
+    <div className={styles.field}>
+      <label className={styles.label}>{label}</label>
+      <div className={styles.autocompleteWrapper}>
+        <input
+          className={styles.input}
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={
+            isOpen && filtered[activeIndex] ? `${listId}-${activeIndex}` : undefined
+          }
+          value={value}
+          onChange={(event) => {
+            onChange(event.target.value);
+            setIsOpen(true);
+            setActiveIndex(0);
+          }}
+          onFocus={() => setIsOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") {
+              setIsOpen(false);
+              return;
+            }
+
+            if (!isOpen || filtered.length === 0) return;
+
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setActiveIndex((index) => Math.min(index + 1, filtered.length - 1));
+            }
+
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setActiveIndex((index) => Math.max(index - 1, 0));
+            }
+
+            if (event.key === "Enter") {
+              event.preventDefault();
+              selectSuggestion(filtered[activeIndex]);
+            }
+          }}
+          onBlur={() => window.setTimeout(() => setIsOpen(false), 140)}
+          placeholder={placeholder}
+        />
+        {isOpen && filtered.length > 0 && (
+          <div className={styles.autocompleteDropdown} role="listbox" id={listId}>
+            {filtered.map((suggestion, index) => (
+              <button
+                key={suggestion}
+                id={`${listId}-${index}`}
+                type="button"
+                className={`${styles.autocompleteOption} ${
+                  index === activeIndex ? styles.autocompleteOptionActive : ""
+                }`}
+                role="option"
+                aria-selected={index === activeIndex}
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => selectSuggestion(suggestion)}
+              >
+                <span>{suggestion}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Checkbox field component
 interface CheckboxFieldProps {
   label: string;
@@ -1460,6 +2245,7 @@ interface ArrayFieldProps<T> {
   renderItem: (item: T, index: number) => React.ReactNode;
   onAdd: () => void;
   onRemove: (index: number) => void;
+  onMove?: (from: number, to: number) => void;
 }
 
 function ArrayField<T>({
@@ -1468,6 +2254,7 @@ function ArrayField<T>({
   renderItem,
   onAdd,
   onRemove,
+  onMove,
 }: ArrayFieldProps<T>) {
   return (
     <div className={styles.field}>
@@ -1476,6 +2263,28 @@ function ArrayField<T>({
         {items.map((item, i) => (
           <div key={i} className={styles.arrayItem}>
             {renderItem(item, i)}
+            {onMove && (
+              <div className={styles.arrayMoveActions}>
+                <button
+                  type="button"
+                  className={styles.arrayMoveButton}
+                  onClick={() => onMove(i, i - 1)}
+                  disabled={i === 0}
+                  aria-label={`Move ${label} item up`}
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  className={styles.arrayMoveButton}
+                  onClick={() => onMove(i, i + 1)}
+                  disabled={i === items.length - 1}
+                  aria-label={`Move ${label} item down`}
+                >
+                  ↓
+                </button>
+              </div>
+            )}
             <button className={styles.removeButton} onClick={() => onRemove(i)}>
               <Trash2 size={12} />
             </button>
@@ -1656,8 +2465,8 @@ function FileUploadField({
 
 // Tech Stack Editor with autocomplete
 interface TechStackEditorProps {
-  items: { name: string; icon: string }[];
-  onChange: (items: { name: string; icon: string }[]) => void;
+  items: { name: string; icon: string; category?: string }[];
+  onChange: (items: { name: string; icon: string; category?: string }[]) => void;
 }
 
 // Tech icon component for editor
@@ -1697,13 +2506,29 @@ function TechStackEditor({ items, onChange }: TechStackEditorProps) {
       : getTechsByCategory(selectedCategory as TechItem["category"]);
 
   const handleAddTech = (tech: TechItem) => {
-    // Check if already added
     if (
       items.some((item) => item.name.toLowerCase() === tech.name.toLowerCase())
     ) {
       return;
     }
-    onChange([...items, { name: tech.name, icon: tech.icon }]);
+    onChange([...items, { name: tech.name, icon: tech.icon, category: tech.category }]);
+    setSearchQuery("");
+  };
+
+  const handleAddCustomSkill = () => {
+    const name = searchQuery.trim();
+    if (!name) return;
+    if (items.some((item) => item.name.trim().toLowerCase() === name.toLowerCase())) return;
+
+    const known = getTechByName(name);
+    onChange([
+      ...items,
+      {
+        name,
+        icon: known?.icon || initialsForSkill(name),
+        category: known?.category || (selectedCategory === "all" ? undefined : selectedCategory),
+      },
+    ]);
     setSearchQuery("");
   };
 
@@ -1729,6 +2554,30 @@ function TechStackEditor({ items, onChange }: TechStackEditorProps) {
                 onClick={() => handleRemoveTech(i)}
               >
                 <X size={12} />
+              </button>
+              <button
+                className={styles.techChipRemove}
+                onClick={() => i > 0 && onChange(items.map((entry, index) => {
+                  if (index === i - 1) return items[i];
+                  if (index === i) return items[i - 1];
+                  return entry;
+                }))}
+                disabled={i === 0}
+                aria-label={`Move ${item.name} up`}
+              >
+                ↑
+              </button>
+              <button
+                className={styles.techChipRemove}
+                onClick={() => i < items.length - 1 && onChange(items.map((entry, index) => {
+                  if (index === i + 1) return items[i];
+                  if (index === i) return items[i + 1];
+                  return entry;
+                }))}
+                disabled={i === items.length - 1}
+                aria-label={`Move ${item.name} down`}
+              >
+                ↓
               </button>
             </div>
           ))}
@@ -1764,8 +2613,23 @@ function TechStackEditor({ items, onChange }: TechStackEditorProps) {
           className={styles.input}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              handleAddCustomSkill();
+            }
+          }}
           placeholder="Search technologies..."
         />
+        <button
+          type="button"
+          className={styles.addButton}
+          onClick={handleAddCustomSkill}
+          disabled={!searchQuery.trim()}
+        >
+          <Plus size={14} />
+          Add custom skill
+        </button>
       </div>
 
       {/* Suggestions grid */}

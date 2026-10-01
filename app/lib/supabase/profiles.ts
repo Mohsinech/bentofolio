@@ -8,6 +8,7 @@ function normalizeTheme(theme: unknown): ThemeId {
 export interface ProfileData {
   id: string;
   username: string;
+  avatarUrl?: string | null;
   theme: ThemeId;
   layout: BlockLayout[];
   content: Record<string, BlockContent>;
@@ -33,6 +34,7 @@ export async function getProfileByUsername(
   return {
     id: data.id,
     username: data.username,
+    avatarUrl: data.avatar_url || null,
     theme: normalizeTheme(data.theme),
     layout: data.layout || [],
     content: data.content || {},
@@ -65,6 +67,7 @@ export async function getCurrentUserProfile(): Promise<ProfileData | null> {
   return {
     id: data.id,
     username: data.username,
+    avatarUrl: data.avatar_url || null,
     theme: normalizeTheme(data.theme),
     layout: data.layout || [],
     content: data.content || {},

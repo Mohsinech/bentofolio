@@ -42,27 +42,57 @@ export interface IdentityContent {
   email?: string;
   website?: string;
   availability?: string;
+  headline?: string;
+  eyebrow?: string;
+  portraitType?: "photo" | "memoji" | "none";
+  portraitFocalPoint?: string;
+  ctaLabel?: string;
 }
 
 export interface MapContent {
   location: string;
   lat: number;
   lng: number;
+  eyebrow?: string;
+  heading?: string;
+  description?: string;
+  timezone?: string;
+  variant?: "map" | "text";
+  mapUrl?: string;
+  actionUrl?: string;
+  zoom?: number;
 }
 
 export interface TechStackContent {
+  eyebrow?: string;
+  heading?: string;
+  category?: string;
+  variant?: string;
   items: {
     name: string;
     icon: string;
+    category?: string;
+    url?: string;
+    proficiency?: string;
   }[];
 }
 
 export interface ExperienceContent {
+  eyebrow?: string;
+  heading?: string;
+  variant?: string;
   items: {
     company: string;
     role: string;
     period: string;
     logo?: string;
+    description?: string;
+    location?: string;
+    employmentType?: string;
+    startDate?: string;
+    endDate?: string;
+    isCurrent?: boolean;
+    companyUrl?: string;
   }[];
 }
 
@@ -78,6 +108,14 @@ export interface LinkContent {
   url: string;
   title: string;
   icon?: string;
+  eyebrow?: string;
+  description?: string;
+  buttonLabel?: string;
+  actionType?: "link" | "email" | "copy-email" | "download";
+  variant?: "surface" | "contrast" | "accent" | "outline";
+  openInNewTab?: boolean;
+  emailSubject?: string;
+  emailBody?: string;
 }
 
 export interface WorkContent {
@@ -96,11 +134,21 @@ export interface WorkContent {
 
 export interface EducationContent {
   title: string;
+  eyebrow?: string;
+  heading?: string;
+  variant?: "timeline" | "list";
   items: {
     school: string;
+    institution?: string;
     degree: string;
+    field?: string;
+    startDate?: string;
+    endDate?: string;
+    isCurrent?: boolean;
     period: string;
     description?: string;
+    location?: string;
+    institutionUrl?: string;
     logo?: string;
   }[];
 }
@@ -113,17 +161,44 @@ export interface SaaSContent {
   mrr: number;
   revenue: number[];
   currency?: string;
+  eyebrow?: string;
+  heading?: string;
+  variant?: "grid" | "strip";
+  items?: {
+    label?: string;
+    value?: string;
+    prefix?: string;
+    suffix?: string;
+    description?: string;
+    url?: string;
+  }[];
 }
 
 // NEW: GitHub Stats Block
 export interface GitHubContent {
   username: string;
+  profileUrl?: string;
   avatarUrl?: string;
+  displayName?: string;
+  bio?: string;
   followers: number;
   following: number;
   publicRepos: number;
   totalStars?: number;
   contributions?: number;
+  featuredRepos?: {
+    name: string;
+    description?: string;
+    url?: string;
+    stars?: number;
+    language?: string;
+  }[];
+  eyebrow?: string;
+  heading?: string;
+  variant?: "profile" | "stats" | "repositories";
+  showAvatar?: boolean;
+  showBio?: boolean;
+  showStats?: boolean;
 }
 
 // NEW: Projects Block (fetched from GitHub)
@@ -141,17 +216,25 @@ export interface ProjectsContent {
 
 // NEW: Social Links Block
 export interface SocialContent {
+  eyebrow?: string;
+  heading?: string;
+  variant?: string;
   items: {
     platform:
       | "twitter"
+      | "x"
       | "linkedin"
       | "github"
       | "youtube"
       | "instagram"
       | "dribbble"
       | "behance"
+      | "tiktok"
+      | "facebook"
+      | "threads"
       | "website"
-      | "email";
+      | "email"
+      | "other";
     url: string;
     username?: string;
   }[];
@@ -177,12 +260,23 @@ export interface QuoteContent {
   role?: string;
   company?: string;
   avatar?: string;
+  companyLogo?: string;
+  sourceUrl?: string;
+  eyebrow?: string;
+  heading?: string;
+  variant?: "quote" | "person" | "featured";
 }
 
 // NEW: Resume/CV Block
 export interface ResumeContent {
   title: string;
   fileUrl: string;
+  description?: string;
+  fileName?: string;
+  updatedAt?: string;
+  buttonLabel?: string;
+  eyebrow?: string;
+  variant?: "compact" | "document";
   lastUpdated?: string;
 }
 
@@ -206,16 +300,30 @@ export interface ServicesContent {
 
 export interface ToolsContent {
   title: string;
+  eyebrow?: string;
+  heading?: string;
+  category?: string;
+  variant?: string;
   items: {
     name: string;
     icon?: string;
+    category?: string;
+    url?: string;
+    proficiency?: string;
   }[];
 }
 
 export interface StatsContent {
+  eyebrow?: string;
+  heading?: string;
+  variant?: "grid" | "strip";
   items: {
     label: string;
     value: string;
+    prefix?: string;
+    suffix?: string;
+    description?: string;
+    url?: string;
   }[];
 }
 
