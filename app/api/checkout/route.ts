@@ -67,6 +67,18 @@ export async function POST(request: Request) {
       });
     }
 
+    if (betaActivation.status === "used_up" || betaActivation.status === "expired") {
+      return NextResponse.json(
+        {
+          error:
+            betaActivation.status === "used_up"
+              ? "This code has been fully used."
+              : "This code has expired.",
+        },
+        { status: 400 }
+      );
+    }
+
     if (discountCode) {
       const admin = createAdminClient();
       const { data: rewardCode } = await admin

@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
-import { createClient as createServiceClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/app/lib/supabase/admin";
 import { createClient } from "@/app/lib/supabase/server";
 import { isAdmin } from "@/app/lib/config";
 
-// Initialize Supabase with service role for admin operations
-const supabase = createServiceClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Service-role client, created on first use. Creating it when the module
+// loads would run at build time and fail the whole build whenever the
+// Supabase variables are missing (for example in Preview deployments).
+let adminClient: ReturnType<typeof createAdminClient> | null = null;
+function getAdmin() {
+  adminClient ??= createAdminClient();
+  return adminClient;
+}
 
 function getAppHostname() {
   try {
@@ -76,7 +79,7 @@ export async function POST(request: Request) {
     }
 
     // Get the profile to verify it exists
-    const { data: profile } = await supabase
+    const { data: profile } = await getAdmin()
       .from("profiles")
       .select("id, is_pro")
       .eq("username", username)
@@ -92,7 +95,7 @@ export async function POST(request: Request) {
     }
 
     // Insert analytics event
-    const { error } = await supabase.from("profile_analytics").insert({
+    const { error } = await getAdmin().from("profile_analytics").insert({
       profile_id: profile.id,
       event_type: event,
       referrer: referrer || null,
@@ -141,7 +144,7 @@ export async function GET(request: Request) {
     }
 
     // Get the profile
-    const { data: profile } = await supabase
+    const { data: profile } = await getAdmin()
       .from("profiles")
       .select("id, is_pro")
       .eq("username", username)
@@ -184,7 +187,7 @@ export async function GET(request: Request) {
     }
 
     // Get analytics data
-    const { data: analytics, error } = await supabase
+    const { data: analytics, error } = await getAdmin()
       .from("profile_analytics")
       .select("event_type, referrer, created_at")
       .eq("profile_id", profile.id)

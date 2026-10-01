@@ -37,8 +37,6 @@ const proFeatures = [
   "Keep every free block and future polish",
 ];
 
-const betaFreeCodes = ["NAOUMI100", "OUAZINI100"];
-
 export default function PricingPage() {
   const { user } = useAuth();
   const { hasProAccess } = useProfile();
@@ -53,9 +51,8 @@ export default function PricingPage() {
     );
   });
   const normalizedCouponCode = couponCode.trim().toUpperCase();
-  const isFreeBetaCode =
-    betaFreeCodes.includes(normalizedCouponCode) ||
-    normalizedCouponCode.startsWith("COUPON100-");
+  // Codes are checked on the server. The browser never knows which codes exist.
+  const hasCouponCode = normalizedCouponCode.length > 0;
 
   const handleUpgrade = () => {
     if (!user) {
@@ -211,7 +208,7 @@ export default function PricingPage() {
             ) : (
               <>
                 <Globe size={16} />
-                {isFreeBetaCode ? "Get Pro for free" : `Get Pro — $${PREMIUM_PRICE}`}
+                {hasCouponCode ? "Apply code and get Pro" : `Get Pro — $${PREMIUM_PRICE}`}
               </>
             )}
           </button>

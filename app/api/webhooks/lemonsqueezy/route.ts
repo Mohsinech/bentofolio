@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createAdminClient } from "@/app/lib/supabase/admin";
 import crypto from "crypto";
 import { sendEmail, emailTemplates } from "@/app/lib/email";
 
-// Initialize Supabase with service role for admin operations
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Service-role client, created on first use. Creating it when the module
+// loads would run at build time and fail the whole build whenever the
+// Supabase variables are missing (for example in Preview deployments).
+let adminClient: ReturnType<typeof createAdminClient> | null = null;
+function getAdmin() {
+  adminClient ??= createAdminClient();
+  return adminClient;
+}
 
 // Verify webhook signature from Lemon Squeezy
 function verifyWebhookSignature(
@@ -75,7 +78,7 @@ export async function POST(request: Request) {
       // Only upgrade if order is paid
       if (orderStatus === "paid") {
         // Update user to Pro
-        const { error } = await supabase
+        const { error } = await getAdmin()
           .from("profiles")
           .update({
             is_pro: true,
@@ -95,7 +98,7 @@ export async function POST(request: Request) {
         console.log(`User ${userId} upgraded to Pro successfully`);
 
         // Get user profile to send welcome email
-        const { data: profile } = await supabase
+        const { data: profile } = await getAdmin()
           .from("profiles")
           .select("username")
           .eq("id", userId)
@@ -120,7 +123,7 @@ export async function POST(request: Request) {
 
       if (userId) {
         // Optionally downgrade user on refund
-        const { error } = await supabase
+        const { error } = await getAdmin()
           .from("profiles")
           .update({
             is_pro: false,

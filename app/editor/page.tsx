@@ -25,6 +25,7 @@ import {
   Plus,
   Save,
   Search,
+  Send,
   Smartphone,
   Sun,
   Trash2,
@@ -101,7 +102,17 @@ function createSnapshot(
 }
 
 function EditorStudio() {
-  const { profile, loading, error, saveProfile, saving, hasProAccess } = useProfile();
+  const {
+    profile,
+    loading,
+    error,
+    saveError,
+    saveProfile,
+    saving,
+    publishProfile,
+    publishing,
+    hasProAccess,
+  } = useProfile();
   const { signOut } = useAuth();
   const {
     layout,
@@ -143,6 +154,22 @@ function EditorStudio() {
     [layout, content, selectedTheme]
   );
   const hasUnsavedChanges = Boolean(savedSnapshotRef.current && currentSnapshot !== savedSnapshotRef.current);
+  // What visitors see right now. Differs from the saved draft until Publish.
+  const publishedSnapshot = useMemo(
+    () =>
+      profile
+        ? createSnapshot(
+            profile.published.layout,
+            profile.published.content,
+            profile.published.theme
+          )
+        : "",
+    [profile]
+  );
+  const hasUnpublishedChanges = Boolean(
+    publishedSnapshot && currentSnapshot !== publishedSnapshot
+  );
+  const busy = saving || publishing;
   const workspaceStyle = {
     "--left-panel-width": `${leftPanelWidth}px`,
     "--right-panel-width": `${rightPanelWidth}px`,
@@ -417,14 +444,42 @@ function EditorStudio() {
     showStatus("Structure updated");
   }
 
-  async function handleSave() {
-    await saveProfile({
-      layout,
-      content,
-      theme: selectedTheme,
-    });
-    savedSnapshotRef.current = createSnapshot(layout, content, selectedTheme);
-    showStatus("Saved");
+  // Saves the draft. Returns false when the save failed (saveError is set and
+  // shown in the toolbar; the editor and its changes stay as they are).
+  async function handleSave({ quiet = false } = {}): Promise<boolean> {
+    const snapshot = createSnapshot(layout, content, selectedTheme);
+    try {
+      await saveProfile({
+        layout,
+        content,
+        theme: selectedTheme,
+      });
+    } catch {
+      return false;
+    }
+    savedSnapshotRef.current = snapshot;
+    if (!quiet) showStatus("Draft saved");
+    return true;
+  }
+
+  async function handlePublish() {
+    if (hasUnsavedChanges && !(await handleSave({ quiet: true }))) return;
+    try {
+      await publishProfile();
+    } catch {
+      return;
+    }
+    showStatus("Published");
+  }
+
+  function describeState() {
+    if (saving) return "Saving";
+    if (publishing) return "Publishing";
+    if (saveError) return saveError;
+    if (status) return status;
+    if (hasUnsavedChanges) return "Unsaved changes";
+    if (hasUnpublishedChanges) return "Draft · not published";
+    return "Live";
   }
 
   if (loading) {
@@ -547,16 +602,36 @@ function EditorStudio() {
             <div className={styles.saveCluster}>
               <div
                 className={`${styles.saveState} ${
-                  hasUnsavedChanges ? styles.saveStateUnsaved : styles.saveStateSaved
+                  saveError && !busy
+                    ? styles.saveStateError
+                    : hasUnsavedChanges || hasUnpublishedChanges
+                      ? styles.saveStateUnsaved
+                      : styles.saveStateSaved
                 }`}
                 aria-live="polite"
+                title={saveError && !busy ? saveError : undefined}
               >
-                {saving ? <Loader2 className={styles.spin} size={15} /> : <span className={styles.saveDot} />}
-                <span>{saving ? "Saving" : status || (hasUnsavedChanges ? "Unsaved" : "Saved")}</span>
+                {busy ? <Loader2 className={styles.spin} size={15} /> : <span className={styles.saveDot} />}
+                <span>{describeState()}</span>
               </div>
-              <button type="button" className={styles.primaryAction} onClick={handleSave} disabled={saving}>
+              <button
+                type="button"
+                className={styles.secondaryAction}
+                onClick={() => handleSave()}
+                disabled={busy || !hasUnsavedChanges}
+              >
                 {saving ? <Loader2 className={styles.spin} size={14} /> : <Save size={14} />}
-                Save
+                Save draft
+              </button>
+              <button
+                type="button"
+                className={styles.primaryAction}
+                onClick={handlePublish}
+                disabled={busy || !hasUnpublishedChanges}
+                title="Copy your draft to your live page"
+              >
+                {publishing ? <Loader2 className={styles.spin} size={14} /> : <Send size={14} />}
+                {saveError && !busy ? "Retry publish" : "Publish"}
               </button>
             </div>
             {profileUrl && (
@@ -841,7 +916,13 @@ function EditorStudio() {
                   </div>
                   <div>
                     <dt>Status</dt>
-                    <dd>{hasUnsavedChanges ? "Unsaved changes" : "Saved"}</dd>
+                    <dd>
+                      {hasUnsavedChanges
+                        ? "Unsaved changes"
+                        : hasUnpublishedChanges
+                          ? "Draft not published"
+                          : "Live"}
+                    </dd>
                   </div>
                 </dl>
                 {profileUrl && (

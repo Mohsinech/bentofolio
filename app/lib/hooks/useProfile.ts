@@ -7,21 +7,33 @@ function normalizeTheme(theme: unknown): ThemeId {
   return theme === "light" ? "light" : "dark";
 }
 
-interface ProfileData {
+interface PageState {
+  layout: BlockLayout[];
+  content: Record<string, BlockContent>;
+  theme: ThemeId;
+}
+
+interface ProfileData extends PageState {
+  // layout / content / theme above are the editor's working copy: the saved
+  // draft when there is one, otherwise the live page.
   id: string;
   username: string;
   avatarUrl?: string | null;
-  theme: ThemeId;
-  layout: BlockLayout[];
-  content: Record<string, BlockContent>;
   isPro: boolean;
   customDomain?: string | null;
+  // What visitors currently see.
+  published: PageState;
+  publishedAt: string | null;
 }
 
 interface UseProfileReturn {
   profile: ProfileData | null;
   loading: boolean;
+  // Only set when the profile could not be loaded. A failed save never sets
+  // this, so the editor stays open and unsaved changes stay on screen.
   error: string | null;
+  // Set when the last save failed; cleared when a save starts or succeeds.
+  saveError: string | null;
   saveProfile: (
     updates: Partial<
       Pick<
@@ -31,8 +43,34 @@ interface UseProfileReturn {
     >
   ) => Promise<void>;
   saving: boolean;
+  // Copies the saved draft to the live page.
+  publishProfile: () => Promise<void>;
+  publishing: boolean;
   // Pro access comes from the profile record, not admin status.
   hasProAccess: boolean;
+}
+
+// Turns a failed save response into a message a person can act on. The body
+// is not always JSON (a host returns plain text for oversized requests), so
+// never assume it parses.
+async function describeSaveFailure(response: Response): Promise<string> {
+  if (response.status === 413) {
+    return "Your page is too large to save. Try smaller images.";
+  }
+  if (response.status === 401) {
+    return "You were signed out. Sign in again in another tab, then save.";
+  }
+
+  try {
+    const data = await response.json();
+    if (data && typeof data.error === "string" && data.error) {
+      return data.error;
+    }
+  } catch {
+    // Not JSON: fall through to the generic message.
+  }
+
+  return "Couldn't save. Your changes are still here.";
 }
 
 export function useProfile(): UseProfileReturn {
@@ -40,6 +78,8 @@ export function useProfile(): UseProfileReturn {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -57,15 +97,27 @@ export function useProfile(): UseProfileReturn {
         }
 
         const data = await response.json();
+        const published: PageState = {
+          layout: data.layout || [],
+          content: data.content || {},
+          theme: normalizeTheme(data.theme),
+        };
+        const draft: PageState | null = data.draft
+          ? {
+              layout: data.draft.layout || [],
+              content: data.draft.content || {},
+              theme: normalizeTheme(data.draft.theme),
+            }
+          : null;
         setProfile({
           id: data.id,
           username: data.username,
           avatarUrl: data.avatar_url || null,
-          theme: normalizeTheme(data.theme),
-          layout: data.layout || [],
-          content: data.content || {},
+          ...(draft ?? published),
           isPro: data.is_pro || false,
           customDomain: data.custom_domain || null,
+          published,
+          publishedAt: data.published_at || null,
         });
       } catch {
         setError("Failed to load profile");
@@ -87,7 +139,7 @@ export function useProfile(): UseProfileReturn {
       >
     ) => {
       setSaving(true);
-      setError(null);
+      setSaveError(null);
 
       try {
         const response = await fetch("/api/profile", {
@@ -99,8 +151,7 @@ export function useProfile(): UseProfileReturn {
         });
 
         if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.error || "Failed to save");
+          throw new Error(await describeSaveFailure(response));
         }
 
         // Update local state
@@ -113,8 +164,14 @@ export function useProfile(): UseProfileReturn {
             : null
         );
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to save");
-        throw err;
+        const message =
+          err instanceof TypeError
+            ? "You seem to be offline. Your changes are still here."
+            : err instanceof Error
+              ? err.message
+              : "Couldn't save. Your changes are still here.";
+        setSaveError(message);
+        throw new Error(message);
       } finally {
         setSaving(false);
       }
@@ -122,7 +179,51 @@ export function useProfile(): UseProfileReturn {
     []
   );
 
+  const publishProfile = useCallback(async () => {
+    setPublishing(true);
+    setSaveError(null);
+
+    try {
+      const response = await fetch("/api/profile/publish", { method: "POST" });
+      if (!response.ok) {
+        throw new Error(await describeSaveFailure(response));
+      }
+      const data = await response.json().catch(() => ({}));
+
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              published: { layout: prev.layout, content: prev.content, theme: prev.theme },
+              publishedAt: data.publishedAt || prev.publishedAt,
+            }
+          : null
+      );
+    } catch (err) {
+      const message =
+        err instanceof TypeError
+          ? "You seem to be offline. Nothing was published."
+          : err instanceof Error
+            ? err.message
+            : "Couldn't publish. Try again.";
+      setSaveError(message);
+      throw new Error(message);
+    } finally {
+      setPublishing(false);
+    }
+  }, []);
+
   const hasProAccess = Boolean(profile?.isPro);
 
-  return { profile, loading, error, saveProfile, saving, hasProAccess };
+  return {
+    profile,
+    loading,
+    error,
+    saveError,
+    saveProfile,
+    saving,
+    publishProfile,
+    publishing,
+    hasProAccess,
+  };
 }

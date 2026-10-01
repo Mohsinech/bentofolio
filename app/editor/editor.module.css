@@ -185,6 +185,21 @@
   color: #d08a24;
 }
 
+.saveStateError {
+  color: #c2412d;
+  max-width: 280px;
+}
+
+.saveStateError span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saveStateError .saveDot {
+  color: #c2412d;
+}
+
 .segmented {
   display: inline-flex;
   gap: 2px;
