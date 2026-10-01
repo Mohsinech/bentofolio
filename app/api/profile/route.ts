@@ -6,6 +6,54 @@ function normalizeTheme(theme: unknown) {
   return theme === "light" ? "light" : "dark";
 }
 
+type ServerClient = Awaited<ReturnType<typeof createClient>>;
+
+// Postgres "undefined_table": migration 011 has not been run.
+const UNDEFINED_TABLE = "42P01";
+
+async function saveDraft(
+  supabase: ServerClient,
+  userId: string,
+  fields: { layout?: unknown; content?: unknown; theme?: unknown }
+): Promise<"ok" | "no_draft_table" | { error: string }> {
+  // Fill any field that wasn't sent from the current draft, or from the live
+  // page when there is no draft yet, so a partial save never blanks the rest.
+  const { data: existing, error: draftReadError } = await supabase
+    .from("profile_drafts")
+    .select("layout, content, theme")
+    .eq("profile_id", userId)
+    .maybeSingle();
+
+  if (draftReadError) {
+    if (draftReadError.code === UNDEFINED_TABLE) return "no_draft_table";
+    return { error: draftReadError.message };
+  }
+
+  let base = existing;
+  if (!base) {
+    const { data: live, error: liveError } = await supabase
+      .from("profiles")
+      .select("layout, content, theme")
+      .eq("id", userId)
+      .single();
+    if (liveError) return { error: liveError.message };
+    base = live;
+  }
+
+  const { error } = await supabase.from("profile_drafts").upsert(
+    {
+      profile_id: userId,
+      layout: fields.layout !== undefined ? fields.layout : base?.layout ?? [],
+      content: fields.content !== undefined ? fields.content : base?.content ?? {},
+      theme: normalizeTheme(fields.theme !== undefined ? fields.theme : base?.theme),
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "profile_id" }
+  );
+
+  return error ? { error: error.message } : "ok";
+}
+
 // GET: Fetch current user's profile (or create one if it doesn't exist)
 export async function GET() {
   const supabase = await createClient();
@@ -107,10 +155,21 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json(data);
+  // The unpublished draft, if any. Missing table (migration 011 not applied
+  // yet) or no draft both mean "the editor starts from the live page".
+  const { data: draft } = await supabase
+    .from("profile_drafts")
+    .select("layout, content, theme, updated_at")
+    .eq("profile_id", user.id)
+    .maybeSingle();
+
+  return NextResponse.json({ ...data, draft: draft ?? null });
 }
 
-// PUT: Update current user's profile
+// PUT: Update current user's profile.
+// layout / content / theme are saved to the private draft; the live page only
+// changes on POST /api/profile/publish. Everything else (username, custom
+// domain, avatar) is a setting and applies immediately.
 export async function PUT(request: Request) {
   const supabase = await createClient();
 
@@ -122,17 +181,41 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const body = await request.json();
-  const { layout, content, theme, username, customDomain, avatarUrl } = body;
+  let body: Record<string, unknown>;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { layout, content, theme, username, customDomain, avatarUrl } = body as {
+    layout?: unknown;
+    content?: unknown;
+    theme?: unknown;
+    username?: string;
+    customDomain?: string | null;
+    avatarUrl?: string | null;
+  };
 
   // Build update object (only include fields that were provided)
   const updates: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
 
-  if (layout !== undefined) updates.layout = layout;
-  if (content !== undefined) updates.content = content;
-  if (theme !== undefined) updates.theme = normalizeTheme(theme);
+  const touchesDraft =
+    layout !== undefined || content !== undefined || theme !== undefined;
+
+  if (touchesDraft) {
+    const draftResult = await saveDraft(supabase, user.id, { layout, content, theme });
+
+    if (draftResult === "no_draft_table") {
+      // Migration 011 not applied yet: keep the old behaviour and save live.
+      if (layout !== undefined) updates.layout = layout;
+      if (content !== undefined) updates.content = content;
+      if (theme !== undefined) updates.theme = normalizeTheme(theme);
+    } else if (draftResult !== "ok") {
+      return NextResponse.json({ error: draftResult.error }, { status: 500 });
+    }
+  }
   if (avatarUrl !== undefined) {
     if (
       avatarUrl !== null &&
@@ -192,6 +275,12 @@ export async function PUT(request: Request) {
       }
     }
     updates.custom_domain = customDomain || null;
+  }
+
+  // Only touch the live profile row when a setting (or the pre-migration
+  // fallback) actually changed something.
+  if (Object.keys(updates).length === 1) {
+    return NextResponse.json({ success: true });
   }
 
   const { error } = await supabase

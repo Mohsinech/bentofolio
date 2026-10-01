@@ -7,15 +7,23 @@ function normalizeTheme(theme: unknown): ThemeId {
   return theme === "light" ? "light" : "dark";
 }
 
-interface ProfileData {
+interface PageState {
+  layout: BlockLayout[];
+  content: Record<string, BlockContent>;
+  theme: ThemeId;
+}
+
+interface ProfileData extends PageState {
+  // layout / content / theme above are the editor's working copy: the saved
+  // draft when there is one, otherwise the live page.
   id: string;
   username: string;
   avatarUrl?: string | null;
-  theme: ThemeId;
-  layout: BlockLayout[];
-  content: Record<string, BlockContent>;
   isPro: boolean;
   customDomain?: string | null;
+  // What visitors currently see.
+  published: PageState;
+  publishedAt: string | null;
 }
 
 interface UseProfileReturn {
@@ -35,6 +43,9 @@ interface UseProfileReturn {
     >
   ) => Promise<void>;
   saving: boolean;
+  // Copies the saved draft to the live page.
+  publishProfile: () => Promise<void>;
+  publishing: boolean;
   // Pro access comes from the profile record, not admin status.
   hasProAccess: boolean;
 }
@@ -68,6 +79,7 @@ export function useProfile(): UseProfileReturn {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -85,15 +97,27 @@ export function useProfile(): UseProfileReturn {
         }
 
         const data = await response.json();
+        const published: PageState = {
+          layout: data.layout || [],
+          content: data.content || {},
+          theme: normalizeTheme(data.theme),
+        };
+        const draft: PageState | null = data.draft
+          ? {
+              layout: data.draft.layout || [],
+              content: data.draft.content || {},
+              theme: normalizeTheme(data.draft.theme),
+            }
+          : null;
         setProfile({
           id: data.id,
           username: data.username,
           avatarUrl: data.avatar_url || null,
-          theme: normalizeTheme(data.theme),
-          layout: data.layout || [],
-          content: data.content || {},
+          ...(draft ?? published),
           isPro: data.is_pro || false,
           customDomain: data.custom_domain || null,
+          published,
+          publishedAt: data.published_at || null,
         });
       } catch {
         setError("Failed to load profile");
@@ -155,7 +179,51 @@ export function useProfile(): UseProfileReturn {
     []
   );
 
+  const publishProfile = useCallback(async () => {
+    setPublishing(true);
+    setSaveError(null);
+
+    try {
+      const response = await fetch("/api/profile/publish", { method: "POST" });
+      if (!response.ok) {
+        throw new Error(await describeSaveFailure(response));
+      }
+      const data = await response.json().catch(() => ({}));
+
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              published: { layout: prev.layout, content: prev.content, theme: prev.theme },
+              publishedAt: data.publishedAt || prev.publishedAt,
+            }
+          : null
+      );
+    } catch (err) {
+      const message =
+        err instanceof TypeError
+          ? "You seem to be offline. Nothing was published."
+          : err instanceof Error
+            ? err.message
+            : "Couldn't publish. Try again.";
+      setSaveError(message);
+      throw new Error(message);
+    } finally {
+      setPublishing(false);
+    }
+  }, []);
+
   const hasProAccess = Boolean(profile?.isPro);
 
-  return { profile, loading, error, saveError, saveProfile, saving, hasProAccess };
+  return {
+    profile,
+    loading,
+    error,
+    saveError,
+    saveProfile,
+    saving,
+    publishProfile,
+    publishing,
+    hasProAccess,
+  };
 }
