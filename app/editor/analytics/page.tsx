@@ -1,419 +1,345 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { PREMIUM_PRICE } from "@/app/lib/config";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Eye,
-  MousePointerClick,
-  TrendingUp,
-  Calendar,
-  Sparkles,
-  Loader2,
-} from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Check, Copy, Loader2 } from "lucide-react";
+import { bentoFontClasses } from "@/app/components/bento/fonts";
+import m from "@/app/components/marketing/marketing.module.css";
+import { PREMIUM_PRICE } from "@/app/lib/config";
+import { delta, type Dashboard, type Period } from "@/app/lib/analytics";
 import { useProfile } from "@/app/lib/hooks";
-import styles from "./analytics.module.css";
+import s from "./analytics.module.css";
 
-interface AnalyticsData {
-  totalViews: number;
-  totalClicks: number;
-  recentViews: Array<{
-    date: string;
-    count: number;
-  }>;
-  recentClicks: Array<{
-    date: string;
-    count: number;
-  }>;
-  topReferrers: Array<{
-    source: string;
-    count: number;
-  }>;
+type Locked = { locked: true; period: Period; totals: { views: number; visitors: number } };
+type Data = ({ locked: false } & Dashboard) | Locked;
+
+const PERIODS: Period[] = [7, 30, 90];
+
+const BLOCK_NAMES: Record<string, string> = {
+  social: "Social links",
+  link: "Call to action",
+  github: "GitHub",
+  projects: "Projects",
+  work: "Projects",
+  saas: "SaaS",
+  identity: "Profile",
+  resume: "Resume",
+  experience: "Experience",
+  education: "Education",
+  cv: "CV view",
+};
+
+function compact(n: number): string {
+  return new Intl.NumberFormat("en", { notation: n >= 10_000 ? "compact" : "standard", maximumFractionDigits: 1 }).format(n);
 }
 
-function formatShortDate(date: string) {
-  return new Date(date).toLocaleDateString("en-US", {
+function dayLabel(date: string, withYear = false): string {
+  return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
-  });
+    ...(withYear ? { year: "numeric" } : {}),
+    timeZone: "UTC",
+  }).format(new Date(`${date}T00:00:00Z`));
 }
 
-function buildLinePath(
-  data: { date: string; count: number }[],
-  maxValue: number,
-  width: number,
-  height: number
-) {
-  if (!data.length) return "";
-  return data
-    .map((item, index) => {
-      const x = data.length === 1 ? width / 2 : (index / (data.length - 1)) * width;
-      const y = height - (item.count / maxValue) * height;
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(" ");
+function countryName(code: string): string {
+  try {
+    return new Intl.DisplayNames(["en"], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
 }
 
-function TrendChart({
-  views,
-  clicks,
-}: {
-  views: AnalyticsData["recentViews"];
-  clicks: AnalyticsData["recentClicks"];
-}) {
-  const width = 760;
-  const height = 260;
-  const chartPadding = 18;
-  const maxValue = Math.max(
-    1,
-    ...views.map((item) => item.count),
-    ...clicks.map((item) => item.count)
-  );
-  const viewPath = buildLinePath(views, maxValue, width, height);
-  const clickPath = buildLinePath(clicks, maxValue, width, height);
-  const areaPath = viewPath
-    ? `${viewPath} L ${width} ${height} L 0 ${height} Z`
-    : "";
-  const labelStep = Math.max(1, Math.ceil(views.length / 6));
+function prettyUrl(url: string): string {
+  return url.replace(/^mailto:/, "").replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+}
 
+function Delta({ current, previous }: { current: number; previous: number }) {
+  const change = delta(current, previous);
+  if (change === null) return <span className={s.deltaNone}>No earlier data</span>;
+  const up = change >= 0;
+  const Icon = up ? ArrowUpRight : ArrowDownRight;
   return (
-    <div className={styles.realChart}>
-      <svg
-        viewBox={`0 0 ${width + chartPadding * 2} ${height + 54}`}
-        role="img"
-        aria-label="Views and clicks over time"
-      >
-        <defs>
-          <linearGradient id="viewsFill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="#d7ff5f" stopOpacity="0.28" />
-            <stop offset="100%" stopColor="#d7ff5f" stopOpacity="0" />
-          </linearGradient>
-          <filter id="softGlow">
-            <feGaussianBlur stdDeviation="3" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <g transform={`translate(${chartPadding} ${chartPadding})`}>
-          {[0, 1, 2, 3].map((line) => {
-            const y = (line / 3) * height;
-            return (
-              <line
-                key={line}
-                x1="0"
-                x2={width}
-                y1={y}
-                y2={y}
-                className={styles.gridLine}
-              />
-            );
-          })}
-          {areaPath && <path d={areaPath} className={styles.areaPath} />}
-          {viewPath && (
-            <path d={viewPath} className={styles.viewPath} filter="url(#softGlow)" />
-          )}
-          {clickPath && <path d={clickPath} className={styles.clickPath} />}
-          {views.map((item, index) => {
-            const x =
-              views.length === 1 ? width / 2 : (index / (views.length - 1)) * width;
-            const y = height - (item.count / maxValue) * height;
-            const showLabel = index % labelStep === 0 || index === views.length - 1;
+    <span className={up ? s.deltaUp : s.deltaDown}>
+      <Icon size={13} aria-hidden="true" />
+      {Math.abs(change * 100).toFixed(0)}% <span className={s.deltaNote}>vs previous</span>
+    </span>
+  );
+}
 
-            return (
-              <g key={item.date}>
-                <circle cx={x} cy={y} r="4.5" className={styles.viewDot}>
-                  <title>
-                    {formatShortDate(item.date)}: {item.count} views
-                  </title>
-                </circle>
-                {showLabel && (
-                  <text x={x} y={height + 30} className={styles.axisLabel}>
-                    {formatShortDate(item.date)}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-        </g>
-      </svg>
+function Breakdown({
+  title,
+  rows,
+  empty,
+}: {
+  title: string;
+  rows: { label: string; sub?: string; count: number }[];
+  empty: string;
+}) {
+  const max = Math.max(...rows.map((row) => row.count), 1);
+  return (
+    <section className={s.card} aria-label={title}>
+      <h2 className={s.cardTitle}>{title}</h2>
+      {rows.length === 0 ? (
+        <p className={s.muted}>{empty}</p>
+      ) : (
+        <ul className={s.list}>
+          {rows.map((row) => (
+            <li key={`${row.label}-${row.sub ?? ""}`} className={s.listRow}>
+              <span className={s.listBar} style={{ width: `${(row.count / max) * 100}%` }} aria-hidden="true" />
+              <span className={s.listLabel}>
+                {row.label}
+                {row.sub && <span className={s.listSub}>{row.sub}</span>}
+              </span>
+              <span className={s.listCount}>{compact(row.count)}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
+function DailyChart({ daily }: { daily: Dashboard["daily"] }) {
+  const [active, setActive] = useState<number | null>(null);
+  const max = Math.max(...daily.map((d) => d.views), 0);
+  const last = daily.length - 1;
+  const mid = Math.floor(last / 2);
+  return (
+    <div className={s.chart}>
+      <div className={s.plot} onMouseLeave={() => setActive(null)} aria-hidden="true">
+        {max > 0 && (
+          <>
+            <span className={s.guide} />
+            <span className={s.guideLabel}>{compact(max)}</span>
+          </>
+        )}
+        {daily.map((day, index) => (
+          <span key={day.date} className={`${s.slot} ${active === index ? s.slotOn : ""}`} onMouseEnter={() => setActive(index)}>
+            <span
+              className={`${s.bar} ${day.views === 0 ? s.barEmpty : ""}`}
+              style={{ height: day.views > 0 ? `max(${(day.views / max) * 100}%, 3px)` : undefined, animationDelay: `${Math.min(index * 15, 600)}ms` }}
+            />
+            {active === index && (
+              <span
+                className={s.tip}
+                style={
+                  index > last - 4
+                    ? { right: 0, transform: "translateY(-100%)" }
+                    : index < 4
+                      ? { left: 0, transform: "translateY(-100%)" }
+                      : { left: "50%", transform: "translate(-50%, -100%)" }
+                }
+              >
+                <span className={s.tipDate}>{dayLabel(day.date, true)}</span>
+                {day.views} {day.views === 1 ? "view" : "views"} · {day.visitors} {day.visitors === 1 ? "visitor" : "visitors"}
+              </span>
+            )}
+          </span>
+        ))}
+      </div>
+      <div className={s.axis} aria-hidden="true">
+        <span>{dayLabel(daily[0].date)}</span>
+        <span>{dayLabel(daily[mid].date)}</span>
+        <span>{dayLabel(daily[last].date)}</span>
+      </div>
+      <table className={s.srOnly}>
+        <caption>Views per day</caption>
+        <tbody>
+          {daily.map((day) => (
+            <tr key={day.date}>
+              <th scope="row">{dayLabel(day.date, true)}</th>
+              <td>
+                {day.views} views, {day.visitors} visitors
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
 export default function AnalyticsPage() {
-  const { profile, loading: profileLoading, hasProAccess } = useProfile();
-  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const { profile, loading: profileLoading } = useProfile();
+  const [period, setPeriod] = useState<Period>(30);
+  const [data, setData] = useState<Data | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<"7d" | "30d" | "all">("7d");
-
-  const fetchAnalytics = useCallback(async () => {
-    if (!profile?.username) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(
-        `/api/analytics?username=${profile.username}&period=${timeRange}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setAnalytics(data);
-      }
-    } catch (error) {
-      console.error("Failed to fetch analytics:", error);
-    } finally {
-      setLoading(false);
-    }
-  }, [profile?.username, timeRange]);
+  const [copied, setCopied] = useState(false);
+  const username = profile?.username;
 
   useEffect(() => {
-    if (profile && hasProAccess) {
-      fetchAnalytics();
-    }
-  }, [profile, hasProAccess, fetchAnalytics]);
+    if (!username) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/analytics?username=${encodeURIComponent(username)}&period=${period}d`)
+      .then(async (response) => {
+        const json = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(json.error || "Couldn't load analytics.");
+        if (!cancelled) setData(json);
+      })
+      .catch((e) => !cancelled && setError(e instanceof Error ? e.message : "Couldn't load analytics."))
+      .finally(() => !cancelled && setLoading(false));
+    return () => {
+      cancelled = true;
+    };
+  }, [username, period]);
 
-  // Pro required screen
-  if (profileLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loadingContainer}>
-          <Loader2 className={styles.spinner} size={32} />
-          <p>Loading...</p>
-        </div>
-      </div>
-    );
-  }
+  const pageUrl = username ? `bentofolio.dev/${username}` : "";
+  const full = data && !data.locked ? data : null;
 
-  if (!profile || !hasProAccess) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.shell}>
-          <header className={styles.header}>
-            <Link href="/editor" className={styles.backLink}>
-              <ArrowLeft size={20} />
-              Back to Editor
-            </Link>
-          </header>
+  const lists = useMemo(() => {
+    if (!full) return null;
+    const totalDevices = full.devices.reduce((sum, d) => sum + d.count, 0) || 1;
+    return {
+      sources: full.sources.map((row) => ({ label: row.name, count: row.count })),
+      countries: full.countries.map((row) => ({ label: countryName(row.code), count: row.count })),
+      devices: full.devices.map((row) => ({
+        label: row.name,
+        sub: `${Math.round((row.count / totalDevices) * 100)}%`,
+        count: row.count,
+      })),
+      links: full.links.map((row) => ({
+        label: prettyUrl(row.url),
+        sub: row.block ? BLOCK_NAMES[row.block] ?? row.block : undefined,
+        count: row.count,
+      })),
+    };
+  }, [full]);
 
-          <div className={styles.proRequired}>
-            <div className={styles.lockIcon}>
-              <Sparkles size={32} />
-            </div>
-            <span className={styles.eyebrow}>Pro feature</span>
-            <h1 className={styles.proTitle}>Profile Analytics</h1>
-            <p className={styles.proDesc}>
-              Understand views, clicks, and referrers without leaving your
-              BentoFolio workspace.
-            </p>
-            <div className={styles.proFeatures}>
-              <div className={styles.proFeature}>
-                <Eye size={18} />
-                <span>Total profile views</span>
-              </div>
-              <div className={styles.proFeature}>
-                <MousePointerClick size={18} />
-                <span>Click tracking</span>
-              </div>
-              <div className={styles.proFeature}>
-                <TrendingUp size={18} />
-                <span>Traffic trends</span>
-              </div>
-              <div className={styles.proFeature}>
-                <Calendar size={18} />
-                <span>Recent activity</span>
-              </div>
-            </div>
-            <Link href="/pricing" className={styles.upgradeButton}>
-              <Sparkles size={16} />
-              Get Pro — ${PREMIUM_PRICE}
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.shell}>
-          <header className={styles.header}>
-            <Link href="/editor" className={styles.backLink}>
-              <ArrowLeft size={20} />
-              Back to Editor
-            </Link>
-          </header>
-          <div className={styles.loading}>
-            <Loader2 size={32} className={styles.spinner} />
-            <p>Loading analytics...</p>
-          </div>
-        </div>
-      </div>
-    );
+  async function copyLink() {
+    await navigator.clipboard?.writeText(`https://${pageUrl}`).catch(() => null);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   }
 
   return (
-    <div className={styles.container}>
-      <div className={styles.shell}>
-        <header className={styles.header}>
-          <div className={styles.titleWrap}>
-            <span className={styles.eyebrow}>Analytics</span>
-            <h1 className={styles.title}>Profile performance</h1>
-            <p className={styles.subtitle}>
-              Track what happens after people open your portfolio.
-            </p>
-          </div>
-          <Link href="/editor" className={styles.backLink}>
-            <ArrowLeft size={20} />
-            Back to Editor
-          </Link>
-        </header>
+    <div className={`${bentoFontClasses} ${m.page} ${s.page}`}>
+      <header className={s.topbar}>
+        <Link href="/" className={s.mark} aria-label="bentofolio home">
+          <i />
+          <i />
+          <i />
+        </Link>
+        <span className={s.barTitle}>Analytics</span>
+        <Link href="/settings" className={s.barLink}>
+          Settings
+        </Link>
+        <Link href="/editor" className={`${m.btn} ${m.btnGhost} ${s.small}`}>
+          Back to editor
+        </Link>
+      </header>
 
-        <div className={styles.timeRange}>
-          <button
-            className={`${styles.timeButton} ${
-              timeRange === "7d" ? styles.active : ""
-            }`}
-            onClick={() => setTimeRange("7d")}
-          >
-            Last 7 days
-          </button>
-          <button
-            className={`${styles.timeButton} ${
-              timeRange === "30d" ? styles.active : ""
-            }`}
-            onClick={() => setTimeRange("30d")}
-          >
-            Last 30 days
-          </button>
-          <button
-            className={`${styles.timeButton} ${
-              timeRange === "all" ? styles.active : ""
-            }`}
-            onClick={() => setTimeRange("all")}
-          >
-            All time
-          </button>
-        </div>
-
-        <div className={styles.statsGrid}>
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <Eye size={24} />
-            </div>
-            <div className={styles.statContent}>
-              <span className={styles.statLabel}>Total Views</span>
-              <span className={styles.statValue}>
-                {(analytics?.totalViews || 0).toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <MousePointerClick size={24} />
-            </div>
-            <div className={styles.statContent}>
-              <span className={styles.statLabel}>Total Clicks</span>
-              <span className={styles.statValue}>
-                {(analytics?.totalClicks || 0).toLocaleString()}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.statCard}>
-            <div className={styles.statIcon}>
-              <TrendingUp size={24} />
-            </div>
-            <div className={styles.statContent}>
-              <span className={styles.statLabel}>Click Rate</span>
-              <span className={styles.statValue}>
-                {analytics?.totalViews
-                  ? (
-                      ((analytics.totalClicks || 0) / analytics.totalViews) *
-                      100
-                    ).toFixed(1)
-                  : 0}
-                %
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.chartCard}>
-          <div className={styles.cardHeader}>
-            <h2 className={styles.cardTitle}>
-              <Calendar size={18} />
-              Traffic trend
-            </h2>
-            <div className={styles.legend}>
-              <span>
-                <i className={styles.viewsKey} />
-                Views
-              </span>
-              <span>
-                <i className={styles.clicksKey} />
-                Clicks
-              </span>
-            </div>
-          </div>
-          <div className={styles.chart}>
-            {analytics?.recentViews && analytics.recentViews.length > 0 ? (
-              <TrendChart
-                views={analytics.recentViews}
-                clicks={analytics.recentClicks || []}
-              />
-            ) : (
-              <div className={styles.emptyState}>
-                <Eye size={32} />
-                <p>No views yet. Share your portfolio to start tracking.</p>
-              </div>
+      <main className={s.main}>
+        <div className={s.titleRow}>
+          <div className={s.titleText}>
+            <h1 className={s.title}>Analytics</h1>
+            {username && (
+              <a className={m.lbl} href={`/${username}`} target="_blank" rel="noopener noreferrer">
+                {pageUrl} ↗
+              </a>
             )}
           </div>
+          <div className={s.segment} role="radiogroup" aria-label="Period">
+            {PERIODS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                role="radio"
+                aria-checked={period === p}
+                className={period === p ? s.segmentOn : undefined}
+                onClick={() => setPeriod(p)}
+              >
+                {p} days
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className={styles.referrersCard}>
-          <h2 className={styles.cardTitle}>
-            <TrendingUp size={18} />
-            Top Referrers
-          </h2>
-          {analytics?.topReferrers && analytics.topReferrers.length > 0 ? (
-            <div className={styles.referrersList}>
-              {analytics.topReferrers.map((referrer) => {
-                const maxCount = Math.max(
-                  ...analytics.topReferrers.map((item) => item.count)
-                );
-                const width =
-                  maxCount > 0 ? `${(referrer.count / maxCount) * 100}%` : "0%";
+        {error && (
+          <p className={s.error} role="alert">
+            {error}
+          </p>
+        )}
 
-                return (
-                  <div key={referrer.source} className={styles.referrerItem}>
-                    <div className={styles.referrerTop}>
-                      <span className={styles.referrerSource}>
-                        {referrer.source}
-                      </span>
-                      <span className={styles.referrerCount}>
-                        {referrer.count}
-                      </span>
-                    </div>
-                    <div className={styles.referrerTrack}>
-                      <span style={{ width }} />
-                    </div>
-                  </div>
-                );
-              })}
+        {(profileLoading || (loading && !data)) && !error && <Loader2 size={20} className={s.spin} aria-label="Loading" />}
+
+        {data?.locked && (
+          <section className={`${s.card} ${s.locked}`}>
+            <span className={m.lbl}>Last {data.period} days</span>
+            <p className={s.lockedNumber}>
+              {compact(data.totals.views)} <span>{data.totals.views === 1 ? "view" : "views"}</span>
+            </p>
+            <p className={s.lockedText}>
+              {data.totals.views > 0
+                ? `From ${compact(data.totals.visitors)} ${data.totals.visitors === 1 ? "visitor" : "visitors"}. See where they came from, which countries, which devices, and which links they clicked.`
+                : "Share your link to start getting visits. With Pro you see where visitors come from and what they click."}
+            </p>
+            <div className={s.lockedActions}>
+              <Link href="/pricing" className={`${m.btn} ${m.btnAccent}`}>
+                Unlock analytics — ${PREMIUM_PRICE} once
+              </Link>
+              <button type="button" className={`${m.btn} ${m.btnGhost}`} onClick={copyLink}>
+                {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                {copied ? "Copied" : "Copy your link"}
+              </button>
             </div>
-          ) : (
-            <div className={styles.emptyState}>
-              <TrendingUp size={32} />
-              <p>No referrer data yet.</p>
+          </section>
+        )}
+
+        {full && lists && (
+          <div className={`${s.grid} ${loading ? s.dim : ""}`}>
+            <div className={s.tiles}>
+              {[
+                { label: "Views", value: compact(full.totals.views), cur: full.totals.views, prev: full.previous.views },
+                { label: "Visitors", value: compact(full.totals.visitors), cur: full.totals.visitors, prev: full.previous.visitors },
+                { label: "Link clicks", value: compact(full.totals.clicks), cur: full.totals.clicks, prev: full.previous.clicks },
+                {
+                  label: "Click rate",
+                  value: `${Math.round(full.totals.clickRate * 100)}%`,
+                  cur: full.totals.clickRate,
+                  prev: full.previous.clickRate,
+                },
+              ].map((tile) => (
+                <div key={tile.label} className={s.tile}>
+                  <span className={s.tileLabel}>{tile.label}</span>
+                  <span className={s.tileValue}>{tile.value}</span>
+                  <Delta current={tile.cur} previous={tile.prev} />
+                </div>
+              ))}
             </div>
-          )}
-        </div>
-      </div>
+
+            <section className={`${s.card} ${s.wide}`} aria-label="Views per day">
+              <div className={s.cardHead}>
+                <h2 className={s.cardTitle}>Views per day</h2>
+                <span className={m.lbl}>Hover a day for details</span>
+              </div>
+              {full.totals.views === 0 ? (
+                <div className={s.empty}>
+                  <p>No visits in the last {full.period} days yet.</p>
+                  <button type="button" className={`${m.btn} ${m.btnGhost} ${s.small}`} onClick={copyLink}>
+                    {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+                    {copied ? "Copied" : `Copy ${pageUrl}`}
+                  </button>
+                </div>
+              ) : (
+                <DailyChart daily={full.daily} />
+              )}
+            </section>
+
+            <Breakdown title="Sources" rows={lists.sources} empty="Where visitors come from will show here." />
+            <Breakdown title="Countries" rows={lists.countries} empty="Countries show for new visits." />
+            <Breakdown title="Devices" rows={lists.devices} empty="No visits yet." />
+            <Breakdown title="Links clicked" rows={lists.links} empty="No link clicks yet." />
+
+            <p className={`${s.muted} ${s.wide}`}>
+              Your own visits and bots aren&apos;t counted. Visitors are counted once a day, without cookies.
+            </p>
+          </div>
+        )}
+      </main>
     </div>
   );
 }

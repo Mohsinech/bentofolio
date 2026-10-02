@@ -4,73 +4,45 @@ import { useEffect } from "react";
 
 interface AnalyticsTrackerProps {
   username: string;
-  isPro: boolean;
+  // Kept for callers; every page is tracked, Pro decides who sees the numbers.
+  isPro?: boolean;
 }
 
-export function AnalyticsTracker({ username, isPro }: AnalyticsTrackerProps) {
+function send(body: Record<string, unknown>) {
+  // keepalive lets a click be recorded even when the visitor leaves the page.
+  fetch("/api/analytics", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    keepalive: true,
+  }).catch(() => {
+    // Analytics never breaks the page.
+  });
+}
+
+export function AnalyticsTracker({ username }: AnalyticsTrackerProps) {
   useEffect(() => {
-    // Only track for Pro users
-    if (!isPro) return;
+    send({ username, event: "view", referrer: document.referrer || null });
 
-    // Track page view
-    const trackView = async () => {
+    // Clicks on links that leave the page, with the block they were in.
+    const onClick = (event: MouseEvent) => {
+      const link = (event.target as HTMLElement | null)?.closest("a");
+      if (!link?.href) return;
+      let url: URL;
       try {
-        await fetch("/api/analytics", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            event: "view",
-            referrer: document.referrer || null,
-            userAgent: navigator.userAgent,
-          }),
-        });
-      } catch (error) {
-        // Silently fail - analytics shouldn't break the page
-        console.error("Analytics error:", error);
+        url = new URL(link.href);
+      } catch {
+        return;
       }
+      const external = url.protocol === "mailto:" || (url.protocol.startsWith("http") && url.hostname !== window.location.hostname);
+      if (!external) return;
+      const block = (link.closest("[data-block]") as HTMLElement | null)?.dataset.block ?? null;
+      send({ username, event: "link_click", clicked_url: link.href, block, referrer: document.referrer || null });
     };
 
-    trackView();
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, [username]);
 
-    // Track link clicks
-    const trackClick = async (url: string) => {
-      try {
-        await fetch("/api/analytics", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            username,
-            event: "link_click",
-            clicked_url: url,
-            referrer: document.referrer || null,
-            userAgent: navigator.userAgent,
-          }),
-        });
-      } catch (error) {
-        console.error("Analytics error:", error);
-      }
-    };
-
-    // Add click listener to all external links
-    const handleClick = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      const link = target.closest("a");
-
-      // Track clicks on external links (not same domain)
-      if (link && link.href && !link.href.includes(window.location.hostname)) {
-        trackClick(link.href);
-      }
-    };
-
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, [username, isPro]);
-
-  // This component doesn't render anything
   return null;
 }

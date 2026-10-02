@@ -108,7 +108,7 @@ export function PublicProfileShell({
         {showCv ? (
           <>
             {/* Pro pages print the ATS-friendly CV instead of the web one. */}
-            <div data-print-hide={isPro ? "" : undefined}>
+            <div data-print-hide={isPro ? "" : undefined} data-block="cv">
               <CvView username={username} layout={visible} content={content} avatarUrl={avatarUrl} />
             </div>
             {isPro && <CvPrint username={username} layout={visible} content={content} />}
