@@ -793,15 +793,17 @@ function monthLabel(start: string | undefined, offset: number, short = false): s
   return new Intl.DateTimeFormat("en", { month: "short", year: "numeric", timeZone: "UTC" }).format(date);
 }
 
-// Top of the scale: the y position (0-100) of the highest value.
-const CHART_TOP = 14;
-
+// Monthly revenue as bars: one bar per month, the current month in the
+// accent and earlier months in a lighter step of it. Empty months show a
+// thin stub so they read as $0, not missing. Hover (or focus) a month for
+// its value; screen readers get the same numbers as a table.
 function RevenueChart({
   values,
   currency,
   label,
   start,
   detailed,
+  interactive = true,
 }: {
   values: number[];
   currency?: string;
@@ -809,25 +811,14 @@ function RevenueChart({
   start?: string;
   // Tall blocks show the period total and month labels; strips stay compact.
   detailed: boolean;
+  interactive?: boolean;
 }) {
-  const [hover, setHover] = useState<number | null>(null);
-  const geometry = useMemo(() => {
-    const max = Math.max(...values, 1);
-    const min = Math.min(...values, 0);
-    const span = max - min || 1;
-    const points = values.map((value, index) => ({
-      x: values.length === 1 ? 50 : (index / (values.length - 1)) * 100,
-      y: 98 - ((value - min) / span) * (98 - CHART_TOP),
-    }));
-    const line = points.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
-    return { points, line, area: `${line} L100,100 L0,100 Z`, max: Math.max(...values, 0) };
-  }, [values]);
-
-  const last = geometry.points[geometry.points.length - 1];
-  const hovered = hover !== null ? geometry.points[hover] : null;
+  const [active, setActive] = useState<number | null>(null);
+  const max = Math.max(...values, 0);
   const total = values.reduce((sum, value) => sum + value, 0);
   const first = monthLabel(start, 0, true);
   const end = monthLabel(start, values.length - 1, true);
+  const last = values.length - 1;
 
   return (
     <div className={styles.chartWrap}>
@@ -837,51 +828,41 @@ function RevenueChart({
           <span className={styles.chartHeadValue}>{formatMoney(total, currency)}</span>
         </div>
       )}
-      <div className={styles.chart} onMouseLeave={() => setHover(null)}>
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}>
-          {geometry.max > 0 && (
-            <line
-              x1="0"
-              x2="100"
-              y1={CHART_TOP}
-              y2={CHART_TOP}
-              className={styles.chartGrid}
-              vectorEffect="non-scaling-stroke"
-            />
-          )}
-          <line x1="0" x2="100" y1="99.5" y2="99.5" className={styles.chartBase} vectorEffect="non-scaling-stroke" />
-          <path d={geometry.area} className={styles.chartArea} />
-          <path d={geometry.line} pathLength={1} className={styles.chartLine} vectorEffect="non-scaling-stroke" />
-        </svg>
-        <span className={styles.chartEnd} style={{ left: `${last.x}%`, top: `${last.y}%` }} />
-        {hovered && hover !== null && (
+      <div className={styles.bars} onMouseLeave={() => setActive(null)} aria-hidden="true">
+        {max > 0 && (
           <>
-            <span className={styles.chartCross} style={{ left: `${hovered.x}%` }} />
-            <span className={styles.chartPoint} style={{ left: `${hovered.x}%`, top: `${hovered.y}%` }} />
-            <span
-              className={styles.chartTip}
-              role="status"
-              style={{
-                left: `${hovered.x}%`,
-                top: `${hovered.y}%`,
-                transform: hovered.x > 75 ? "translate(-100%, -120%)" : hovered.x < 25 ? "translate(0, -120%)" : "translate(-50%, -120%)",
-              }}
-            >
-              {monthLabel(start, hover) && <span className={styles.chartTipMonth}>{monthLabel(start, hover)}</span>}
-              {formatMoney(values[hover], currency)}
-            </span>
+            <span className={styles.barsGuide} />
+            <span className={styles.barsMax}>{formatMoney(max, currency)}</span>
           </>
         )}
-        {geometry.max > 0 && (
-          <span className={styles.chartMax} style={{ top: `${CHART_TOP}%` }} aria-hidden="true">
-            {formatMoney(geometry.max, currency)}
-          </span>
-        )}
-        <div className={styles.chartHits}>
-          {values.map((_, index) => (
-            <span key={index} onMouseEnter={() => setHover(index)} />
-          ))}
-        </div>
+        {values.map((value, index) => {
+          const height = max > 0 ? (value / max) * 100 : 0;
+          const isLast = index === last;
+          return (
+            <span
+              key={index}
+              className={`${styles.barSlot} ${active === index ? styles.barSlotOn : ""}`}
+              onMouseEnter={interactive ? () => setActive(index) : undefined}
+            >
+              <span
+                className={`${styles.bar} ${isLast ? styles.barNow : ""} ${value <= 0 ? styles.barEmpty : ""}`}
+                style={{ height: value > 0 ? `max(${height}%, 3px)` : undefined, animationDelay: `${index * 40}ms` }}
+              />
+              {active === index && (
+                <span
+                  className={styles.chartTip}
+                  style={{
+                    bottom: `calc(${Math.max(height, 2)}% + 8px)`,
+                    ...(index > last - 3 ? { right: 0 } : index < 3 ? { left: 0 } : { left: "50%", transform: "translateX(-50%)" }),
+                  }}
+                >
+                  {monthLabel(start, index) && <span className={styles.chartTipMonth}>{monthLabel(start, index)}</span>}
+                  {formatMoney(value, currency)}
+                </span>
+              )}
+            </span>
+          );
+        })}
       </div>
       {detailed && first && end && (
         <div className={styles.chartAxis} aria-hidden="true">
@@ -889,6 +870,17 @@ function RevenueChart({
           <span>{end}</span>
         </div>
       )}
+      <table className={styles.srOnly}>
+        <caption>{label}</caption>
+        <tbody>
+          {values.map((value, index) => (
+            <tr key={index}>
+              <th scope="row">{monthLabel(start, index) ?? `Month ${index + 1}`}</th>
+              <td>{formatMoney(value, currency)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
@@ -981,6 +973,7 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
           currency={data.currency}
           start={data.revenueStart}
           detailed={isTall(size)}
+          interactive={!editing}
           label={`${name} revenue over the last ${revenue.length} months`}
         />
       )}
