@@ -5,7 +5,7 @@ A creative bento portfolio builder built with Next.js, Supabase, Lemon Squeezy, 
 ## Current Product Structure
 
 - **Free**: core portfolio blocks, built-in visual styles, public `bentofolio.dev/[username]` profile, GitHub import, and the Creative tab.
-- **Pro**: `$9` lifetime for custom domains, analytics, and premium blocks.
+- **Pro**: `$19` lifetime for custom domains, analytics, and premium blocks.
 - **Creative tab**: a Notion-style public workspace block for notes, case studies, experiments, moodboards, and external Notion links.
 
 ## Main App Areas
@@ -86,10 +86,10 @@ lemon_squeezy_order_id = order_id
 
 ## Beta Launch Flow
 
-Use `$9` lifetime for the first beta users.
+Use `$19` lifetime for the first beta users.
 
 - Keep public profiles free.
-- Create a Lemon Squeezy discount code named `BETA90` for 90% off the `$9`
+- Create a Lemon Squeezy discount code named `BETA90` for 90% off the `$19`
   beta product if you want a public launch coupon.
 - Add private 100% friend codes to the `beta_codes` table (see
   `supabase/migrations/010_secure_pro_and_beta_codes.sql`), with a `max_uses`

@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import type { BlockContent, BlockLayout, ThemeId } from "@/app/lib/types";
 import { BentoGrid } from "@/app/components/bento/BentoGrid";
+import { CvView, hasCvContent } from "@/app/components/bento/CvView";
+import cvStyles from "@/app/components/bento/cv.module.css";
 import { bentoFontClasses } from "@/app/components/bento/fonts";
 import { publicLayout, resolveLayout } from "@/app/components/bento/grid-layout";
 import styles from "@/app/components/bento/bento.module.css";
@@ -17,6 +19,7 @@ interface PublicProfileShellProps {
   layout: BlockLayout[];
   layoutVersion?: number | null;
   content: Record<string, BlockContent>;
+  initialView?: "grid" | "cv";
 }
 
 export function PublicProfileShell({
@@ -27,11 +30,25 @@ export function PublicProfileShell({
   layout,
   layoutVersion,
   content,
+  initialView = "grid",
 }: PublicProfileShellProps) {
   const visible = useMemo(
     () => publicLayout(resolveLayout(layout, layoutVersion), content, isPro),
     [layout, layoutVersion, content, isPro]
   );
+
+  const cvAvailable = useMemo(() => hasCvContent(visible, content), [visible, content]);
+  const [view, setView] = useState<"grid" | "cv">(initialView);
+  const showCv = cvAvailable && view === "cv";
+
+  // ?view=cv makes the CV shareable (e.g. send it to a recruiter).
+  function switchView(next: "grid" | "cv") {
+    setView(next);
+    const url = new URL(window.location.href);
+    if (next === "cv") url.searchParams.set("view", "cv");
+    else url.searchParams.delete("view");
+    window.history.replaceState(null, "", url);
+  }
 
   const identity = Object.values(content).find((block) => block?.type === "identity");
   const displayName =
@@ -51,12 +68,24 @@ export function PublicProfileShell({
               </span>
             )}
           </span>
+          {cvAvailable && (
+            <div className={cvStyles.switch} role="group" aria-label="Profile view">
+              <button type="button" aria-pressed={!showCv} onClick={() => switchView("grid")}>
+                Grid
+              </button>
+              <button type="button" aria-pressed={showCv} onClick={() => switchView("cv")}>
+                CV
+              </button>
+            </div>
+          )}
           <div className={styles.headerActions}>
             <ShareButton username={username} />
           </div>
         </header>
 
-        {visible.length > 0 ? (
+        {showCv ? (
+          <CvView username={username} layout={visible} content={content} avatarUrl={avatarUrl} />
+        ) : visible.length > 0 ? (
           <BentoGrid layout={visible} content={content} avatarUrl={avatarUrl} isPro={isPro} />
         ) : (
           <p className={styles.emptyPage}>This page is still being set up.</p>
