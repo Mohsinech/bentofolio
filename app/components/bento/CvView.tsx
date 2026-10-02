@@ -78,17 +78,14 @@ export function hasCvContent(layout: BlockLayout[], content: Record<string, Bloc
   );
 }
 
-export function CvView({
-  username,
-  layout,
-  content,
-  avatarUrl,
-}: {
-  username: string;
-  layout: BlockLayout[];
-  content: Record<string, BlockContent>;
-  avatarUrl?: string | null;
-}) {
+// Everything the CV shows, read from the page's visible blocks in reading
+// order. Shared by the web CV and the ATS-friendly PDF.
+export function readCv(
+  username: string,
+  layout: BlockLayout[],
+  content: Record<string, BlockContent>,
+  avatarUrl?: string | null
+) {
   // Visible blocks only (Pro-gated and empty ones are already filtered out),
   // in reading order.
   const blocks = [...layout]
@@ -141,6 +138,28 @@ export function CvView({
   const resume = all("resume").find((item) => text(item.fileUrl));
   const website = text(identity?.website);
   if (website) contacts.push({ label: "Website", url: website, display: cleanUrl(website) });
+
+  return {
+    name, title, location, portrait, bio, availability, roles, work, repos, products, schools,
+    skills: uniqueSkills, services, stats, quotes, contacts, resume, email, website,
+  };
+}
+
+export function CvView({
+  username,
+  layout,
+  content,
+  avatarUrl,
+}: {
+  username: string;
+  layout: BlockLayout[];
+  content: Record<string, BlockContent>;
+  avatarUrl?: string | null;
+}) {
+  const {
+    name, title, location, portrait, bio, availability, roles, work, repos, products, schools,
+    skills: uniqueSkills, services, stats, quotes, contacts, resume,
+  } = readCv(username, layout, content, avatarUrl);
 
   return (
     <article className={styles.cv} aria-label={`${name}, CV`}>
@@ -343,6 +362,168 @@ export function CvView({
       <footer className={styles.foot}>
         <span className={styles.when}>bentofolio.dev/{username}</span>
       </footer>
+    </article>
+  );
+}
+
+// The PDF version, built for applicant tracking systems: one column, plain
+// text in reading order, standard headings (Summary, Experience, Projects,
+// Education, Skills), job title before dates, links written out in full,
+// no images, icons, badges or testimonials. Hidden on screen; it's what
+// prints.
+function lines(value: unknown): string[] {
+  return text(value)
+    .split(/\n+/)
+    .map((line) => line.replace(/^[-•*]\s*/, "").trim())
+    .filter(Boolean);
+}
+
+function plainUrl(url: string): string {
+  return cleanUrl(text(url));
+}
+
+export function CvPrint({
+  username,
+  layout,
+  content,
+}: {
+  username: string;
+  layout: BlockLayout[];
+  content: Record<string, BlockContent>;
+}) {
+  const cv = readCv(username, layout, content);
+  const name = cv.name.replace(/^@/, "");
+
+  // Contact line: location, email, then every profile link as plain text.
+  const links = [
+    ...cv.contacts.filter((c) => !c.url.startsWith("mailto:")).map((c) => plainUrl(c.url)),
+    `bentofolio.dev/${username}`,
+  ];
+  const contact = [cv.location, cv.email, ...links].filter(Boolean);
+  const uniqueContact = contact.filter((item, index) => contact.indexOf(item) === index);
+
+  const sentence = (value: string) => (value && !/[.!?]$/.test(value) ? `${value}.` : value);
+  const summary = [cv.bio, cv.availability?.status === "available" ? text(cv.availability.message) : ""]
+    .filter(Boolean)
+    .map(sentence)
+    .join(" ");
+
+  return (
+    <article className={styles.ats} aria-label={`${name}, CV`}>
+      <header className={styles.atsHead}>
+        <h1>{name}</h1>
+        {cv.title && <p className={styles.atsHeadline}>{cv.title}</p>}
+        {uniqueContact.length > 0 && <p className={styles.atsContact}>{uniqueContact.join("  |  ")}</p>}
+      </header>
+
+      {summary && (
+        <section>
+          <h2>Summary</h2>
+          <p>{summary}</p>
+        </section>
+      )}
+
+      {cv.roles.length > 0 && (
+        <section>
+          <h2>Experience</h2>
+          {cv.roles.map((role, index) => (
+            <div key={`r-${index}`} className={styles.atsItem}>
+              <p className={styles.atsTitle}>
+                <strong>{text(role.role) || text(role.company)}</strong>
+                {text(role.role) && text(role.company) ? `, ${text(role.company)}` : ""}
+              </p>
+              {(text(role.period) || text(role.location)) && (
+                <p className={styles.atsMeta}>{[text(role.period), text(role.location)].filter(Boolean).join("  |  ")}</p>
+              )}
+              {lines(role.description).length > 0 && (
+                <ul>
+                  {lines(role.description).map((line, i) => (
+                    <li key={i}>{line}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {(cv.products.length > 0 || cv.work.length > 0 || cv.repos.length > 0) && (
+        <section>
+          <h2>Projects</h2>
+          {cv.products.map((product, index) => {
+            const revenue =
+              product.mrr > 0
+                ? `${formatMoney(product.mrr, product.currency)} monthly recurring revenue`
+                : (product.totalRevenue ?? 0) > 0
+                  ? `${formatMoney(product.totalRevenue ?? 0, product.currency)} total revenue`
+                  : "";
+            const proof = revenue
+              ? `${revenue}${product.verified ? ` (verified via ${product.verified.provider === "stripe" ? "Stripe" : "Lemon Squeezy"})` : ""}`
+              : "";
+            return (
+              <div key={`p-${index}`} className={styles.atsItem}>
+                <p className={styles.atsTitle}>
+                  <strong>{product.name}</strong>
+                  {text(product.tagline) ? `, ${text(product.tagline)}` : ""}
+                </p>
+                {(text(product.url) || proof) && (
+                  <p className={styles.atsMeta}>{[plainUrl(product.url), proof].filter(Boolean).join("  |  ")}</p>
+                )}
+              </div>
+            );
+          })}
+          {cv.work.map((item, index) => (
+            <div key={`w-${index}`} className={styles.atsItem}>
+              <p className={styles.atsTitle}>
+                <strong>{item.title}</strong>
+                {[text(item.client), text(item.category)].filter(Boolean).length > 0
+                  ? `, ${[text(item.client), text(item.category)].filter(Boolean).join(", ")}`
+                  : ""}
+              </p>
+              {(text(item.year) || text(item.url)) && (
+                <p className={styles.atsMeta}>{[text(item.year), plainUrl(item.url ?? "")].filter(Boolean).join("  |  ")}</p>
+              )}
+            </div>
+          ))}
+          {cv.repos.map((repo, index) => (
+            <div key={`g-${index}`} className={styles.atsItem}>
+              <p className={styles.atsTitle}>
+                <strong>{repo.name}</strong>
+                {text(repo.language) ? `, ${text(repo.language)}` : ""}
+              </p>
+              {text(repo.description) && <p>{repo.description}</p>}
+              {text(repo.url) && <p className={styles.atsMeta}>{plainUrl(repo.url)}</p>}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {cv.schools.length > 0 && (
+        <section>
+          <h2>Education</h2>
+          {cv.schools.map((school, index) => (
+            <div key={`e-${index}`} className={styles.atsItem}>
+              <p className={styles.atsTitle}>
+                <strong>{[text(school.degree), text(school.field)].filter(Boolean).join(", ") || text(school.school)}</strong>
+                {text(school.school) || text(school.institution)
+                  ? `, ${text(school.school) || text(school.institution)}`
+                  : ""}
+              </p>
+              {(text(school.period) || text(school.location)) && (
+                <p className={styles.atsMeta}>{[text(school.period), text(school.location)].filter(Boolean).join("  |  ")}</p>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+
+      {(cv.skills.length > 0 || cv.services.length > 0) && (
+        <section>
+          <h2>Skills</h2>
+          {cv.skills.length > 0 && <p>{cv.skills.map((skill) => skill.name).join(", ")}</p>}
+          {cv.services.length > 0 && <p>Services: {cv.services.join(", ")}</p>}
+        </section>
+      )}
     </article>
   );
 }

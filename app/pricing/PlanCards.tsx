@@ -25,7 +25,7 @@ const pro: { text: string; soon?: boolean }[] = [
   { text: "Spotify, YouTube and Instagram blocks" },
   { text: "Verified badge next to your name" },
   { text: "No “Made with bentofolio” tag" },
-  { text: "Download your CV as a PDF", soon: true },
+  { text: "Download your CV as a PDF" },
 ];
 
 export function PlanCards() {

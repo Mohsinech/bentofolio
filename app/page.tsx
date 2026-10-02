@@ -33,7 +33,7 @@ const faq = [
   },
   {
     q: `What does $${PREMIUM_PRICE} lifetime include?`,
-    a: "Pro, forever: your own domain, the analytics dashboard, Spotify, YouTube and Instagram blocks, the verified badge and no “Made with” tag. One payment while we’re in beta.",
+    a: "Pro, forever: your own domain, your CV as a PDF, the analytics dashboard, Spotify, YouTube and Instagram blocks, the verified badge and no “Made with” tag. One payment while we’re in beta.",
   },
   {
     q: "How does verified revenue work?",
@@ -270,7 +270,7 @@ export default async function Home() {
                 <span className={styles.planPrice}>${PREMIUM_PRICE}</span>
               </div>
               <p className={styles.planNote}>
-                Custom domain, analytics, Spotify / YouTube / Instagram blocks, verified badge, no “Made with” tag.
+                Custom domain, CV as PDF, analytics, Spotify / YouTube / Instagram blocks, verified badge, no “Made with” tag.
               </p>
               <Link href="/pricing" className={`${styles.btn} ${styles.btnAccent}`}>
                 See Pro

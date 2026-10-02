@@ -296,9 +296,178 @@ a.title:hover,
   }
 }
 
+/* Download PDF button in the page header (Pro pages, CV view). */
+.pdfButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--bento-line-strong);
+  border-radius: 9px;
+  background: var(--bento-card);
+  color: var(--bento-ink);
+  font: 500 13px/1 var(--bento-sans), sans-serif;
+  cursor: pointer;
+}
+
+.pdfButton:hover {
+  border-color: var(--bento-ink);
+}
+
+.pdfButton:focus-visible {
+  outline: 2px solid var(--bento-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .pdfButton span {
+    display: none;
+  }
+}
+
+/* The PDF: always light, black text, tight spacing, nothing split
+   across pages mid-entry. */
 @media print {
   .cv {
-    margin-top: 0;
-    gap: 28px;
+    --bento-ink: #111110;
+    --bento-ink-2: #2b2b29;
+    --bento-muted: #5f5e59;
+    --bento-faint: #8a8984;
+    --bento-line: #e2e1dd;
+    --bento-card: #ffffff;
+    --bento-card-2: #f3f2ef;
+    --bento-good: #1f7a45;
+    --bento-good-soft: #eaf6ee;
+    --bento-good-dot: #1f9d55;
+    max-width: none;
+    margin: 0;
+    gap: 16px;
+    color: #111110;
+    font-size: 10.5pt;
+  }
+  .hero {
+    gap: 16px;
+  }
+  .portrait {
+    width: 56px;
+    height: 56px;
+  }
+  .name {
+    font-size: 20pt;
+  }
+  .section {
+    gap: 8px;
+  }
+  .stack {
+    gap: 2px;
+  }
+  .sectionTitle {
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e2e1dd;
+    color: #111110;
+    font-size: 10pt;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    break-after: avoid;
+  }
+  .row {
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 16px;
+    break-inside: avoid;
+  }
+  .title {
+    font-size: 11pt;
+  }
+  .sub,
+  .small,
+  .body,
+  .link,
+  .skill {
+    font-size: 10pt;
+  }
+  .quote {
+    font-size: 13pt;
+  }
+  .shot {
+    max-height: 150px;
+  }
+  .status,
+  .verified,
+  .selfReported {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .foot {
+    padding-top: 8px;
+    border-top: 1px solid #e2e1dd;
+    break-inside: avoid;
+  }
+  .cv {
+    gap: 14px;
+  }
+}
+
+/* ATS PDF (CvPrint). Hidden on screen; replaces the web CV when printing. */
+.ats {
+  display: none;
+}
+
+@media print {
+  .ats {
+    display: block;
+    color: #000;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.4;
+  }
+  .ats h1 {
+    margin: 0;
+    font-size: 20pt;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .ats h2 {
+    margin: 14pt 0 6pt;
+    padding-bottom: 3pt;
+    border-bottom: 1px solid #000;
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    break-after: avoid;
+  }
+  .ats p {
+    margin: 0;
+  }
+  .ats ul {
+    margin: 3pt 0 0;
+    padding-left: 14pt;
+  }
+  .ats li {
+    margin: 1pt 0;
+  }
+  .atsHead {
+    display: flex;
+    flex-direction: column;
+    gap: 3pt;
+  }
+  .atsHeadline {
+    font-size: 11.5pt;
+  }
+  .atsContact {
+    font-size: 9.5pt;
+  }
+  .atsItem {
+    margin-bottom: 7pt;
+    break-inside: avoid;
+  }
+  .atsTitle {
+    font-size: 10.5pt;
+  }
+  .atsMeta {
+    color: #333;
+    font-size: 9.5pt;
   }
 }
