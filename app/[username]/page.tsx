@@ -14,6 +14,7 @@ import styles from "./profile.module.css";
 
 interface PageProps {
   params: Promise<{ username: string }>;
+  searchParams?: Promise<{ view?: string }>;
 }
 
 // Generate metadata for SEO
@@ -55,8 +56,9 @@ export async function generateMetadata({
   };
 }
 
-export default async function ProfilePage({ params }: PageProps) {
+export default async function ProfilePage({ params, searchParams }: PageProps) {
   const { username } = await params;
+  const initialView = (await searchParams)?.view === "cv" ? "cv" : "grid";
   const profile = await getProfileByUsername(username);
 
   if (!profile) {
@@ -97,6 +99,7 @@ export default async function ProfilePage({ params }: PageProps) {
         layout={profile.layout}
         layoutVersion={profile.layoutVersion}
         content={applyVerifiedRevenue(profile.content, await getVerifiedRevenue(profile.id))}
+        initialView={initialView}
       />
     </ProfileClientWrapper>
   );

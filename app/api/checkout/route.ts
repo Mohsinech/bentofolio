@@ -185,7 +185,7 @@ export async function POST(request: Request) {
             },
             product_options: {
               name: "BentoFolio Pro",
-              description: `One-time payment of $${PREMIUM_PRICE} for custom domains, analytics, Pro blocks, and templates`,
+              description: `One-time payment of $${PREMIUM_PRICE} for custom domains, analytics, embed blocks and the verified badge`,
               receipt_button_text: "Go to Dashboard",
               receipt_thank_you_note:
                 "Thanks for upgrading to Pro! You can now connect your custom domain.",

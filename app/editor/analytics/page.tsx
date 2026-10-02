@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { PREMIUM_PRICE } from "@/app/lib/config";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -226,7 +227,7 @@ export default function AnalyticsPage() {
             </div>
             <Link href="/pricing" className={styles.upgradeButton}>
               <Sparkles size={16} />
-              Get Pro — $9
+              Get Pro — ${PREMIUM_PRICE}
             </Link>
           </div>
         </div>

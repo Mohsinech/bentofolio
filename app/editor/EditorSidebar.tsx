@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { PREMIUM_PRICE } from "@/app/lib/config";
 import Link from "next/link";
 import {
   User,
@@ -458,7 +459,7 @@ export function EditorSidebar({
               Custom domain, analytics, and premium portfolio blocks.
             </p>
           </div>
-          <span className={styles.upgradePill}>$9 lifetime</span>
+          <span className={styles.upgradePill}>${PREMIUM_PRICE} lifetime</span>
         </Link>
       )}
 

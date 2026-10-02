@@ -88,7 +88,7 @@ export function Logo({ src, name, size = 30 }: { src?: string | null; name: stri
   );
 }
 
-function companyLogo(explicit?: string, name?: string): string | null {
+export function companyLogo(explicit?: string, name?: string): string | null {
   if (text(explicit)) return text(explicit);
   return name && text(name) ? getCompanyLogo(name) : null;
 }
@@ -749,7 +749,7 @@ function InstagramBlock({ data, size }: { data: Extract<BlockContent, { type: "i
   );
 }
 
-function formatMoney(value: number, currency?: string): string {
+export function formatMoney(value: number, currency?: string): string {
   try {
     return new Intl.NumberFormat("en", {
       style: "currency",

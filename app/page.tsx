@@ -1,289 +1,311 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  BarChart3,
-  Check,
-  Code2,
-  Globe,
-  Images,
-  Instagram,
-  Layers3,
-  Lock,
-  Music2,
-  Sparkles,
-  Youtube,
-} from "lucide-react";
+import { bentoFontClasses } from "@/app/components/bento/fonts";
+import { BlockShowcase } from "@/app/components/marketing/BlockShowcase";
+import { FooterLinks, MarketingHeader } from "@/app/components/marketing/Chrome";
+import { ClaimForm } from "@/app/components/marketing/ClaimForm";
+import styles from "@/app/components/marketing/marketing.module.css";
 import { PREMIUM_PRICE } from "@/app/lib/config";
-import { createClient } from "@/app/lib/supabase/client";
+import { getFeaturedProfiles } from "@/app/lib/supabase/featured";
 
-const templates = [
+// Featured pages refresh every 10 minutes; everything else is static.
+export const revalidate = 600;
+
+const shades = ["#ECEBE8", "#C9D0FF", "#8A9BFF", "#2B44FF"];
+const contrib = Array.from({ length: 18 }, (_, i) => shades[(i * 7 + (i % 4)) % 4]);
+
+const cvRows = [
+  { y: "2024 — Now", t: "Independent product designer" },
+  { y: "2022 — 2024", t: "Frontend systems, SaaS teams" },
+  { y: "2026", t: "VocaFlow launch system" },
+  { y: "Email", t: "hello@example.com" },
+];
+
+const steps = [
+  { n: "01", t: "Claim your name", d: "Pick bentofolio.dev/yourname. We check it’s free as you type." },
+  { n: "02", t: "Drop in blocks", d: "Profile, projects, experience, GitHub, revenue. Drag, resize, fill in." },
+  { n: "03", t: "Publish when ready", d: "Edits stay in a draft until you hit Publish. Share the link anywhere." },
+];
+
+const faq = [
   {
-    name: "Designer",
-    helper: "Free",
-    image: "/prebuilt/designer/work1.jpeg",
+    q: "Is the free plan really free?",
+    a: "Yes. Build and publish a full page on bentofolio.dev with every core block, including GitHub, projects and verified revenue, without paying.",
   },
   {
-    name: "Developer",
-    helper: "Pro",
-    image: "/prebuilt/dev/profile.png",
+    q: `What does $${PREMIUM_PRICE} lifetime include?`,
+    a: "Pro, forever: your own domain, the analytics dashboard, Spotify, YouTube and Instagram blocks, the verified badge and no “Made with” tag. One payment while we’re in beta.",
   },
   {
-    name: "Influencer",
-    helper: "Free",
-    image: "/prebuilt/inf/inf.jpg",
+    q: "How does verified revenue work?",
+    a: "Connect Stripe with a read-only key, or Lemon Squeezy, and your SaaS block shows real MRR with a Verified badge. It refreshes every day. Typed-in numbers are labelled Self-reported.",
+  },
+  {
+    q: "Can I use my own domain?",
+    a: "With Pro. Point a DNS record at us and your page lives on your domain.",
+  },
+  {
+    q: "Does it work on phones?",
+    a: "Yes. Every block reflows into a two-column grid on small screens.",
   },
 ];
 
-const proBlocks = [
-  { label: "Custom domain", icon: Globe },
-  { label: "Analytics", icon: BarChart3 },
-  { label: "Spotify", icon: Music2 },
-  { label: "YouTube", icon: Youtube },
-  { label: "Gallery", icon: Images },
-  { label: "Instagram", icon: Instagram },
-];
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+}
 
-export default function Home() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    supabase.auth.getUser().then(({ data }) => {
-      setIsSignedIn(Boolean(data.user));
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setIsSignedIn(Boolean(session?.user));
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+export default async function Home() {
+  const featured = await getFeaturedProfiles(4);
 
   return (
-    <main className="min-h-screen overflow-hidden bg-[#080809] text-[#f7f3eb]">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_18%_10%,rgba(215,255,95,0.16),transparent_24%),radial-gradient(circle_at_84%_20%,rgba(255,255,255,0.10),transparent_22%),linear-gradient(120deg,transparent_0%,transparent_46%,rgba(255,255,255,0.055)_47%,transparent_64%)]" />
-      <div className="pointer-events-none fixed inset-0 bg-[url('/ph.jpeg')] bg-cover bg-center opacity-[0.025]" />
+    <div className={`${bentoFontClasses} ${styles.page}`}>
+      <div className={styles.top}>
+        <MarketingHeader />
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-7xl flex-col px-4 py-4 sm:px-6 lg:px-8">
-        <nav className="flex items-center justify-between rounded-[24px] border border-white/8 bg-white/[0.035] px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur md:px-5">
-          <Link
-            href="/"
-            className="text-lg text-white"
-            style={{ fontFamily: "var(--font-achiko), sans-serif" }}
-          >
-            Bento<span className="text-white/45">Folio</span>
-          </Link>
-
-          <div className="hidden items-center gap-2 md:flex">
-            {[
-              "Discover",
-              "Invite",
-              "Pricing",
-              "Contact",
-              isSignedIn ? "Dashboard" : "Log in",
-            ].map((item) => (
-              <Link
-                key={item}
-                href={
-                  item === "Dashboard"
-                    ? "/editor"
-                    : item === "Log in"
-                      ? "/auth/login"
-                      : `/${item.toLowerCase()}`
-                }
-                className="rounded-full px-4 py-2 text-sm text-white/55 transition hover:bg-white/[0.055] hover:text-white"
-              >
-                {item}
-              </Link>
-            ))}
-            <Link
-              href="/editor"
-              className="inline-flex items-center gap-2 rounded-full bg-[#d7ff5f] px-4 py-2 text-sm font-bold text-[#080809] transition hover:bg-[#edff9c]"
-            >
-              {isSignedIn ? "Dashboard" : "Start building"}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-1.5 md:hidden">
-            <Link
-              href="/pricing"
-              className="rounded-full px-2.5 py-2 text-xs text-white/58"
-            >
-              Pricing
-            </Link>
-            <Link
-              href="/editor"
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#d7ff5f] px-3 py-2 text-xs font-bold text-[#080809]"
-            >
-              {isSignedIn ? "Dashboard" : "Start"}
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </nav>
-
-        <section className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-[0.92fr_1.08fr] lg:py-14">
-          <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="max-w-2xl"
-          >
-            <div
-              style={{ fontFamily: "var(--font-saans), sans-serif" }}
-              className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#d7ff5f]/16 bg-[#d7ff5f]/8 px-3 py-2 text-xs  uppercase tracking-[0.05rem] text-[#e9ff99]"
-            >
-              <Layers3 className="h-3.5 w-3.5" />
-              Bento portfolios for creatives and devs
-            </div>
-            <h1
-              className="text-5xl leading-[1.1] tracking-tighter text-white sm:text-7xl lg:text-8xl"
-              style={{ fontFamily: "var(--font-saans), sans-serif" }}
-            >
-              Build your public proof in blocks.
+        <section className={`${styles.sec} ${styles.hero}`}>
+          <div className={styles.heroCopy}>
+            <span className={styles.lbl}>Bento portfolios and CVs for creatives and devs</span>
+            <h1 className={styles.h1}>
+              Your proof of work, <span className={styles.ser}>arranged.</span>
             </h1>
-            <p
-              className="mt-6 max-w-xl text-base leading-7 text-white/58 sm:text-lg"
-              style={{ fontFamily: "var(--font-saans), sans-serif" }}
-            >
-              Launch a polished bento profile for projects, socials, media,
-              creator proof, SaaS metrics, and a custom domain when you go Pro.
+            <p className={`${styles.p} ${styles.lead}`}>
+              Drag your projects, roles, links and metrics into one grid. Connect Stripe or Lemon Squeezy and your
+              revenue shows as verified.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/editor"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-[#d7ff5f] px-5 py-3 text-sm font-bold text-[#080809] transition hover:bg-[#edff9c]"
-              >
-                {isSignedIn ? "Open dashboard" : "Create my BentoFolio"}
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/[0.08]"
-              >
-                Pro is ${PREMIUM_PRICE} lifetime
-                <Sparkles className="h-4 w-4" />
-              </Link>
-            </div>
+            <ClaimForm id="claim-top" />
+            <span className={styles.lbl} style={{ marginTop: -16 }}>
+              Free forever · No card · Pro is ${PREMIUM_PRICE} once
+            </span>
+          </div>
 
-            <div className="mt-8 grid max-w-xl gap-2 text-sm text-white/58 sm:grid-cols-3">
-              {["Free templates", "No-code editing", "Desktop studio"].map(
-                (item) => (
-                  <span
-                    key={item}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-3"
-                  >
-                    <Check className="h-4 w-4 text-[#d7ff5f]" />
-                    {item}
+          <div className={styles.preview} aria-hidden="true">
+            <div className={styles.previewGrid}>
+              <div className={styles.mini} style={{ gridColumn: "span 2", gridRow: "span 2", padding: 16 }}>
+                <span style={{ width: 34, height: 34, borderRadius: 99, background: "#E3E1DB" }} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <span style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.05, letterSpacing: "-0.03em" }}>
+                    Mira Chen <span className={styles.ser} style={{ color: "var(--body)" }}>designs</span>
                   </span>
-                ),
-              )}
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            className="rounded-[34px] border border-white/10 bg-[#111112]/95 p-2 shadow-[0_42px_130px_rgba(0,0,0,0.68),inset_0_1px_0_rgba(255,255,255,0.08)]"
-          >
-            <div className="grid gap-2 rounded-[28px] border border-white/[0.055] bg-[#171718] p-2 sm:grid-cols-6">
-              <article className="min-h-44 rounded-[22px] border border-white/[0.07] bg-[#1d1d20] p-5 sm:col-span-4">
-                <div className="mb-7 flex items-center justify-between">
-                  <span className="rounded-full bg-[#d7ff5f] px-3 py-1 text-xs font-bold text-[#080809]">
-                    Live profile
-                  </span>
-                  <span className="text-sm text-white/42">
-                    bentofolio.dev/you
-                  </span>
+                  <span style={{ fontSize: 12, color: "var(--muted)" }}>Product designer + creative dev</span>
                 </div>
-                <h2 className="max-w-sm text-3xl leading-none text-white">
-                  Work, links, socials, media, and launch metrics in one grid.
-                </h2>
-              </article>
-
-              <article className="relative min-h-44 overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#202023] sm:col-span-2">
-                <Image
-                  src="/prebuilt/inf/ig-profile.jpg"
-                  alt="Creator profile preview"
-                  fill
-                  className="object-cover opacity-90"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
-              </article>
-
-              {templates.map((template) => (
-                <article
-                  key={template.name}
-                  className="relative min-h-44 overflow-hidden rounded-[22px] border border-white/[0.07] bg-[#1b1b1d] sm:col-span-2"
-                >
-                  <Image
-                    src={template.image}
-                    alt={`${template.name} template`}
-                    fill
-                    className="object-cover opacity-75"
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                    <p className="text-lg font-semibold text-white">
-                      {template.name}
-                    </p>
-                    <span className="text-xs text-white/52">
-                      {template.helper} template
-                    </span>
+              </div>
+              <div className={styles.mini} style={{ gridRow: "span 2", background: "#E3E1DB", borderColor: "#E3E1DB", justifyContent: "flex-end" }}>
+                <span className={styles.chipTag}>Studio</span>
+              </div>
+              <div className={styles.mini} style={{ background: "#E9EEF1", borderColor: "#E9EEF1", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ width: 10, height: 10, borderRadius: 99, background: "var(--accent)", border: "2px solid #fff" }} />
+              </div>
+              <div className={styles.mini}>
+                <span className={styles.lbl} style={{ fontSize: 10 }}>
+                  Open
+                </span>
+                <span style={{ fontSize: 12, fontWeight: 500 }}>February</span>
+              </div>
+              <div className={styles.mini} style={{ gridColumn: "span 2", gridRow: "span 2", gap: 6, justifyContent: "flex-start" }}>
+                <span className={styles.lbl} style={{ fontSize: 10 }}>
+                  Work experience
+                </span>
+                {["70%", "55%", "62%"].map((w) => (
+                  <div key={w} style={{ display: "flex", gap: 10, alignItems: "center", borderTop: "1px solid var(--line)", paddingTop: 8 }}>
+                    <span className={styles.bar} style={{ width: 40 }} />
+                    <span className={styles.bar} style={{ width: w }} />
                   </div>
-                </article>
-              ))}
-
-              <article className="rounded-[22px] border border-[#d7ff5f]/14 bg-[#d7ff5f]/[0.06] p-5 sm:col-span-3">
-                <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-[#e9ff99]">
-                  <Lock className="h-4 w-4" />
-                  Pro launch blocks
+                ))}
+              </div>
+              <div className={styles.mini} style={{ gridColumn: "span 2", background: "#E7E5DF", borderColor: "#E7E5DF", justifyContent: "flex-end" }}>
+                <span className={styles.chipTag}>VocaFlow · 2026</span>
+              </div>
+              <div className={styles.mini} style={{ background: "var(--ink)", borderColor: "var(--ink)", justifyContent: "flex-end" }}>
+                <span style={{ fontSize: 13, fontWeight: 500, color: "#fff" }}>Email me</span>
+              </div>
+              <div className={styles.mini} style={{ justifyContent: "flex-end" }}>
+                <div className={styles.contrib}>
+                  {contrib.map((c, i) => (
+                    <span key={i} style={{ background: c }} />
+                  ))}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  {proBlocks.map((block) => {
-                    const Icon = block.icon;
-                    return (
-                      <span
-                        key={block.label}
-                        className="inline-flex items-center gap-2 rounded-2xl border border-white/8 bg-white/[0.045] px-3 py-3 text-sm text-white/68"
-                      >
-                        <Icon className="h-4 w-4 text-[#d7ff5f]" />
-                        {block.label}
-                      </span>
-                    );
-                  })}
-                </div>
-              </article>
-
-              <article className="rounded-[22px] border border-white/[0.07] bg-[#1b1b1d] p-5 sm:col-span-3">
-                <div className="mb-4 flex items-center gap-2 text-sm text-white/45">
-                  <Code2 className="h-4 w-4" />
-                  Developer-ready
-                </div>
-                <p className="text-2xl leading-tight text-white">
-                  GitHub, projects, tech stack, experience, and custom domain.
-                </p>
-                <Link
-                  href="/discover"
-                  className="mt-5 inline-flex items-center gap-2 rounded-full bg-white/[0.07] px-4 py-2 text-sm text-white transition hover:bg-white/[0.12]"
-                >
-                  See discover
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </article>
+              </div>
             </div>
-          </motion.div>
+          </div>
         </section>
       </div>
-    </main>
+
+      <main className={styles.main} style={{ marginTop: 140 }}>
+        <section className={`${styles.sec} ${styles.secStack}`} style={{ gap: 48 }}>
+          <div className={styles.secHead}>
+            <h2 className={styles.h2} style={{ maxWidth: 560 }}>
+              One profile. <span className={styles.ser}>Two ways</span> to read it.
+            </h2>
+            <p className={styles.p} style={{ maxWidth: 400 }}>
+              Grid for first impressions. CV for recruiters who want dates and roles in order. Visitors switch with one
+              tap; you edit once.
+            </p>
+          </div>
+          <div className={styles.two}>
+            <div className={`${styles.card} ${styles.viewCard} ${styles.viewCardSoft}`}>
+              <div className={styles.viewHead}>
+                <span>Grid</span>
+                <span className={styles.lbl}>bentofolio.dev/mira</span>
+              </div>
+              <div className={styles.viewGrid} aria-hidden="true">
+                <div className={styles.mini} style={{ gridColumn: "span 2", gridRow: "span 2" }}>
+                  <span className={styles.bar} style={{ width: "30%" }} />
+                  <span style={{ fontSize: 18, fontWeight: 500, letterSpacing: "-0.02em" }}>Mira Chen</span>
+                </div>
+                <div className={styles.mini} style={{ background: "#E3E1DB", borderColor: "#E3E1DB" }} />
+                <div className={styles.mini} style={{ background: "var(--ink)", borderColor: "var(--ink)" }} />
+                <div className={styles.mini}>
+                  <span className={styles.bar} style={{ width: "60%" }} />
+                </div>
+                <div className={styles.mini} style={{ gridColumn: "span 2", background: "#E7E5DF", borderColor: "#E7E5DF" }} />
+              </div>
+            </div>
+            <div className={`${styles.card} ${styles.viewCard}`}>
+              <div className={styles.viewHead}>
+                <span>CV</span>
+                <span className={styles.lbl}>same blocks, one column</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                  <span style={{ width: 30, height: 30, borderRadius: 99, background: "#E3E1DB" }} />
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>Mira Chen</span>
+                    <span className={styles.lbl} style={{ fontSize: 11 }}>
+                      Casablanca / Remote
+                    </span>
+                  </div>
+                </div>
+                {cvRows.map((row) => (
+                  <div key={row.y} className={styles.cvRow}>
+                    <span className={styles.lbl} style={{ fontSize: 11 }}>
+                      {row.y}
+                    </span>
+                    <span>{row.t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className={`${styles.sec} ${styles.secStack}`}>
+          <div className={styles.secHead}>
+            <h2 className={styles.h2} style={{ maxWidth: 600 }}>
+              Blocks for everything <span className={styles.ser}>you’ve shipped.</span>
+            </h2>
+            <span className={styles.lbl}>Every block resizes</span>
+          </div>
+          <BlockShowcase />
+        </section>
+
+        <section className={`${styles.sec} ${styles.secStack}`}>
+          <h2 className={styles.h2}>
+            Live in <span className={styles.ser}>three minutes.</span>
+          </h2>
+          <ol className={styles.three} style={{ listStyle: "none", margin: 0, padding: 0 }}>
+            {steps.map((step) => (
+              <li key={step.n} className={styles.step}>
+                <span className={styles.lbl}>{step.n}</span>
+                <span className={styles.stepTitle}>{step.t}</span>
+                <p className={styles.p} style={{ fontSize: 15 }}>
+                  {step.d}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {featured.length >= 2 && (
+          <section className={`${styles.sec} ${styles.secStack}`} style={{ gap: 32 }}>
+            <div className={styles.secHead}>
+              <h2 className={styles.h2}>
+                Made on <span className={styles.ser}>bentofolio.</span>
+              </h2>
+              <Link href="/discover" className={styles.linkArrow}>
+                Browse Discover →
+              </Link>
+            </div>
+            <div className={styles.featured}>
+              {featured.map((profile) => (
+                <Link key={profile.username} href={`/${profile.username}`} className={`${styles.card} ${styles.featuredCard}`}>
+                  {profile.avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img className={styles.avatar} src={profile.avatar} alt="" loading="lazy" />
+                  ) : (
+                    <span className={styles.avatar} aria-hidden="true">
+                      {initials(profile.name)}
+                    </span>
+                  )}
+                  <span className={styles.featuredName}>{profile.name}</span>
+                  <span className={styles.featuredTitle}>{profile.title}</span>
+                  <span className={`${styles.lbl} ${styles.featuredUrl}`}>bentofolio.dev/{profile.username}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section className={`${styles.sec} ${styles.secStack}`} style={{ gap: 32 }}>
+          <h2 className={styles.h2}>
+            Free to publish. <span className={styles.ser}>${PREMIUM_PRICE} to own it.</span>
+          </h2>
+          <div className={styles.two}>
+            <div className={`${styles.card} ${styles.plan}`}>
+              <div className={styles.planTop}>
+                <span className={styles.planName}>Free</span>
+                <span className={styles.planPrice}>$0</span>
+              </div>
+              <p className={styles.p} style={{ fontSize: 15 }}>
+                Every core block (GitHub, projects, verified revenue), light and dark, your bentofolio.dev link.
+              </p>
+              <Link href="/auth/signup" className={`${styles.btn} ${styles.btnGhost}`}>
+                Start free
+              </Link>
+            </div>
+            <div className={`${styles.card} ${styles.plan} ${styles.planDark}`}>
+              <div className={styles.planTop}>
+                <span className={styles.planName}>
+                  Pro <span className={styles.pill} style={{ marginLeft: 6 }}>LIFETIME BETA</span>
+                </span>
+                <span className={styles.planPrice}>${PREMIUM_PRICE}</span>
+              </div>
+              <p className={styles.planNote}>
+                Custom domain, analytics, Spotify / YouTube / Instagram blocks, verified badge, no “Made with” tag.
+              </p>
+              <Link href="/pricing" className={`${styles.btn} ${styles.btnAccent}`}>
+                See Pro
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        <section className={`${styles.sec} ${styles.faq}`} aria-labelledby="faq-title">
+          <h2 id="faq-title" className={styles.h2}>
+            Questions
+          </h2>
+          <div>
+            {faq.map((item) => (
+              <details key={item.q}>
+                <summary>{item.q}</summary>
+                <p className={styles.p}>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+      </main>
+
+      <section className={styles.closing}>
+        <div className={`${styles.sec} ${styles.closingInner}`}>
+          <h2 className={styles.h2}>
+            Claim your name <span className={styles.ser}>before someone else does.</span>
+          </h2>
+          <ClaimForm id="claim-bottom" dark />
+        </div>
+        <FooterLinks />
+      </section>
+    </div>
   );
 }

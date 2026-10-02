@@ -1,237 +1,83 @@
-"use client";
-
-import { motion } from "framer-motion";
-import Link from "next/link";
-import { useState } from "react";
-import {
-  ArrowLeft,
-  ArrowRight,
-  BarChart3,
-  Check,
-  Globe,
-  Loader2,
-  Lock,
-  Sparkles,
-} from "lucide-react";
-import { useAuth } from "@/app/lib/hooks/useAuth";
-import { useCheckout } from "@/app/lib/hooks/useCheckout";
-import { useProfile } from "@/app/lib/hooks/useProfile";
+import type { Metadata } from "next";
+import { bentoFontClasses } from "@/app/components/bento/fonts";
+import { FooterLinks, MarketingHeader } from "@/app/components/marketing/Chrome";
+import styles from "@/app/components/marketing/marketing.module.css";
 import { PREMIUM_PRICE } from "@/app/lib/config";
-import styles from "./pricing.module.css";
+import { PlanCards } from "./PlanCards";
 
-const freeFeatures = [
-  "Identity, work, stack, social, link, resume, quote, education, and tools",
-  "Public bentofolio.dev profile",
-  "Dark and light themes",
-  "Editable bento canvas",
-  "Good for a focused starter portfolio",
-];
+export const metadata: Metadata = {
+  title: "Pricing",
+  description: `Publish your bento portfolio free. Pro is $${PREMIUM_PRICE} once: custom domain, analytics, embeds and the verified badge.`,
+};
 
-const proFeatures = [
-  "Connect your own custom domain",
-  "Verification badge beside your name",
-  "Analytics dashboard",
-  "Premium blocks: GitHub, Projects, SaaS, Spotify, YouTube, Gallery, Instagram, Services, Stats",
-  "Pro templates for creators, developers, and product launches",
-  "Lifetime access for one payment",
-  "Keep every free block and future polish",
+const rows: { f: string; free: string; pro: string; freeMuted?: boolean }[] = [
+  { f: "Core blocks (GitHub, projects, experience…)", free: "✓", pro: "✓" },
+  { f: "Verified revenue (Stripe, Lemon Squeezy)", free: "✓", pro: "✓" },
+  { f: "Bento grid with drag and resize", free: "✓", pro: "✓" },
+  { f: "Grid and CV views", free: "✓", pro: "✓" },
+  { f: "Draft and publish", free: "✓", pro: "✓" },
+  { f: "Spotify, YouTube, Instagram blocks", free: "—", pro: "✓", freeMuted: true },
+  { f: "Custom domain", free: "—", pro: "✓", freeMuted: true },
+  { f: "Analytics dashboard", free: "—", pro: "✓", freeMuted: true },
+  { f: "Verified badge", free: "—", pro: "✓", freeMuted: true },
+  { f: "CV as PDF", free: "—", pro: "Soon", freeMuted: true },
+  { f: "“Made with” tag", free: "Shown", pro: "Removed" },
 ];
 
 export default function PricingPage() {
-  const { user } = useAuth();
-  const { hasProAccess } = useProfile();
-  const { initiateCheckout, loading, error } = useCheckout();
-  const [couponCode, setCouponCode] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return (
-      new URLSearchParams(window.location.search)
-        .get("coupon")
-        ?.trim()
-        .toUpperCase() || ""
-    );
-  });
-  const normalizedCouponCode = couponCode.trim().toUpperCase();
-  // Codes are checked on the server. The browser never knows which codes exist.
-  const hasCouponCode = normalizedCouponCode.length > 0;
-
-  const handleUpgrade = () => {
-    if (!user) {
-      const signupUrl = new URL("/auth/signup", window.location.origin);
-      if (normalizedCouponCode) {
-        signupUrl.searchParams.set("coupon", normalizedCouponCode);
-      }
-      window.location.href = signupUrl.toString();
-      return;
-    }
-
-    initiateCheckout(couponCode);
-  };
-
   return (
-    <main className={styles.container}>
-      <header className={styles.header}>
-        <Link href="/" className={styles.backLink}>
-          <ArrowLeft size={18} />
-          BentoFolio
-        </Link>
-        <nav>
-          <Link href="/contact">Contact</Link>
-          <Link href="/auth/login">Log in</Link>
-        </nav>
-      </header>
+    <div className={`${bentoFontClasses} ${styles.page}`}>
+      <MarketingHeader active="pricing" />
 
-      <section className={styles.hero}>
-        <motion.div
-          className={styles.heroCopy}
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-        >
-          <span className={styles.eyebrow}>
-            <Sparkles size={14} />
-            Beta lifetime deal
-          </span>
-          <h1 className={styles.title}>
-            Launch free. Own Pro for ${PREMIUM_PRICE}.
+      <main className={styles.main} style={{ gap: 72, paddingBottom: 96, marginTop: 72 }}>
+        <section className={`${styles.sec} ${styles.narrow} ${styles.pricingHero}`}>
+          <span className={styles.lbl}>Beta pricing</span>
+          <h1 className={styles.pricingTitle}>
+            Publish free. <span className={styles.ser}>Own it for ${PREMIUM_PRICE}.</span>
           </h1>
-          <p className={styles.subtitle}>
-            Start with the essential BentoFolio canvas. Upgrade when you want
-            richer proof blocks, analytics, templates, and your own domain.
-            Beta Pro is one payment while the product is young.
+          <p className={styles.p} style={{ fontSize: 17, maxWidth: 520 }}>
+            One payment while we’re in beta. No subscription, no renewals.
           </p>
-        </motion.div>
-      </section>
+        </section>
 
-      <section className={styles.valueStrip}>
-        <span>
-          <Lock size={15} />
-          Pro features are clearly locked in the editor
-        </span>
-        <span>
-          <BarChart3 size={15} />
-          Analytics and growth blocks stay Pro
-        </span>
-        <span>
-          <Globe size={15} />
-          Custom domains for owned presence
-        </span>
-      </section>
+        <PlanCards />
 
-      <section className={styles.pricing}>
-        <motion.article
-          className={styles.card}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.08 }}
-        >
-          <div className={styles.cardHeader}>
-            <span className={styles.planName}>Free</span>
-            <div className={styles.priceRow}>
-              <span className={styles.price}>$0</span>
-              <span className={styles.priceLabel}>forever</span>
+        <section className={`${styles.sec} ${styles.narrow} ${styles.compare}`} aria-labelledby="compare-title">
+          <div className={`${styles.tr} ${styles.trHead}`}>
+            <span id="compare-title" className={styles.lbl}>
+              Compare
+            </span>
+            <span className={styles.lbl}>Free</span>
+            <span className={styles.lbl}>Pro</span>
+          </div>
+          {rows.map((row) => (
+            <div key={row.f} className={styles.tr}>
+              <span>{row.f}</span>
+              <span className={row.freeMuted ? styles.no : undefined}>{row.free}</span>
+              <span>{row.pro}</span>
             </div>
-            <p className={styles.planDesc}>
-              Build, publish, and share your work without fighting a paywall.
+          ))}
+        </section>
+
+        <section className={`${styles.sec} ${styles.narrow} ${styles.notes}`} aria-label="Good to know">
+          <div className={styles.note}>
+            <b>Keep everything</b>
+            <p className={styles.p}>Upgrading never changes your blocks or URL. Pro is lifetime: nothing to renew.</p>
+          </div>
+          <div className={styles.note}>
+            <b>Beta price</b>
+            <p className={styles.p}>
+              Early users lock in ${PREMIUM_PRICE} for life. When the beta ends, Pro moves to a yearly plan.
             </p>
           </div>
-
-          <ul className={styles.featureList}>
-            {freeFeatures.map((feature) => (
-              <li key={feature}>
-                <Check size={16} />
-                {feature}
-              </li>
-            ))}
-          </ul>
-
-          <Link href="/auth/signup" className={styles.freeButton}>
-            Start building
-            <ArrowRight size={16} />
-          </Link>
-        </motion.article>
-
-        <motion.article
-          className={`${styles.card} ${styles.proCard}`}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.16 }}
-        >
-          <div className={styles.proBadge}>
-            <Globe size={14} />
-            Custom domain
+          <div className={styles.note}>
+            <b>Have a code?</b>
+            <p className={styles.p}>Enter it above or at checkout. Codes are checked on our server, one use each.</p>
           </div>
+        </section>
+      </main>
 
-          <div className={styles.cardHeader}>
-            <span className={styles.planName}>Beta Pro</span>
-            <div className={styles.priceRow}>
-              <span className={styles.price}>${PREMIUM_PRICE}</span>
-              <span className={styles.priceLabel}>lifetime beta</span>
-            </div>
-            <p className={styles.planDesc}>
-              One payment for your own domain, analytics, and richer
-              proof-of-work blocks. Early users can be activated manually while
-              checkout is being approved.
-            </p>
-          </div>
-
-          <ul className={styles.featureList}>
-            {proFeatures.map((feature) => (
-              <li key={feature}>
-                <Check size={16} />
-                {feature}
-              </li>
-            ))}
-          </ul>
-
-          <label className={styles.couponField}>
-            <span>Beta coupon</span>
-            <input
-              value={couponCode}
-              onChange={(event) => setCouponCode(event.target.value)}
-              placeholder="BETA90 or invite code"
-              spellCheck={false}
-            />
-          </label>
-
-          <button
-            className={styles.proButton}
-            onClick={handleUpgrade}
-            disabled={loading || hasProAccess}
-          >
-            {loading ? (
-              <Loader2 size={16} className={styles.spinner} />
-            ) : hasProAccess ? (
-              <>
-                <Check size={16} />
-                Pro active
-              </>
-            ) : (
-              <>
-                <Globe size={16} />
-                {hasCouponCode ? "Apply code and get Pro" : `Get Pro — $${PREMIUM_PRICE}`}
-              </>
-            )}
-          </button>
-
-          {error && <span className={styles.error}>{error}</span>}
-        </motion.article>
-      </section>
-
-      <section className={styles.creativeSection}>
-        <div className={styles.creativeCard}>
-          <div className={styles.creativeIcon}>
-            <Sparkles size={22} />
-          </div>
-          <div>
-            <h2>Free stays useful. Pro adds leverage.</h2>
-            <p>
-              The free plan is enough to publish a polished profile. Pro is for
-              people who want more proof, more media, analytics, and domain
-              ownership.
-            </p>
-          </div>
-        </div>
-      </section>
-    </main>
+      <FooterLinks light />
+    </div>
   );
 }
