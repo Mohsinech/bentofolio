@@ -118,7 +118,8 @@ export async function GET(request: Request) {
     // Current period plus the one before it, for the comparison.
     const since = new Date(Date.now() - (period * 2 + 1) * 86_400_000).toISOString();
     const full = "event_type, created_at, referrer, user_agent, clicked_url, country, visitor_hash, block";
-    let result = await getAdmin()
+    // Typed loosely: the fallback query below returns fewer columns.
+    let result: { data: AnalyticsRow[] | null; error: { message: string } | null } = await getAdmin()
       .from("profile_analytics")
       .select(full)
       .eq("profile_id", profile.id)
@@ -139,7 +140,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
     }
 
-    const dashboard = aggregate((result.data ?? []) as AnalyticsRow[], period, new Date(), appHost());
+    const dashboard = aggregate(result.data ?? [], period, new Date(), appHost());
     if (!profile.is_pro) {
       return NextResponse.json({
         locked: true,
