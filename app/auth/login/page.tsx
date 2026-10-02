@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowRight, Github, LayoutGrid, Lock, Mail, Sparkles } from "lucide-react";
+import { ArrowRight, Github, Lock, Mail } from "lucide-react";
 import { createClient } from "@/app/lib/supabase/client";
 import styles from "../auth.module.css";
 
@@ -60,60 +60,13 @@ export default function LoginPage() {
 
   return (
     <main className={styles.container}>
-      <Link href="/" className={styles.backHome}>
-        Bento<span>Folio</span>
-      </Link>
-
       <div className={styles.loginShell}>
-        <section className={styles.visualPanel} aria-label="BentoFolio preview">
-          <div className={styles.visualHeader}>
-            <span>
-              <LayoutGrid size={15} />
-              Studio preview
-            </span>
-            <em>Pro-ready</em>
-          </div>
-          <div className={styles.previewGrid}>
-            <div className={styles.previewHero}>
-              <strong>Hey, I&apos;m Mira</strong>
-              <span>Designer / creative dev</span>
-            </div>
-            <div className={styles.previewAvatar}>M</div>
-            <div className={styles.previewTile}>
-              <Sparkles size={18} />
-              <span>Recent work</span>
-            </div>
-            <div className={styles.previewTile}>
-              <Mail size={18} />
-              <span>Let&apos;s collab</span>
-            </div>
-          </div>
-          <p>
-            Come back to your canvas, update cards, publish changes, and keep
-            the public portfolio feeling sharp.
-          </p>
-        </section>
-
-        <section className={`glass ${styles.card} ${styles.authPanel}`}>
+        <section className={styles.card}>
         <div className={styles.header}>
-          <h1
-            className={styles.logo}
-            style={{ fontFamily: "var(--font-achiko), sans-serif" }}
-          >
-            Bento<span className={styles.logoAccent}>Folio</span>
+          <h1 className={styles.title}>
+            Welcome <span className={styles.serif}>back.</span>
           </h1>
-          <h2
-            className={styles.title}
-            style={{ fontFamily: "var(--font-montreal), sans-serif" }}
-          >
-            Welcome back
-          </h2>
-          <p
-            className={styles.subtitle}
-            style={{ fontFamily: "var(--font-mori), sans-serif" }}
-          >
-            Sign in to continue building your BentoFolio.
-          </p>
+          <p className={styles.subtitle}>Log in to edit your page.</p>
         </div>
 
         {error && <div className={styles.error}>{error}</div>}
@@ -159,7 +112,7 @@ export default function LoginPage() {
             className={styles.submitButton}
             disabled={loading}
           >
-            {loading ? "Signing in..." : "Sign in"}
+            {loading ? "Logging in…" : "Log in"}
             {!loading && <ArrowRight size={16} />}
           </button>
         </form>
@@ -171,17 +124,17 @@ export default function LoginPage() {
         </div>
 
         <div className={styles.socialButtons}>
-          <button className={styles.socialButton} onClick={handleGithubLogin}>
-            <Github size={18} />
-            GitHub
+          <button type="button" className={styles.socialButton} onClick={handleGithubLogin}>
+            <Github size={17} aria-hidden="true" />
+            Continue with GitHub
           </button>
         </div>
 
         <div className={styles.footer}>
           <p className={styles.footerText}>
-            Don&apos;t have an account?{" "}
+            New here?{" "}
             <Link href="/auth/signup" className={styles.footerLink}>
-              Sign up
+              Create your page
             </Link>
           </p>
         </div>

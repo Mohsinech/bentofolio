@@ -60,14 +60,11 @@ export default function CompleteAuthPage() {
 
   return (
     <main className={styles.container}>
-      <section className={`glass ${styles.card}`}>
+      <section className={styles.card}>
         <div className={styles.header}>
-          <h1 className={styles.logo}>
-            Bento<span className={styles.logoAccent}>Folio</span>
-          </h1>
-          <h2 className={styles.title}>
+          <h1 className={styles.title}>
             {error ? "Link needs a reset" : "Almost there"}
-          </h2>
+          </h1>
           <p className={styles.subtitle}>
             {error
               ? "The confirmation link opened, but we could not create your session."

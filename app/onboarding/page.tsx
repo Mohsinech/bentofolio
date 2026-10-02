@@ -103,7 +103,10 @@ export default function OnboardingPage() {
     }
     started.current = true;
     const placeholder = isPlaceholderUsername(profile.username);
-    setUsername(placeholder ? "" : profile.username);
+    // A name claimed on the landing page (?username=) that couldn't be set at
+    // signup, e.g. a GitHub signup: offer it again.
+    const claimed = normalizeUsername(new URLSearchParams(window.location.search).get("username") ?? "");
+    setUsername(placeholder ? (claimed && checkUsernameFormat(claimed) === "ok" ? claimed : "") : profile.username);
     setStep(placeholder ? 1 : 2);
     setStarter(githubUsername ? "developer" : "designer");
     setName(metaText("full_name") || metaText("name"));
