@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
@@ -34,6 +35,7 @@ import { UsernameDialog } from "./UsernameDialog";
 import { applyVerifiedRevenue } from "@/app/lib/revenue/overlay";
 import { disconnectRevenue, useRevenueConnections } from "@/app/lib/hooks/useRevenueConnections";
 import { isPlaceholderUsername, normalizeUsername } from "@/app/lib/usernames";
+import { isFreshPage } from "@/app/lib/starters";
 import { EditorProvider, useEditor } from "@/app/lib/editor-context";
 import { useAuth, useProfile } from "@/app/lib/hooks";
 import {
@@ -129,6 +131,12 @@ function EditorStudio() {
     hasProAccess,
   } = useProfile();
   const { signOut, githubUsername } = useAuth();
+  const router = useRouter();
+  // A brand-new account (nothing saved or published) starts in onboarding.
+  const isFresh = Boolean(profile && isFreshPage(profile));
+  useEffect(() => {
+    if (isFresh) router.replace("/onboarding");
+  }, [isFresh, router]);
   // "claim" opens on its own for user_xxxxxxxx accounts; "change" from settings.
   const [usernameDialog, setUsernameDialog] = useState<"claim" | "change" | null>(null);
   const claimPromptedRef = useRef(false);
@@ -215,7 +223,7 @@ function EditorStudio() {
   }, [profile, setContent, setLayout]);
 
   useEffect(() => {
-    if (!profile || claimPromptedRef.current) return;
+    if (!profile || claimPromptedRef.current || isFreshPage(profile)) return;
     claimPromptedRef.current = true;
     if (isPlaceholderUsername(profile.username)) setUsernameDialog("claim");
   }, [profile]);
