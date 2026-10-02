@@ -871,6 +871,11 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
       {revenue.length >= 2 && (isTall(size) || strip) && (
         <RevenueChart values={revenue} currency={data.currency} label={`${name} revenue over the last ${revenue.length} months`} />
       )}
+      {editing && revenue.length < 2 && (isTall(size) || strip) && (
+        <span className={styles.chartEmpty}>
+          Add at least 2 months in “Monthly revenue” to show the chart
+        </span>
+      )}
     </div>
   );
 }

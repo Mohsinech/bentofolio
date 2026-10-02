@@ -1586,6 +1586,21 @@
   overflow: visible;
 }
 
+.chartEmpty {
+  flex: 1 1 auto;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+  border: 1px dashed var(--bento-line-strong);
+  border-radius: 12px;
+  color: var(--bento-muted);
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
 .chartBase {
   stroke: var(--bento-line);
   stroke-width: 1;
