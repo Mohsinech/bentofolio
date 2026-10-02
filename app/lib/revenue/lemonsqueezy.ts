@@ -101,20 +101,39 @@ async function lsList<A>(
 
 export async function fetchLemonSqueezyRevenue(
   key: string,
-  { now = new Date(), fetchImpl = fetch }: { now?: Date; fetchImpl?: typeof fetch } = {}
-): Promise<RevenueSnapshot> {
+  {
+    now = new Date(),
+    fetchImpl = fetch,
+    storeId,
+  }: { now?: Date; fetchImpl?: typeof fetch; storeId?: string | null } = {}
+): Promise<RevenueSnapshot & { storeId: string }> {
   checkLemonSqueezyKeyFormat(key);
   const trimmed = key.trim();
   const { keys, start } = monthWindow(now);
 
-  // Store currency as a fallback, and a cheap check that the key works.
+  // A key sees every store on the account. Each SaaS block shows one store,
+  // so with several stores the person picks which.
   const { status: storeStatus, body: storeBody } = await fetchJson(`${API}/stores`, { headers: headers(trimmed) }, fetchImpl);
   check(storeStatus, "stores");
-  const storeCurrency =
-    ((storeBody as JsonApiList<{ currency?: string }>).data?.[0]?.attributes?.currency || "USD").toUpperCase();
+  const stores = ((storeBody as JsonApiList<{ name?: string; currency?: string }>).data ?? []).map((s) => ({
+    id: String(s.id),
+    name: s.attributes?.name || `Store ${s.id}`,
+    currency: (s.attributes?.currency || "USD").toUpperCase(),
+  }));
+  if (stores.length === 0) throw new RevenueError("provider", "This Lemon Squeezy account has no stores yet.");
+  const store = storeId ? stores.find((s) => s.id === String(storeId)) : stores.length === 1 ? stores[0] : undefined;
+  if (!store) {
+    throw new RevenueError(
+      storeId ? "provider" : "choose_store",
+      storeId ? "That store isn't on this Lemon Squeezy account any more." : "This key has several stores. Pick the one for this product.",
+      { stores: stores.map(({ id, name }) => ({ id, name })) }
+    );
+  }
+  const storeCurrency = store.currency;
+  const inStore = { "filter[store_id]": store.id };
 
   // MRR from active subscriptions; prices are looked up once per price id.
-  const subscriptions = await lsList<Subscription>(trimmed, "/subscriptions", {}, fetchImpl);
+  const subscriptions = await lsList<Subscription>(trimmed, "/subscriptions", inStore, fetchImpl);
   const counted = subscriptions.filter((s) => s.attributes.status === "active" || s.attributes.status === "past_due");
 
   const priceCache = new Map<number, Price | null>();
@@ -145,11 +164,11 @@ export async function fetchLemonSqueezyRevenue(
   // already in the order. Both lists are newest first, so stop paging once
   // we're past the 12-month window.
   const before = (iso: string) => new Date(iso).getTime() < start.getTime();
-  const orders = await lsList<Order>(trimmed, "/orders", {}, fetchImpl, (o) => before(o.attributes.created_at));
+  const orders = await lsList<Order>(trimmed, "/orders", inStore, fetchImpl, (o) => before(o.attributes.created_at));
   const renewals = await lsList<SubscriptionInvoice>(
     trimmed,
     "/subscription-invoices",
-    {},
+    inStore,
     fetchImpl,
     (i) => before(i.attributes.created_at)
   );
@@ -186,5 +205,6 @@ export async function fetchLemonSqueezyRevenue(
     revenue: keys.map((month) => round2(toMajor(months.get(month) ?? 0, currency))),
     revenueStart: keys[0],
     customers,
+    storeId: store.id,
   };
 }

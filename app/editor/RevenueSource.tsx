@@ -54,10 +54,16 @@ export function RevenueSource({
   const [apiKey, setApiKey] = useState("");
   const [busy, setBusy] = useState<"connect" | "refresh" | "disconnect" | null>(null);
   const [message, setMessage] = useState<{ tone: "error" | "ok"; text: string } | null>(null);
+  // Lemon Squeezy keys can see several stores; then the person picks one.
+  const [stores, setStores] = useState<{ id: string; name: string }[] | null>(null);
+  const [storeId, setStoreId] = useState("");
+  const storeSelectId = useId();
 
   useEffect(() => {
     setApiKey("");
     setMessage(null);
+    setStores(null);
+    setStoreId("");
   }, [blockId, source]);
 
   // The server only accepts blocks it can see, so save the draft first.
@@ -82,11 +88,16 @@ export function RevenueSource({
       setMessage({ tone: "error", text: "Couldn't save your draft. Save it from the top bar, then try again." });
       return;
     }
-    const result = await connectRevenue(blockId, provider, apiKey);
+    const result = await connectRevenue(blockId, provider, apiKey, storeId || undefined);
     setBusy(null);
     if (result.ok) {
       setApiKey("");
+      setStores(null);
+      setStoreId("");
       setMessage({ tone: "ok", text: "Connected. Your numbers are verified." });
+    } else if (result.stores?.length) {
+      setStores(result.stores);
+      setMessage(null);
     } else {
       setMessage({ tone: "error", text: result.message });
     }
@@ -249,17 +260,39 @@ export function RevenueSource({
               spellCheck={false}
               placeholder="eyJ0eXAiOiJKV1Qi…"
               value={apiKey}
-              onChange={(event) => setApiKey(event.target.value)}
+              onChange={(event) => {
+                setApiKey(event.target.value);
+                setStores(null);
+                setStoreId("");
+              }}
             />
           </label>
+          {stores && (
+            <label className={styles.field} htmlFor={storeSelectId}>
+              <span className={styles.label}>Which store is this product?</span>
+              <select
+                id={storeSelectId}
+                className={styles.input}
+                value={storeId}
+                onChange={(event) => setStoreId(event.target.value)}
+              >
+                <option value="">Choose a store…</option>
+                {stores.map((store) => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <button
             type="button"
             className={styles.primary}
             onClick={() => handleConnect("lemonsqueezy")}
-            disabled={busy !== null || !apiKey.trim()}
+            disabled={busy !== null || !apiKey.trim() || (stores !== null && !storeId)}
           >
             {busy === "connect" && <Loader2 size={13} className={styles.spin} />}
-            Connect Lemon Squeezy
+            {stores ? "Connect this store" : "Connect Lemon Squeezy"}
           </button>
         </div>
       )}

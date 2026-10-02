@@ -43,7 +43,12 @@ export async function POST(request: Request) {
   }
 
   const body = await request.json().catch(() => ({}));
-  const { blockId, provider, apiKey } = body as { blockId?: unknown; provider?: unknown; apiKey?: unknown };
+  const { blockId, provider, apiKey, storeId } = body as {
+    blockId?: unknown;
+    provider?: unknown;
+    apiKey?: unknown;
+    storeId?: unknown;
+  };
 
   if (typeof blockId !== "string" || !blockId || !isProvider(provider) || typeof apiKey !== "string" || !apiKey.trim()) {
     return NextResponse.json({ error: "Choose a provider and paste your API key." }, { status: 400 });
@@ -56,12 +61,21 @@ export async function POST(request: Request) {
   }
 
   try {
-    const connection = await connectRevenue(user.id, blockId, provider, apiKey);
+    const connection = await connectRevenue(
+      user.id,
+      blockId,
+      provider,
+      apiKey,
+      typeof storeId === "string" && storeId ? storeId : null
+    );
     return NextResponse.json({ connection });
   } catch (error) {
     if (error instanceof RevenueError) {
       const status = error.code === "network" || error.code === "provider" ? 502 : 400;
-      return NextResponse.json({ error: error.message, code: error.code }, { status });
+      return NextResponse.json(
+        { error: error.message, code: error.code, stores: error.details?.stores },
+        { status: error.code === "choose_store" ? 409 : status }
+      );
     }
     console.error("Revenue connect failed:", error);
     return NextResponse.json({ error: "Couldn't connect. Try again." }, { status: 500 });

@@ -28,6 +28,10 @@ CREATE TABLE IF NOT EXISTS revenue_connections (
   PRIMARY KEY (profile_id, block_id)
 );
 
+-- Which store a Lemon Squeezy key reads (a key sees every store on the
+-- account). Added separately so re-running this file upgrades older copies.
+ALTER TABLE revenue_connections ADD COLUMN IF NOT EXISTS account_ref TEXT;
+
 -- RLS on with no policies: only the server (service role) can touch it.
 ALTER TABLE revenue_connections ENABLE ROW LEVEL SECURITY;
 

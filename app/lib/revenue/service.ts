@@ -13,8 +13,16 @@ export function isProvider(value: unknown): value is RevenueProvider {
   return value === "stripe" || value === "lemonsqueezy";
 }
 
-export function fetchSnapshot(provider: RevenueProvider, key: string): Promise<RevenueSnapshot> {
-  return provider === "stripe" ? fetchStripeRevenue(key) : fetchLemonSqueezyRevenue(key);
+// accountRef: the Lemon Squeezy store id for this block (unused for Stripe,
+// where a key belongs to one account).
+export async function fetchSnapshot(
+  provider: RevenueProvider,
+  key: string,
+  accountRef?: string | null
+): Promise<RevenueSnapshot & { accountRef: string | null }> {
+  if (provider === "stripe") return { ...(await fetchStripeRevenue(key)), accountRef: null };
+  const snapshot = await fetchLemonSqueezyRevenue(key, { storeId: accountRef });
+  return { ...snapshot, accountRef: snapshot.storeId };
 }
 
 // The block must be a SaaS block on this person's draft or live page.
@@ -47,11 +55,12 @@ export async function connectRevenue(
   profileId: string,
   blockId: string,
   provider: RevenueProvider,
-  apiKey: string
+  apiKey: string,
+  accountRef?: string | null
 ) {
   // Fetching first doubles as validation: a key that can't read the data is
   // never stored.
-  const snapshot = await fetchSnapshot(provider, apiKey);
+  const snapshot = await fetchSnapshot(provider, apiKey, accountRef);
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("revenue_connections")
@@ -62,6 +71,7 @@ export async function connectRevenue(
         provider,
         encrypted_key: encryptSecret(apiKey.trim()),
         key_hint: keyHint(apiKey),
+        account_ref: snapshot.accountRef,
         ...snapshotColumns(snapshot),
       },
       { onConflict: "profile_id,block_id" }
@@ -77,6 +87,7 @@ interface StoredConnection {
   block_id: string;
   provider: RevenueProvider;
   encrypted_key: string;
+  account_ref?: string | null;
 }
 
 // Re-reads one connection. On failure the last good numbers stay visible and
@@ -84,7 +95,7 @@ interface StoredConnection {
 export async function syncConnection(row: StoredConnection) {
   const admin = createAdminClient();
   try {
-    const snapshot = await fetchSnapshot(row.provider, decryptSecret(row.encrypted_key));
+    const snapshot = await fetchSnapshot(row.provider, decryptSecret(row.encrypted_key), row.account_ref);
     const { data } = await admin
       .from("revenue_connections")
       .update(snapshotColumns(snapshot))
@@ -108,7 +119,7 @@ export async function loadConnection(profileId: string, blockId: string): Promis
   const admin = createAdminClient();
   const { data } = await admin
     .from("revenue_connections")
-    .select("profile_id, block_id, provider, encrypted_key, synced_at")
+    .select("profile_id, block_id, provider, encrypted_key, account_ref, synced_at")
     .eq("profile_id", profileId)
     .eq("block_id", blockId)
     .maybeSingle();
@@ -130,7 +141,7 @@ export async function syncAllConnections(limit = 500) {
   const admin = createAdminClient();
   const { data } = await admin
     .from("revenue_connections")
-    .select("profile_id, block_id, provider, encrypted_key")
+    .select("profile_id, block_id, provider, encrypted_key, account_ref")
     .order("synced_at", { ascending: true, nullsFirst: true })
     .limit(limit);
   let ok = 0;

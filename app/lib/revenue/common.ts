@@ -12,7 +12,12 @@ export interface RevenueSnapshot {
 
 export class RevenueError extends Error {
   // "invalid_key" | "not_read_only" | "permission" | "provider" | "network"
-  constructor(public code: string, message: string) {
+  // | "choose_store" (details.stores lists the stores to pick from)
+  constructor(
+    public code: string,
+    message: string,
+    public details?: { stores?: { id: string; name: string }[] }
+  ) {
     super(message);
   }
 }

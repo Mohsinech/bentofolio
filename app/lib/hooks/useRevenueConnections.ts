@@ -12,7 +12,7 @@ export interface RevenueConnection extends VerifiedRevenue {
   last_error: string | null;
 }
 
-type Result = { ok: true } | { ok: false; message: string };
+type Result = { ok: true } | { ok: false; message: string; stores?: { id: string; name: string }[] };
 
 let connections: RevenueConnection[] = [];
 let loaded = false;
@@ -58,15 +58,23 @@ export function loadRevenueConnections(force = false): Promise<void> {
 export async function connectRevenue(
   blockId: string,
   provider: "stripe" | "lemonsqueezy",
-  apiKey: string
+  apiKey: string,
+  storeId?: string
 ): Promise<Result> {
   try {
     const response = await fetch("/api/revenue", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ blockId, provider, apiKey }),
+      body: JSON.stringify({ blockId, provider, apiKey, storeId }),
     });
-    if (!response.ok) return { ok: false, message: await errorMessage(response, "Couldn't connect. Try again.") };
+    if (!response.ok) {
+      const data = await response.json().catch(() => null);
+      return {
+        ok: false,
+        message: data && typeof data.error === "string" ? data.error : "Couldn't connect. Try again.",
+        stores: Array.isArray(data?.stores) ? data.stores : undefined,
+      };
+    }
     const data = await response.json();
     upsert(data.connection);
     return { ok: true };
