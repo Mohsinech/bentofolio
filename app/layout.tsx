@@ -1,40 +1,40 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script"; // 1. Import Script for Analytics
 import { FeedbackWidget } from "@/app/components/feedback/FeedbackWidget";
+import { PREMIUM_PRICE } from "@/app/lib/config";
 import "./globals.css";
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0b0b0c",
+  themeColor: "#fcfcfb",
 };
 
+const DESCRIPTION =
+  "Your proof of work, arranged. Drag projects, roles, links and metrics into one bento grid, and show revenue verified by Stripe or Lemon Squeezy. Free to start.";
+
+// The link preview picture is app/opengraph-image.tsx (profiles have their own).
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev"
-  ),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev"),
   title: {
-    default: "BentoFolio - Bento Portfolio Builder for Creatives and Devs",
-    template: "%s | BentoFolio",
+    default: "bentofolio — your proof of work, arranged",
+    template: "%s · bentofolio",
   },
-  description:
-    "Create a polished bento portfolio for your work, links, socials, media, projects, and launch metrics. Start free with editable templates for creatives and developers.",
+  description: DESCRIPTION,
+  applicationName: "bentofolio",
   keywords: [
     "developer portfolio",
-    "creative portfolio",
-    "bento grid",
     "portfolio builder",
     "bento portfolio",
-    "developer tools",
-    "creator portfolio",
-    "tech portfolio",
+    "bento grid",
+    "verified revenue",
+    "indie hacker portfolio",
     "personal website",
-    "programmer portfolio",
+    "online CV",
   ],
-  authors: [{ name: "BentoFolio" }],
-  creator: "BentoFolio",
-  publisher: "BentoFolio",
-  // 2. Add Google Search Console Verification (Get this code from GSC)
+  authors: [{ name: "bentofolio", url: "https://bentofolio.dev" }],
+  creator: "bentofolio",
+  publisher: "bentofolio",
   verification: {
     google: "__l-ONwyc07s3za9EkP-3PiWoD014U2g8zVzc9Dd12I",
   },
@@ -52,27 +52,16 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "BentoFolio",
-    title: "BentoFolio - Bento Portfolio Builder for Creatives and Devs",
-    description:
-      "Create a polished bento portfolio for your work, links, socials, media, projects, and launch metrics. Start free with editable templates.",
+    siteName: "bentofolio",
+    title: "bentofolio — your proof of work, arranged",
+    description: DESCRIPTION,
     url: "/",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "BentoFolio - Bento portfolio builder",
-      },
-    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "BentoFolio - Bento Portfolio Builder",
-    description:
-      "Build a bento-style portfolio for your work, socials, media, projects, and launch metrics.",
-    images: ["/og-image.png"],
-    creator: "@muhsench", // Add your actual Twitter handle here if you have one
+    title: "bentofolio — your proof of work, arranged",
+    description: DESCRIPTION,
+    creator: "@muhsench",
   },
   icons: {
     icon: [
@@ -82,24 +71,22 @@ export const metadata: Metadata = {
     shortcut: "/favicon.ico?v=3",
     apple: "/apple-icon.png?v=3",
   },
-  manifest: "/manifest.json?v=3",
+  manifest: "/manifest.json?v=4",
 };
 
-// 3. Schema Markup Data (Structured Data for SEO)
+// Structured data for search engines.
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  name: "BentoFolio",
+  name: "bentofolio",
+  url: process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev",
   applicationCategory: "DesignApplication",
   operatingSystem: "Web",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-  description:
-    "Create a bento portfolio for work, links, socials, media, projects, and launch metrics.",
-  image: "/icon.png?v=3",
+  offers: [
+    { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
+    { "@type": "Offer", name: "Pro", price: String(PREMIUM_PRICE), priceCurrency: "USD" },
+  ],
+  description: DESCRIPTION,
 };
 
 export default function RootLayout({

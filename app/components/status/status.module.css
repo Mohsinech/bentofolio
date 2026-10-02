@@ -1,0 +1,91 @@
+/* 404 and error pages, "Quiet proof". Tokens come from marketing.module.css. */
+
+.main {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  padding-top: 72px;
+  padding-bottom: 96px;
+}
+
+.code {
+  margin: 0;
+  font: 500 13px/1 var(--bento-mono), ui-monospace, monospace;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.title {
+  margin: 0;
+  max-width: 720px;
+  font-size: clamp(40px, 6vw, 64px);
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: -0.045em;
+}
+
+.text {
+  margin: 0;
+  max-width: 520px;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--body);
+}
+
+.text strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.digest {
+  margin: 8px 0 0;
+  font: 500 12px/1.4 var(--bento-mono), ui-monospace, monospace;
+  color: var(--faint);
+}
+
+/* The little grid with one empty cell. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 28px);
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.grid i {
+  height: 28px;
+  border-radius: 7px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+.grid i:nth-child(2) {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.grid .empty {
+  background: transparent;
+  border: 1px dashed var(--line-strong);
+}
+
+@media (max-width: 640px) {
+  .main {
+    padding-top: 40px;
+    padding-bottom: 64px;
+  }
+  .text {
+    font-size: 16px;
+  }
+  .actions > * {
+    flex: 1 1 auto;
+  }
+}

@@ -7,6 +7,7 @@ import { PlanCards } from "./PlanCards";
 
 export const metadata: Metadata = {
   title: "Pricing",
+  alternates: { canonical: "/pricing" },
   description: `Publish your bento portfolio free. Pro is $${PREMIUM_PRICE} once: custom domain, analytics, embeds and the verified badge.`,
 };
 

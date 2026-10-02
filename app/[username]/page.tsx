@@ -1,57 +1,53 @@
-import { Metadata } from "next";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import type { Metadata } from "next";
+import { notFound, redirect } from "next/navigation";
 
 import {
   getProfileByUsername,
   getVerifiedRevenue,
   resolveUsernameRedirect,
 } from "@/app/lib/supabase/profiles";
-import { applyVerifiedRevenue } from "@/app/lib/revenue/overlay";
+import { canonicalUrl, publicPage } from "@/app/lib/public-page";
+import { describeProfile } from "@/app/lib/profile-summary";
 import { ProfileClientWrapper } from "./ProfileClientWrapper";
 import { PublicProfileShell } from "./PublicProfileShell";
-import styles from "./profile.module.css";
 
 interface PageProps {
   params: Promise<{ username: string }>;
   searchParams?: Promise<{ view?: string }>;
 }
 
-// Generate metadata for SEO
-export async function generateMetadata({
-  params,
-}: PageProps): Promise<Metadata> {
+// Title, description and canonical address. The link preview picture comes
+// from opengraph-image.tsx next to this file.
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
   const profile = await getProfileByUsername(username);
-
   if (!profile) {
-    return {
-      title: "Profile Not Found | BentoFolio",
-    };
+    return { title: "Page not found", robots: { index: false } };
   }
 
-  // Try to find identity block for name
-  const identityContent = Object.values(profile.content).find(
-    (c) => c.type === "identity"
-  );
-  const name =
-    identityContent?.type === "identity" ? identityContent.data.name : username;
-  const title =
-    identityContent?.type === "identity" ? identityContent.data.title : "";
+  const { summary } = publicPage(profile, await getVerifiedRevenue(profile.id));
+  const title = summary.headline ? `${summary.name} — ${summary.headline}` : summary.name;
+  const description = describeProfile(summary);
+  const url = canonicalUrl(profile);
 
   return {
-    title: `${name} | BentoFolio`,
-    description: title || `${name}'s portfolio on BentoFolio`,
+    // The page is theirs: no "| BentoFolio" on the end.
+    title: { absolute: title },
+    description,
+    alternates: { canonical: url },
+    // Pages with only a placeholder name aren't worth indexing yet.
+    robots: summary.hasName ? undefined : { index: false, follow: true },
     openGraph: {
-      title: `${name} | BentoFolio`,
-      description: title || `${name}'s portfolio on BentoFolio`,
+      title,
+      description,
       type: "profile",
-      url: `https://bentofolio.dev/${username}`,
+      url,
+      siteName: "bentofolio",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${name} | BentoFolio`,
-      description: title || `${name}'s portfolio on BentoFolio`,
+      title,
+      description,
     },
   };
 }
@@ -70,38 +66,50 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
     }
   }
 
-  // If no profile found, show 404
-  if (!profile) {
-    return (
-      <div className={styles.notFound}>
-        <h1 className={styles.notFoundTitle}>404</h1>
-        <p className={styles.notFoundText}>
-          This profile doesn&apos;t exist yet.
-        </p>
-        <Link href="/auth/signup" className={styles.notFoundLink}>
-          Claim @{username}
-        </Link>
-      </div>
-    );
-  }
+  if (!profile) notFound();
+
+  const { content, summary } = publicPage(profile, await getVerifiedRevenue(profile.id));
+  // Structured data so search engines know this page is about a person.
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ProfilePage",
+    url: canonicalUrl(profile),
+    mainEntity: {
+      "@type": "Person",
+      name: summary.name.replace(/^@/, ""),
+      alternateName: `@${profile.username}`,
+      ...(summary.headline ? { jobTitle: summary.headline } : {}),
+      ...(summary.bio ? { description: summary.bio } : {}),
+      ...(summary.location ? { address: { "@type": "PostalAddress", addressLocality: summary.location } } : {}),
+      ...(summary.avatar && /^https?:\/\//.test(summary.avatar) ? { image: summary.avatar } : {}),
+      ...(summary.links.length ? { sameAs: summary.links } : {}),
+    },
+  };
 
   return (
-    <ProfileClientWrapper
-      username={profile.username}
-      isPro={profile.isPro}
-      theme={profile.theme}
-    >
-      <PublicProfileShell
+    <>
+      <script
+        type="application/ld+json"
+        // "<" escaped so page text can't close the script tag.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
+      <ProfileClientWrapper
         username={profile.username}
         isPro={profile.isPro}
         theme={profile.theme}
-        avatarUrl={profile.avatarUrl}
-        layout={profile.layout}
-        layoutVersion={profile.layoutVersion}
-        content={applyVerifiedRevenue(profile.content, await getVerifiedRevenue(profile.id))}
-        initialView={requestedView === "cv" || requestedView === "grid" ? requestedView : profile.defaultView}
-        showMadeWith={profile.showMadeWith}
-      />
-    </ProfileClientWrapper>
+      >
+        <PublicProfileShell
+          username={profile.username}
+          isPro={profile.isPro}
+          theme={profile.theme}
+          avatarUrl={profile.avatarUrl}
+          layout={profile.layout}
+          layoutVersion={profile.layoutVersion}
+          content={content}
+          initialView={requestedView === "cv" || requestedView === "grid" ? requestedView : profile.defaultView}
+          showMadeWith={profile.showMadeWith}
+        />
+      </ProfileClientWrapper>
+    </>
   );
 }
