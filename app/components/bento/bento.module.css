@@ -1075,6 +1075,32 @@
   white-space: nowrap;
 }
 
+.socialChips {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.socialChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 0 11px 0 7px;
+  border: 1px solid var(--bento-line);
+  border-radius: 10px;
+  color: var(--bento-ink);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  transition: border-color 0.15s;
+}
+
+.socialChip:hover {
+  border-color: var(--bento-line-strong);
+}
+
 .socialIcons {
   margin-top: auto;
   display: flex;

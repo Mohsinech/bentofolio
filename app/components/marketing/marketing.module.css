@@ -279,6 +279,14 @@
   color: var(--muted);
 }
 
+.claimNote {
+  font: 500 12px/1.5 var(--bento-mono), ui-monospace, monospace;
+}
+
+.afterHero {
+  margin-top: 140px;
+}
+
 .hintOk {
   color: var(--good);
 }
@@ -1369,6 +1377,9 @@
     gap: 96px;
     padding-bottom: 96px;
   }
+  .afterHero {
+    margin-top: 96px;
+  }
   .faq {
     gap: 24px;
   }
@@ -1379,7 +1390,13 @@
     padding: 0 16px;
   }
   .top {
-    gap: 40px;
+    gap: 32px;
+  }
+  .heroCopy {
+    gap: 20px;
+  }
+  .afterHero {
+    margin-top: 72px;
   }
   .navHideSm {
     display: none;

@@ -448,10 +448,28 @@ const PLATFORM_COLORS: Record<string, string> = {
 function SocialBlock({ data, size }: { data: Extract<BlockContent, { type: "social" }>["data"]; size: Size }) {
   const links = (data.items || []).filter((item) => normalizeHref(item.url));
   const iconsOnly = isSmall(size) || data.variant === "icons";
+  // A one-row block fits two list rows; with more links, use compact chips so
+  // nothing is cut off (phones have shorter rows).
+  const chips = !iconsOnly && !isTall(size) && links.length > 2;
   return (
     <div className={styles.stack}>
       <Label>{text(data.heading) || "Elsewhere"}</Label>
-      {iconsOnly ? (
+      {chips ? (
+        <div className={styles.socialChips}>
+          {links.map((item, index) => (
+            <ExternalLink
+              key={`${item.platform}-${index}`}
+              href={item.platform === "email" && !item.url.includes(":") ? `mailto:${item.url}` : item.url}
+              className={styles.socialChip}
+            >
+              <span className={styles.platformIcon} style={{ background: PLATFORM_COLORS[item.platform] || "#55544F" }}>
+                {(PLATFORM_LABELS[item.platform] || "L").slice(0, 2)}
+              </span>
+              {PLATFORM_LABELS[item.platform] || "Link"}
+            </ExternalLink>
+          ))}
+        </div>
+      ) : iconsOnly ? (
         <div className={styles.socialIcons}>
           {links.map((item, index) => (
             <ExternalLink
@@ -468,7 +486,7 @@ function SocialBlock({ data, size }: { data: Extract<BlockContent, { type: "soci
         </div>
       ) : (
         <ul className={styles.linkList}>
-          {links.slice(0, isTall(size) ? 8 : 3).map((item, index) => (
+          {links.slice(0, isTall(size) ? 8 : 2).map((item, index) => (
             <li key={`${item.platform}-${index}`}>
               <ExternalLink
                 href={item.platform === "email" && !item.url.includes(":") ? `mailto:${item.url}` : item.url}

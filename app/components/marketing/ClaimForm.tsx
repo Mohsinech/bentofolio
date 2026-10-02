@@ -8,7 +8,8 @@ import styles from "./marketing.module.css";
 
 // bentofolio.dev/[yourname] [Claim] — checks the name as you type, then sends
 // you to sign up with it filled in. Signed-in people go to the editor.
-export function ClaimForm({ dark = false, id }: { dark?: boolean; id: string }) {
+// `note` shows under the field until the person starts typing.
+export function ClaimForm({ dark = false, id, note }: { dark?: boolean; id: string; note?: string }) {
   const router = useRouter();
   const signedIn = useSignedIn();
   const [value, setValue] = useState("");
@@ -78,10 +79,10 @@ export function ClaimForm({ dark = false, id }: { dark?: boolean; id: string }) 
       </form>
       <p
         id={`${id}-hint`}
-        className={`${styles.claimHint} ${hint ? (hint.ok ? styles.hintOk : styles.hintBad) : ""}`}
+        className={`${styles.claimHint} ${hint ? (hint.ok ? styles.hintOk : styles.hintBad) : note ? styles.claimNote : ""}`}
         aria-live="polite"
       >
-        {hint?.text ?? ""}
+        {hint?.text ?? note ?? ""}
       </p>
     </div>
   );
