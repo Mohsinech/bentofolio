@@ -407,9 +407,24 @@ body::before {
    Print Styles (PDF Export)
    ======================================== */
 
+/* CV as PDF: the browser's "Save as PDF" uses these. */
+@page {
+  size: A4;
+  margin: 16mm 16mm 18mm;
+}
+
 @media print {
   body::before {
     display: none;
+  }
+
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  html,
+  body {
+    background: #fff !important;
   }
 
   .glass {

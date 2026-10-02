@@ -68,7 +68,7 @@ export function FeedbackWidget() {
   };
 
   return (
-    <div className={styles.wrap}>
+    <div className={styles.wrap} data-print-hide>
       {open && (
         <section className={styles.panel} aria-label="Send feedback">
           <div className={styles.panelHeader}>

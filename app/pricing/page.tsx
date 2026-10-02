@@ -20,7 +20,7 @@ const rows: { f: string; free: string; pro: string; freeMuted?: boolean }[] = [
   { f: "Custom domain", free: "—", pro: "✓", freeMuted: true },
   { f: "Analytics dashboard", free: "—", pro: "✓", freeMuted: true },
   { f: "Verified badge", free: "—", pro: "✓", freeMuted: true },
-  { f: "CV as PDF", free: "—", pro: "Soon", freeMuted: true },
+  { f: "CV as PDF download", free: "—", pro: "✓", freeMuted: true },
   { f: "“Made with” tag", free: "Shown", pro: "Removed" },
 ];
 

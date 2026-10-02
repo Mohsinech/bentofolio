@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Download } from "lucide-react";
 import type { BlockContent, BlockLayout, ThemeId } from "@/app/lib/types";
 import { BentoGrid } from "@/app/components/bento/BentoGrid";
 import { CvView, hasCvContent } from "@/app/components/bento/CvView";
@@ -59,10 +59,23 @@ export function PublicProfileShell({
       ? identity.data.name.trim()
       : `@${username}`;
 
+  // Pro pages offer the CV as a PDF: the browser's print dialog with the
+  // print layout from cv.module.css ("Save as PDF").
+  function downloadPdf() {
+    const previous = document.title;
+    document.title = `${displayName.replace(/^@/, "")} — CV`;
+    const restore = () => {
+      document.title = previous;
+      window.removeEventListener("afterprint", restore);
+    };
+    window.addEventListener("afterprint", restore);
+    window.print();
+  }
+
   return (
     <main className={`${styles.theme} ${styles.page} ${bentoFontClasses}`} data-theme={theme}>
       <div className={styles.frame}>
-        <header className={styles.header}>
+        <header className={styles.header} data-print-hide>
           <span className={styles.brand}>
             {displayName}
             {isPro && (
@@ -82,6 +95,12 @@ export function PublicProfileShell({
             </div>
           )}
           <div className={styles.headerActions}>
+            {showCv && isPro && (
+              <button type="button" className={cvStyles.pdfButton} onClick={downloadPdf}>
+                <Download size={14} aria-hidden="true" />
+                <span>PDF</span>
+              </button>
+            )}
             <ShareButton username={username} />
           </div>
         </header>
@@ -95,7 +114,7 @@ export function PublicProfileShell({
         )}
 
         {(!isPro || showMadeWith) && (
-          <footer className={styles.footer}>
+          <footer className={styles.footer} data-print-hide>
             <a href="/" className={styles.madeWith} aria-label="Made with BentoFolio">
               <span className={styles.madeWithMark} aria-hidden="true">
                 <i />
