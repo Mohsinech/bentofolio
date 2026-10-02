@@ -585,13 +585,13 @@ export const blockRegistry = {
   },
   saas: {
     legacyType: "saas",
-    v2Name: "Metrics",
+    v2Name: "SaaS revenue",
     v2Category: "Career and Proof",
     productCategory: "Proof",
-    description: "Legacy product revenue/proof card, mapped to V2 Metrics or Featured Project.",
+    description: "Your product's MRR with an animated revenue chart.",
     icon: Globe,
-    defaultSize: { w: 2, h: 1 },
-    supportedSizes: ["medium", "large"],
+    defaultSize: { w: 2, h: 2 },
+    supportedSizes: ["medium", "large", "wide"],
     accessLevel: "free",
     freeCapabilities: ["basicVariants"],
     proCapabilities: ["advancedVariants"],
@@ -868,6 +868,7 @@ export const editorBlockOrder = [
   "education",
   "services",
   "stats",
+  "saas",
 ] satisfies BlockType[];
 
 export const editorBlockLibraryEntries = editorBlockOrder.map(

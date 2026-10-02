@@ -609,6 +609,16 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             onChange={(v) => handleChange("mrr", Number(v))}
             type="number"
           />
+          <SelectField
+            label="Currency"
+            value={content.data.currency || "USD"}
+            options={["USD", "EUR", "GBP", "MAD", "INR", "CAD", "AUD"].map((c) => ({ value: c, label: c }))}
+            onChange={(v) => handleChange("currency", v)}
+          />
+          <RevenueField
+            values={content.data.revenue || []}
+            onChange={(values) => handleChange("revenue", values)}
+          />
         </>
       );
 
@@ -1945,6 +1955,48 @@ interface SelectFieldProps {
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
+}
+
+// Monthly revenue for the SaaS chart, oldest first. Kept as text while typing
+// so "1200, " doesn't get rewritten under the cursor.
+function RevenueField({
+  values,
+  onChange,
+}: {
+  values: number[];
+  onChange: (values: number[]) => void;
+}) {
+  const [draft, setDraft] = useState(() => values.join(", "));
+  const id = useId();
+
+  return (
+    <div className={styles.field}>
+      <label className={styles.label} htmlFor={id}>
+        Monthly revenue
+      </label>
+      <textarea
+        id={id}
+        className={styles.textarea}
+        value={draft}
+        placeholder="1200, 1450, 1890, 2380, 3050"
+        rows={2}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          onChange(
+            event.target.value
+              .split(/[\s,;]+/)
+              .map((part) => Number(part.replace(/[^0-9.-]/g, "")))
+              .filter((n) => Number.isFinite(n) && n >= 0)
+              .slice(-24)
+          );
+        }}
+      />
+      <span className={styles.fieldHint}>
+        Oldest to newest, separated by commas. The chart shows when there are 2 or more months
+        and the block is size L or Wide.
+      </span>
+    </div>
+  );
 }
 
 function SelectField({ label, value, options, onChange }: SelectFieldProps) {

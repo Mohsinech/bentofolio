@@ -262,6 +262,7 @@ export function BentoGrid({ layout, content, avatarUrl, isPro, forceMobile = fal
             data-cell
             data-top={item.y === 0 ? "true" : undefined}
             data-h={item.h}
+            data-w={item.w}
             className={`${styles.cell} ${selected ? styles.cellSelected : ""} ${draggingId === item.id ? styles.cellDragging : ""}`}
             style={cellStyle(item, mobileById.get(item.id))}
             tabIndex={editing ? 0 : undefined}

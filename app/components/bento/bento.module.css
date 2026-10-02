@@ -698,6 +698,10 @@
   color: var(--bento-ink-2);
   font-size: 16px;
   line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .bio {
@@ -720,14 +724,102 @@
   font-size: clamp(32px, 4.4vw, 56px);
 }
 
-/* Compact profile (2×1 or 4×1): smaller name, no gap-filling. */
-.cell[data-h="1"] .identity .name {
-  font-size: 24px;
+/* One-row profile (2×1 or 4×1): photo, text and status side by side, so the
+   content sits centred with room above and below instead of touching the
+   bottom edge. */
+.cell[data-h="1"] .identity {
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+}
+
+.cell[data-h="1"] .identityTop {
+  display: contents;
 }
 
 .cell[data-h="1"] .identity .avatar {
-  width: 40px;
-  height: 40px;
+  order: 1;
+  width: 64px;
+  height: 64px;
+}
+
+.cell[data-h="1"] .identityBody {
+  order: 2;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 6px;
+}
+
+.cell[data-h="1"] .statusChip {
+  order: 3;
+  align-self: flex-start;
+  max-width: 40%;
+}
+
+.cell[data-h="1"] .identity .name {
+  font-size: 26px;
+}
+
+.cell[data-h="1"] .identity .headline {
+  font-size: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.cell[data-h="1"] .identity .meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Half-width one-row profile: drop the status chip and shrink the photo. */
+.cell[data-h="1"][data-w="2"] .statusChip {
+  display: none;
+}
+
+.cell[data-h="1"][data-w="2"] .identity .avatar {
+  width: 48px;
+  height: 48px;
+}
+
+.cell[data-h="1"][data-w="2"] .identity .name {
+  font-size: 22px;
+}
+
+/* Every profile: keep a little air under the last line. */
+.identityBody {
+  padding-bottom: 2px;
+}
+
+.gridMobile .cell[data-h="1"] .statusChip {
+  display: none;
+}
+
+.gridMobile .cell[data-h="1"] .identity .avatar {
+  width: 48px;
+  height: 48px;
+}
+
+.gridMobile .cell[data-h="1"] .identity .name {
+  font-size: 22px;
+}
+
+@media (max-width: 760px) {
+  .cell[data-h="1"] .statusChip {
+    display: none;
+  }
+
+  .cell[data-h="1"] .identity .avatar {
+    width: 48px;
+    height: 48px;
+  }
+
+  .cell[data-h="1"] .identity .name {
+    font-size: 22px;
+  }
 }
 
 /* --------------------------------------------------------------------------
