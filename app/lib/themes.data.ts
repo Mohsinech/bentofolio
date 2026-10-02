@@ -49,17 +49,10 @@ export const themes: Record<ThemeId, ThemeConfig> = {
   },
 };
 
-export const premiumBlocks: BlockType[] = [
-  "github",
-  "projects",
-  "saas",
-  "spotify",
-  "youtube",
-  "gallery",
-  "instagram",
-  "services",
-  "stats",
-];
+// Pro blocks are the media embeds. Proof blocks (GitHub, projects, SaaS,
+// stats, services, gallery) are free. Must match accessLevel in
+// block-registry.tsx.
+export const premiumBlocks: BlockType[] = ["spotify", "youtube", "instagram"];
 
 export const freeBlocks: BlockType[] = [
   "identity",
@@ -74,4 +67,10 @@ export const freeBlocks: BlockType[] = [
   "experience",
   "education",
   "tools",
+  "github",
+  "projects",
+  "saas",
+  "gallery",
+  "services",
+  "stats",
 ];

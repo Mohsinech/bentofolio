@@ -16,7 +16,11 @@ import styles from "../auth.module.css";
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
+  // Prefilled from the landing page's "Claim" form (?username=mira).
+  const [username, setUsername] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return normalizeUsername(new URLSearchParams(window.location.search).get("username") ?? "");
+  });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);

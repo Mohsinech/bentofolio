@@ -25,7 +25,7 @@ export function isAdmin(
 }
 
 // Premium features config
-export const PREMIUM_PRICE = 9; // USD, lifetime
+export const PREMIUM_PRICE = 19; // USD, lifetime (beta). Change the Lemon Squeezy variant price to match.
 export const LEMON_SQUEEZY_STORE_ID = process.env.LEMON_SQUEEZY_STORE_ID || "";
 export const LEMON_SQUEEZY_PRODUCT_ID =
   process.env.LEMON_SQUEEZY_PRODUCT_ID || "";
