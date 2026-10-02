@@ -1572,10 +1572,58 @@
   color: var(--bento-muted);
 }
 
+.chartWrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chartHead,
+.chartAxis {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--bento-muted);
+  font: 500 11px/1.2 var(--bento-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.chartHeadValue {
+  color: var(--bento-ink);
+}
+
 .chart {
   position: relative;
   flex: 1 1 auto;
   min-height: 48px;
+}
+
+.chartGrid {
+  stroke: var(--bento-line);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+}
+
+/* Scale hint: the peak month's value, sitting on the dashed guide line. */
+.chartMax {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  padding-right: 6px;
+  background: var(--bento-card);
+  color: var(--bento-muted);
+  font: 500 10.5px/1 var(--bento-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.saasFacts {
+  color: var(--bento-muted);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .chart svg {
@@ -1613,15 +1661,16 @@
   animation: fadeIn 1s ease-out 0.9s forwards;
 }
 
+/* The line is revealed left to right with a clip. (A dash animation can't be
+   used here: non-scaling strokes ignore pathLength, which drew a dashed line.) */
 .chartLine {
   fill: none;
   stroke: var(--bento-accent);
   stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: draw 1.6s cubic-bezier(0.3, 0.7, 0.2, 1) 0.2s forwards;
+  clip-path: inset(0 100% 0 0);
+  animation: reveal 1.6s cubic-bezier(0.3, 0.7, 0.2, 1) 0.2s forwards;
 }
 
 .chartEnd,
@@ -1648,6 +1697,35 @@
   border-radius: inherit;
   background: inherit;
   animation: halo 2s ease-out 2.1s infinite;
+}
+
+.chartTipMonth {
+  display: block;
+  margin-bottom: 2px;
+  color: #a3a29c;
+  font: 500 11px/1.2 var(--bento-mono), ui-monospace, monospace;
+}
+
+.verifiedBadge,
+.selfReported {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  font: 500 10.5px/1 var(--bento-sans), ui-sans-serif, sans-serif;
+  vertical-align: 1px;
+}
+
+.verifiedBadge {
+  background: var(--bento-good-soft);
+  color: var(--bento-good);
+}
+
+.selfReported {
+  background: var(--bento-card-2);
+  color: var(--bento-muted);
 }
 
 .chartCross {
@@ -1768,9 +1846,9 @@
   }
 }
 
-@keyframes draw {
+@keyframes reveal {
   to {
-    stroke-dashoffset: 0;
+    clip-path: inset(0 0 0 0);
   }
 }
 
@@ -1812,7 +1890,7 @@
 
   .chartLine {
     animation: none;
-    stroke-dashoffset: 0;
+    clip-path: none;
   }
 
   .chartArea,

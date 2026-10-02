@@ -27,6 +27,7 @@ import {
 } from "@/app/lib/tech-stack";
 import { getTechIconUrl, techIcons } from "@/app/lib/tech-icons";
 import styles from "./BlockEditor.module.css";
+import { RevenueSource } from "./RevenueSource";
 
 const PROFESSIONAL_TITLE_SUGGESTIONS = [
   "Software Engineer",
@@ -603,22 +604,35 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             onChange={(v) => handleChange("logo", v)}
             small
           />
-          <Field
-            label="MRR"
-            value={String(content.data.mrr)}
-            onChange={(v) => handleChange("mrr", Number(v))}
-            type="number"
-          />
-          <SelectField
-            label="Currency"
-            value={content.data.currency || "USD"}
-            options={["USD", "EUR", "GBP", "MAD", "INR", "CAD", "AUD"].map((c) => ({ value: c, label: c }))}
-            onChange={(v) => handleChange("currency", v)}
-          />
-          <RevenueField
-            values={content.data.revenue || []}
-            onChange={(values) => handleChange("revenue", values)}
-          />
+          <RevenueSource
+            blockId={blockId}
+            hasManualNumbers={
+              Boolean(content.data.mrr) || Boolean(content.data.totalRevenue) || (content.data.revenue || []).length > 0
+            }
+          >
+            <Field
+              label="MRR"
+              value={String(content.data.mrr)}
+              onChange={(v) => handleChange("mrr", Number(v))}
+              type="number"
+            />
+            <SelectField
+              label="Currency"
+              value={content.data.currency || "USD"}
+              options={["USD", "EUR", "GBP", "MAD", "INR", "CAD", "AUD"].map((c) => ({ value: c, label: c }))}
+              onChange={(v) => handleChange("currency", v)}
+            />
+            <Field
+              label="Total revenue (all time, optional)"
+              value={content.data.totalRevenue ? String(content.data.totalRevenue) : ""}
+              onChange={(v) => handleChange("totalRevenue", v.trim() ? Number(v) : undefined)}
+              type="number"
+            />
+            <RevenueField
+              values={content.data.revenue || []}
+              onChange={(values) => handleChange("revenue", values)}
+            />
+          </RevenueSource>
         </>
       );
 

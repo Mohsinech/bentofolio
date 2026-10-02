@@ -1,0 +1,258 @@
+/* Revenue source panel in the SaaS block sidebar. Uses the editor's
+   variables (light and dark). */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--editor-border, #ddd7cc);
+}
+
+.heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--editor-text, #151515);
+}
+
+.segment {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 3px;
+  border-radius: 9px;
+  background: var(--editor-panel-secondary, #f4f1ea);
+}
+
+.segment button {
+  min-height: 32px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--editor-text-muted, #6f6a62);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.segment .segmentActive {
+  background: var(--editor-control, #fffdf8);
+  color: var(--editor-text, #151515);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.steps {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--editor-text, #151515);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.steps a {
+  color: var(--editor-selection, #5b8cff);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--editor-text-muted, #6f6a62);
+}
+
+.input {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--editor-border-strong, #bdb5a8);
+  border-radius: 8px;
+  background: var(--editor-control, #fffdf8);
+  color: var(--editor-text, #151515);
+  font: 13px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--editor-focus, #5b8cff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--editor-focus, #5b8cff) 22%, transparent);
+}
+
+.primary,
+.secondary,
+.danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.primary {
+  border: 1px solid var(--editor-primary, #151515);
+  background: var(--editor-primary, #151515);
+  color: var(--editor-primary-text, #fffdf8);
+}
+
+.secondary {
+  border: 1px solid var(--editor-border-strong, #bdb5a8);
+  background: var(--editor-control, #fffdf8);
+  color: var(--editor-text, #151515);
+}
+
+.danger {
+  border: 1px solid color-mix(in srgb, var(--editor-danger, #b42318) 35%, transparent);
+  background: transparent;
+  color: var(--editor-danger, #b42318);
+}
+
+.primary:disabled,
+.secondary:disabled,
+.danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.muted {
+  margin: 0;
+  color: var(--editor-text-muted, #6f6a62);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.warning {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px;
+  border-radius: 8px;
+  background: #fff5db;
+  color: #7a5200;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.warning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.error {
+  margin: 0;
+  display: flex;
+  gap: 6px;
+  align-items: flex-start;
+  color: var(--editor-danger, #b42318);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ok {
+  margin: 0;
+  color: #1f7a45;
+  font-size: 12px;
+}
+
+.connected {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--editor-border, #ddd7cc);
+  border-radius: 10px;
+  background: var(--editor-control, #fffdf8);
+}
+
+.connectedTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #1f7a45;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.hint {
+  color: var(--editor-text-muted, #6f6a62);
+  font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 12px 16px;
+}
+
+.stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statValue {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--editor-text, #151515);
+  font-variant-numeric: tabular-nums;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--editor-text-muted, #6f6a62);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actions > button {
+  flex: 1 1 0;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin {
+    animation: none;
+  }
+}

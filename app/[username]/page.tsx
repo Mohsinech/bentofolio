@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 
 import {
   getProfileByUsername,
+  getVerifiedRevenue,
   resolveUsernameRedirect,
 } from "@/app/lib/supabase/profiles";
+import { applyVerifiedRevenue } from "@/app/lib/revenue/overlay";
 import { ProfileClientWrapper } from "./ProfileClientWrapper";
 import { PublicProfileShell } from "./PublicProfileShell";
 import styles from "./profile.module.css";
@@ -94,7 +96,7 @@ export default async function ProfilePage({ params }: PageProps) {
         avatarUrl={profile.avatarUrl}
         layout={profile.layout}
         layoutVersion={profile.layoutVersion}
-        content={profile.content}
+        content={applyVerifiedRevenue(profile.content, await getVerifiedRevenue(profile.id))}
       />
     </ProfileClientWrapper>
   );
