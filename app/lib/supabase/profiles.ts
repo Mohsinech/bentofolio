@@ -1,5 +1,6 @@
 import { createClient } from "@/app/lib/supabase/server";
 import { BlockLayout, BlockContent, ThemeId } from "@/app/lib/types";
+import type { VerifiedRevenue } from "@/app/lib/revenue/overlay";
 
 function normalizeTheme(theme: unknown): ThemeId {
   return theme === "light" ? "light" : "dark";
@@ -59,6 +60,14 @@ export async function resolveUsernameRedirect(
   });
   if (error || typeof data !== "string" || !data) return null;
   return data;
+}
+
+// Verified revenue for a page's SaaS blocks, from the server's own records.
+export async function getVerifiedRevenue(profileId: string): Promise<VerifiedRevenue[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("public_verified_revenue", { p_profile_id: profileId });
+  if (error || !Array.isArray(data)) return [];
+  return data as VerifiedRevenue[];
 }
 
 export async function getCurrentUserProfile(): Promise<ProfileData | null> {

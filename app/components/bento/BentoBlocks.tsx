@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   ArrowUpRight,
+  BadgeCheck,
   Check,
   Copy,
   Download,
@@ -763,7 +764,24 @@ function formatMoney(value: number, currency?: string): string {
 
 // Revenue trend: the line draws itself in, the area fades in under it, and the
 // latest point pulses. Hovering a month shows its value.
-function RevenueChart({ values, currency, label }: { values: number[]; currency?: string; label: string }) {
+function monthLabel(start: string | undefined, offset: number): string | null {
+  const match = start?.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return null;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1 + offset, 1));
+  return new Intl.DateTimeFormat("en", { month: "short", year: "numeric", timeZone: "UTC" }).format(date);
+}
+
+function RevenueChart({
+  values,
+  currency,
+  label,
+  start,
+}: {
+  values: number[];
+  currency?: string;
+  label: string;
+  start?: string;
+}) {
   const [hover, setHover] = useState<number | null>(null);
   const geometry = useMemo(() => {
     const max = Math.max(...values, 1);
@@ -801,6 +819,7 @@ function RevenueChart({ values, currency, label }: { values: number[]; currency?
               transform: hovered.x > 75 ? "translate(-100%, -120%)" : hovered.x < 25 ? "translate(0, -120%)" : "translate(-50%, -120%)",
             }}
           >
+            {monthLabel(start, hover) && <span className={styles.chartTipMonth}>{monthLabel(start, hover)}</span>}
             {formatMoney(values[hover], currency)}
           </span>
         </>
@@ -859,8 +878,28 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
       </div>
       <div className={styles.saasNumbers}>
         <div className={styles.stat}>
-          <span className={styles.statLabel}>MRR</span>
+          <span className={styles.statLabel}>
+            MRR
+            {data.verified ? (
+              <span
+                className={styles.verifiedBadge}
+                title={`Synced from ${data.verified.provider === "stripe" ? "Stripe" : "Lemon Squeezy"} on ${new Date(
+                  data.verified.syncedAt
+                ).toLocaleDateString("en", { dateStyle: "medium" })}`}
+              >
+                <BadgeCheck size={12} aria-hidden="true" />
+                Verified · {data.verified.provider === "stripe" ? "Stripe" : "Lemon Squeezy"}
+              </span>
+            ) : mrr > 0 || revenue.length > 0 ? (
+              <span className={styles.selfReported} title="Typed in by the owner, not connected to a payment provider">
+                Self-reported
+              </span>
+            ) : null}
+          </span>
           <span className={`${styles.statValue} ${styles.bigNumber}`}>{formatMoney(Math.round(shown), data.currency)}</span>
+          {data.verified && typeof data.customers === "number" && data.customers > 0 && !strip && (
+            <span className={styles.statLabel}>{data.customers.toLocaleString("en")} paying customers</span>
+          )}
         </div>
         {growth !== null && (
           <span className={`${styles.growth} ${growth < 0 ? styles.growthDown : ""}`}>
@@ -869,7 +908,12 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
         )}
       </div>
       {revenue.length >= 2 && (isTall(size) || strip) && (
-        <RevenueChart values={revenue} currency={data.currency} label={`${name} revenue over the last ${revenue.length} months`} />
+        <RevenueChart
+          values={revenue}
+          currency={data.currency}
+          start={data.revenueStart}
+          label={`${name} revenue over the last ${revenue.length} months`}
+        />
       )}
       {editing && revenue.length < 2 && (isTall(size) || strip) && (
         <span className={styles.chartEmpty}>

@@ -31,6 +31,8 @@ import {
 
 import { BlockEditor } from "./BlockEditor";
 import { UsernameDialog } from "./UsernameDialog";
+import { applyVerifiedRevenue } from "@/app/lib/revenue/overlay";
+import { disconnectRevenue, useRevenueConnections } from "@/app/lib/hooks/useRevenueConnections";
 import { isPlaceholderUsername, normalizeUsername } from "@/app/lib/usernames";
 import { EditorProvider, useEditor } from "@/app/lib/editor-context";
 import { useAuth, useProfile } from "@/app/lib/hooks";
@@ -138,6 +140,12 @@ function EditorStudio() {
     setContent,
     selectBlock,
   } = useEditor();
+  const revenueConnections = useRevenueConnections();
+  // Canvas shows verified numbers exactly as visitors will see them.
+  const canvasContent = useMemo(
+    () => applyVerifiedRevenue(content, revenueConnections),
+    [content, revenueConnections]
+  );
   const [leftTab, setLeftTab] = useState<LeftTab>("blocks");
   const [search, setSearch] = useState("");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
@@ -446,6 +454,10 @@ function EditorStudio() {
 
     const nextContent = { ...content };
     delete nextContent[id];
+    // A removed SaaS block shouldn't leave a stored provider key behind.
+    if (block?.type === "saas" && revenueConnections.some((c) => c.block_id === id)) {
+      void disconnectRevenue(id);
+    }
     setLayout(removeItem(layout, id));
     setContent(nextContent);
     selectBlock(null);
@@ -861,7 +873,7 @@ function EditorStudio() {
                     >
                       <BentoGrid
                         layout={layout}
-                        content={content}
+                        content={canvasContent}
                         avatarUrl={profile.avatarUrl}
                         isPro={Boolean(hasProAccess)}
                         forceMobile={previewMode === "mobile"}

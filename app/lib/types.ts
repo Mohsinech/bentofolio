@@ -161,6 +161,13 @@ export interface SaaSContent {
   mrr: number;
   revenue: number[];
   currency?: string;
+  // "YYYY-MM" of revenue[0], used for month labels on the chart.
+  revenueStart?: string;
+  // Active subscriptions (set by a provider sync).
+  customers?: number;
+  // Only ever set by the server from a live provider connection; anything
+  // saved in page data is ignored and removed when the page is shown.
+  verified?: { provider: "stripe" | "lemonsqueezy"; syncedAt: string };
   eyebrow?: string;
   heading?: string;
   variant?: "grid" | "strip";

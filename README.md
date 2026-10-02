@@ -197,3 +197,22 @@ Open `http://localhost:3000`.
 - Next 16 warns that `middleware.ts` should eventually migrate to the `proxy` convention.
 - Production build may need investigation if Turbopack hangs at `Creating an optimized production build ...`.
 - Image uploads are still stored as base64 in profile JSON; Supabase Storage should replace that before heavy production use.
+
+## Verified revenue (SaaS block)
+
+Founders can connect Stripe or Lemon Squeezy to a SaaS block so its MRR and
+monthly revenue come from the provider and show as "Verified".
+
+- Run `supabase/migrations/014_revenue_connections.sql`.
+- Set two server variables in Vercel (Production and Preview):
+  - `REVENUE_ENCRYPTION_KEY`: 32 random bytes, base64. Generate with
+    `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
+    Never change it once keys are stored, or they can't be decrypted.
+  - `CRON_SECRET`: any long random string. Vercel sends it to
+    `/api/cron/revenue`, which refreshes every connection daily (`vercel.json`).
+- Stripe: only restricted `rk_` keys are accepted (Read on Subscriptions and
+  Invoices). Secret `sk_` keys are refused.
+- Lemon Squeezy keys can't be read-only; the editor warns before connecting.
+- Keys are encrypted (AES-256-GCM) in a table only the server can read.
+  Public pages read numbers through `public_verified_revenue()`, so the
+  Verified badge can't be faked by editing page data.
