@@ -20,6 +20,8 @@ interface PublicProfileShellProps {
   layoutVersion?: number | null;
   content: Record<string, BlockContent>;
   initialView?: "grid" | "cv";
+  // Pro pages can turn the "Made with bentofolio" tag back on.
+  showMadeWith?: boolean;
 }
 
 export function PublicProfileShell({
@@ -31,6 +33,7 @@ export function PublicProfileShell({
   layoutVersion,
   content,
   initialView = "grid",
+  showMadeWith = false,
 }: PublicProfileShellProps) {
   const visible = useMemo(
     () => publicLayout(resolveLayout(layout, layoutVersion), content, isPro),
@@ -91,7 +94,7 @@ export function PublicProfileShell({
           <p className={styles.emptyPage}>This page is still being set up.</p>
         )}
 
-        {!isPro && (
+        {(!isPro || showMadeWith) && (
           <footer className={styles.footer}>
             <a href="/" className={styles.madeWith} aria-label="Made with BentoFolio">
               <span className={styles.madeWithMark} aria-hidden="true">

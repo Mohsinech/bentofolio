@@ -58,7 +58,7 @@ export async function generateMetadata({
 
 export default async function ProfilePage({ params, searchParams }: PageProps) {
   const { username } = await params;
-  const initialView = (await searchParams)?.view === "cv" ? "cv" : "grid";
+  const requestedView = (await searchParams)?.view;
   const profile = await getProfileByUsername(username);
 
   if (!profile) {
@@ -99,7 +99,8 @@ export default async function ProfilePage({ params, searchParams }: PageProps) {
         layout={profile.layout}
         layoutVersion={profile.layoutVersion}
         content={applyVerifiedRevenue(profile.content, await getVerifiedRevenue(profile.id))}
-        initialView={initialView}
+        initialView={requestedView === "cv" || requestedView === "grid" ? requestedView : profile.defaultView}
+        showMadeWith={profile.showMadeWith}
       />
     </ProfileClientWrapper>
   );

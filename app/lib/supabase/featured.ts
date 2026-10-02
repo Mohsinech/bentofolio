@@ -21,13 +21,14 @@ export async function getFeaturedProfiles(limit = 4): Promise<FeaturedProfile[]>
     const supabase = createClient(url, key, { auth: { persistSession: false } });
     const { data, error } = await supabase
       .from("profiles")
-      .select("username, content, is_pro")
+      .select("*")
       .not("content", "is", null)
       .order("updated_at", { ascending: false })
       .limit(80);
     if (error || !data) return [];
 
     return data
+      .filter((row) => row.discoverable !== false)
       .map((row) => {
         const content = (row.content ?? {}) as Record<string, { type?: string; data?: Record<string, unknown> }>;
         const blocks = Object.values(content);

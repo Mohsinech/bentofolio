@@ -17,6 +17,9 @@ export interface ProfileData {
   layoutVersion: number;
   isPro: boolean;
   customDomain?: string | null;
+  // Settings (migration 016); defaults when the columns don't exist yet.
+  defaultView: "grid" | "cv";
+  showMadeWith: boolean;
 }
 
 export async function getProfileByUsername(
@@ -47,6 +50,8 @@ export async function getProfileByUsername(
     layoutVersion: typeof data.layout_version === "number" ? data.layout_version : 1,
     isPro: data.is_pro || false,
     customDomain: data.custom_domain || null,
+    defaultView: data.default_view === "cv" ? "cv" : "grid",
+    showMadeWith: Boolean(data.show_made_with),
   };
 }
 
@@ -101,6 +106,8 @@ export async function getCurrentUserProfile(): Promise<ProfileData | null> {
     layoutVersion: typeof data.layout_version === "number" ? data.layout_version : 1,
     isPro: data.is_pro || false,
     customDomain: data.custom_domain || null,
+    defaultView: data.default_view === "cv" ? "cv" : "grid",
+    showMadeWith: Boolean(data.show_made_with),
   };
 }
 

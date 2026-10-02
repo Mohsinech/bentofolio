@@ -8,7 +8,7 @@ export async function GET() {
     // Get public profiles that have content
     const { data, error } = await supabase
       .from("profiles")
-      .select("username, content, theme, is_pro")
+      .select("*")
       .not("content", "is", null)
       .order("created_at", { ascending: false })
       .limit(50);
@@ -19,6 +19,8 @@ export async function GET() {
 
     // Extract identity info from content
     const profiles = (data || [])
+      // Owners can opt out in Settings (migration 016).
+      .filter((profile) => profile.discoverable !== false)
       .map((profile) => {
         const content = profile.content as Record<
           string,

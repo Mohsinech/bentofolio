@@ -46,7 +46,7 @@ export async function updateSession(request: NextRequest) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("username")
-      .eq("custom_domain", host)
+      .eq("custom_domain", host.replace(/^www\./, ""))
       .eq("is_pro", true)
       .single();
 
@@ -66,7 +66,8 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = request.nextUrl.pathname.startsWith("/auth");
   const isPasswordUpdatePage =
     request.nextUrl.pathname === "/auth/update-password";
-  const isEditorPage = request.nextUrl.pathname.startsWith("/editor");
+  // Pages that need a signed-in account.
+  const isEditorPage = ["/editor", "/settings", "/onboarding"].some((path) => request.nextUrl.pathname.startsWith(path));
 
   // Redirect to login if accessing editor without auth
   if (isEditorPage && !user) {
