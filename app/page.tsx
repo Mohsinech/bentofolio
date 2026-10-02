@@ -75,16 +75,13 @@ export default async function Home() {
               Drag your projects, roles, links and metrics into one grid. Connect Stripe or Lemon Squeezy and your
               revenue shows as verified.
             </p>
-            <ClaimForm id="claim-top" />
-            <span className={styles.lbl} style={{ marginTop: -16 }}>
-              Free forever · No card · Pro is ${PREMIUM_PRICE} once
-            </span>
+            <ClaimForm id="claim-top" note={`Free forever · No card · Pro is $${PREMIUM_PRICE} once`} />
           </div>
 
           <div className={styles.preview} aria-hidden="true">
             <div className={styles.previewGrid}>
               <div className={styles.mini} style={{ gridColumn: "span 2", gridRow: "span 2", padding: 16 }}>
-                <span style={{ width: 34, height: 34, borderRadius: 99, background: "#E3E1DB" }} />
+                <span style={{ display: "block", width: 34, height: 34, minHeight: 34, aspectRatio: "1", flexShrink: 0, borderRadius: 99, background: "#E3E1DB" }} />
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <span style={{ fontSize: 22, fontWeight: 500, lineHeight: 1.05, letterSpacing: "-0.03em" }}>
                     Mira Chen <span className={styles.ser} style={{ color: "var(--body)" }}>designs</span>
@@ -133,7 +130,7 @@ export default async function Home() {
         </section>
       </div>
 
-      <main className={styles.main} style={{ marginTop: 140 }}>
+      <main className={`${styles.main} ${styles.afterHero}`}>
         <section className={`${styles.sec} ${styles.secStack}`} style={{ gap: 48 }}>
           <div className={styles.secHead}>
             <h2 className={styles.h2} style={{ maxWidth: 560 }}>
@@ -170,7 +167,7 @@ export default async function Home() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-                  <span style={{ width: 30, height: 30, borderRadius: 99, background: "#E3E1DB" }} />
+                  <span style={{ display: "block", width: 30, height: 30, minHeight: 30, aspectRatio: "1", flexShrink: 0, borderRadius: 99, background: "#E3E1DB" }} />
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     <span style={{ fontSize: 13, fontWeight: 600 }}>Mira Chen</span>
                     <span className={styles.lbl} style={{ fontSize: 11 }}>
