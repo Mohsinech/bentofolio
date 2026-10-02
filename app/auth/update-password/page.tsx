@@ -69,12 +69,9 @@ export default function UpdatePasswordPage() {
   if (success) {
     return (
       <div className={styles.container}>
-        <div className={`glass ${styles.card}`}>
+        <div className={styles.card}>
           <div className={styles.header}>
-            <h1 className={styles.logo}>
-              Bento<span className={styles.logoAccent}>Folio</span>
-            </h1>
-            <h2 className={styles.title}>Password updated! 🎉</h2>
+            <h1 className={styles.title}>Password <span className={styles.serif}>updated.</span></h1>
             <p className={styles.subtitle}>
               Your password has been successfully changed
             </p>
@@ -87,12 +84,9 @@ export default function UpdatePasswordPage() {
 
   return (
     <div className={styles.container}>
-      <div className={`glass ${styles.card}`}>
+      <div className={styles.card}>
         <div className={styles.header}>
-          <h1 className={styles.logo}>
-            Bento<span className={styles.logoAccent}>Folio</span>
-          </h1>
-          <h2 className={styles.title}>Set new password 🔐</h2>
+          <h1 className={styles.title}>Set a new <span className={styles.serif}>password.</span></h1>
           <p className={styles.subtitle}>
             Choose a strong password for your account
           </p>

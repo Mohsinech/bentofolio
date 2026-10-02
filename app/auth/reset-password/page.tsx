@@ -34,12 +34,9 @@ export default function ResetPasswordPage() {
   if (success) {
     return (
       <div className={styles.container}>
-        <div className={`glass ${styles.card}`}>
+        <div className={styles.card}>
           <div className={styles.header}>
-            <h1 className={styles.logo}>
-              Bento<span className={styles.logoAccent}>Folio</span>
-            </h1>
-            <h2 className={styles.title}>Check your email! 📧</h2>
+            <h1 className={styles.title}>Check your <span className={styles.serif}>email.</span></h1>
             <p className={styles.subtitle}>
               We&apos;ve sent a password reset link to {email}
             </p>
@@ -64,12 +61,9 @@ export default function ResetPasswordPage() {
 
   return (
     <div className={styles.container}>
-      <div className={`glass ${styles.card}`}>
+      <div className={styles.card}>
         <div className={styles.header}>
-          <h1 className={styles.logo}>
-            Bento<span className={styles.logoAccent}>Folio</span>
-          </h1>
-          <h2 className={styles.title}>Reset your password 🔑</h2>
+          <h1 className={styles.title}>Reset your <span className={styles.serif}>password.</span></h1>
           <p className={styles.subtitle}>
             Enter your email and we&apos;ll send you a reset link
           </p>

@@ -1,148 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Github } from "lucide-react";
+import { Github, Loader2 } from "lucide-react";
 import { createClient } from "@/app/lib/supabase/client";
-import {
-  checkUsernameFormat,
-  normalizeUsername,
-  usernameMessage,
-} from "@/app/lib/usernames";
+import { checkUsernameFormat, normalizeUsername } from "@/app/lib/usernames";
 import styles from "../auth.module.css";
+
+function param(name: string): string {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get(name)?.trim() ?? "";
+}
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  // Prefilled from the landing page's "Claim" form (?username=mira).
-  const [username, setUsername] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return normalizeUsername(new URLSearchParams(window.location.search).get("username") ?? "");
-  });
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [github, setGithub] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
-  // Live availability for the username field.
-  const [usernameCheck, setUsernameCheck] = useState<{
-    username: string;
-    available: boolean;
-    message: string;
-  } | null>(null);
-  const [checkingUsername, setCheckingUsername] = useState(false);
-  const [referralCode] = useState(() => {
-    if (typeof window === "undefined") return "";
-    const params = new URLSearchParams(window.location.search);
-    return params.get("ref")?.trim().toUpperCase() || "";
+  // The name claimed on the landing page (?username=mira). It's checked
+  // again when the account is created; if it was taken meanwhile, onboarding
+  // asks for another.
+  const [claimed, setClaimed] = useState(() => {
+    const name = normalizeUsername(param("username"));
+    return name && checkUsernameFormat(name) === "ok" ? name : "";
   });
-  const [couponCode] = useState(() => {
-    if (typeof window === "undefined") return "";
-    const params = new URLSearchParams(window.location.search);
-    return params.get("coupon")?.trim().toUpperCase() || "";
-  });
+  const [referralCode] = useState(() => param("ref").toUpperCase());
+  const [couponCode] = useState(() => param("coupon").toUpperCase());
   const router = useRouter();
   const supabase = createClient();
 
   const getAuthCallbackUrl = () => {
     const url = new URL("/auth/callback", window.location.origin);
-    if (referralCode) {
-      url.searchParams.set("ref", referralCode);
-    }
-    if (couponCode) {
-      url.searchParams.set("coupon", couponCode);
-    }
+    if (referralCode) url.searchParams.set("ref", referralCode);
+    if (couponCode) url.searchParams.set("coupon", couponCode);
+    // New accounts continue in onboarding, with the claimed name filled in.
+    url.searchParams.set("next", claimed ? `/onboarding?username=${encodeURIComponent(claimed)}` : "/onboarding");
     return url.toString();
   };
 
-  const typedUsername = normalizeUsername(username);
-  const typedFormat = typedUsername ? checkUsernameFormat(typedUsername) : null;
-
-  useEffect(() => {
-    if (!typedUsername || typedFormat !== "ok") {
-      setUsernameCheck(null);
-      setCheckingUsername(false);
-      return;
-    }
-    setCheckingUsername(true);
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      try {
-        const response = await fetch(
-          `/api/username/check?u=${encodeURIComponent(typedUsername)}`,
-          { signal: controller.signal }
-        );
-        if (response.ok && !controller.signal.aborted) {
-          const data = await response.json();
-          setUsernameCheck({
-            username: data.username,
-            available: data.available,
-            message: data.message,
-          });
-        }
-      } catch {
-        // Aborted or offline: signup still works; a taken name falls back
-        // to a placeholder the editor asks to replace.
-      } finally {
-        if (!controller.signal.aborted) setCheckingUsername(false);
-      }
-    }, 350);
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [typedUsername, typedFormat]);
-
-  const usernameHint = !typedUsername
-    ? null
-    : typedFormat !== "ok"
-      ? { ok: false, text: usernameMessage(typedFormat!) }
-      : checkingUsername
-        ? { ok: null, text: "Checking…" }
-        : usernameCheck && usernameCheck.username === typedUsername
-          ? { ok: usernameCheck.available, text: usernameCheck.message }
-          : null;
-
-  const handleEmailSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleEmailSignup = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     setError(null);
-    const normalizedUsername = username.trim().toLowerCase();
     const normalizedEmail = email.trim();
-
-    const formatStatus = checkUsernameFormat(normalizedUsername);
-    if (formatStatus !== "ok") {
-      setError(usernameMessage(formatStatus));
-      setLoading(false);
-      return;
-    }
-
-    if (
-      usernameCheck &&
-      usernameCheck.username === normalizedUsername &&
-      !usernameCheck.available
-    ) {
-      setError(`bentofolio.dev/${normalizedUsername}: ${usernameCheck.message}`);
-      setLoading(false);
-      return;
-    }
 
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
-    if (session) {
-      await supabase.auth.signOut();
-    }
+    if (session) await supabase.auth.signOut();
 
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
       options: {
         data: {
-          username: normalizedUsername,
+          username: claimed || undefined,
           referral_code: referralCode || undefined,
           beta_coupon_code: couponCode || undefined,
         },
@@ -153,218 +71,187 @@ export default function SignupPage() {
     if (error) {
       setError(error.message);
       setLoading(false);
-    } else {
-      setEmail(normalizedEmail);
-      if (data.session) {
-        if (couponCode) {
-          await fetch("/api/checkout", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ discountCode: couponCode }),
-          }).catch(() => null);
-        }
-        router.push("/editor");
-        router.refresh();
-        return;
-      }
-      setLoading(false);
-      setSuccess(true);
+      return;
     }
+
+    setEmail(normalizedEmail);
+    if (data.session) {
+      if (couponCode) {
+        await fetch("/api/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ discountCode: couponCode }),
+        }).catch(() => null);
+      }
+      router.push("/onboarding");
+      router.refresh();
+      return;
+    }
+    setLoading(false);
+    setSuccess(true);
   };
 
   const handleResendConfirmation = async () => {
     const normalizedEmail = email.trim();
     if (!normalizedEmail) return;
-
     setResending(true);
     setError(null);
     setResendMessage(null);
-
     const { error } = await supabase.auth.resend({
       type: "signup",
       email: normalizedEmail,
-      options: {
-        emailRedirectTo: getAuthCallbackUrl(),
-      },
+      options: { emailRedirectTo: getAuthCallbackUrl() },
     });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setResendMessage("Confirmation email sent again. Check spam too.");
-    }
+    if (error) setError(error.message);
+    else setResendMessage("Sent again. Check your spam folder too.");
     setResending(false);
   };
 
   const handleGithubSignup = async () => {
+    setGithub(true);
+    setError(null);
     const {
       data: { session },
     } = await supabase.auth.getSession();
-
-    if (session) {
-      await supabase.auth.signOut();
-    }
+    if (session) await supabase.auth.signOut();
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "github",
-      options: {
-        redirectTo: getAuthCallbackUrl(),
-      },
+      options: { redirectTo: getAuthCallbackUrl() },
     });
-
     if (error) {
       setError(error.message);
+      setGithub(false);
     }
   };
 
   if (success) {
     return (
-      <div className={styles.container}>
-        <div className={`glass ${styles.card}`}>
+      <main className={styles.container}>
+        <div className={styles.card}>
           <div className={styles.header}>
-            <h1 className={styles.logo}>
-              Bento<span className={styles.logoAccent}>Folio</span>
+            <h1 className={styles.title}>
+              Check your <span className={styles.serif}>email.</span>
             </h1>
-            <h2 className={styles.title}>Check your email!</h2>
             <p className={styles.subtitle}>
-              We&apos;ve sent you a confirmation link to {email}
+              We sent a confirmation link to <b>{email}</b>. Open it to finish setting up your page.
             </p>
           </div>
-          <div className={styles.success}>
-            Click the link in your email to activate your account.
-          </div>
-          {error && <div className={styles.error}>{error}</div>}
-          {resendMessage && <div className={styles.success}>{resendMessage}</div>}
-          <button
-            type="button"
-            className={styles.submitButton}
-            onClick={handleResendConfirmation}
-            disabled={resending}
-          >
-            {resending ? "Sending..." : "Resend confirmation email"}
+          {error && (
+            <div className={styles.error} role="alert">
+              {error}
+            </div>
+          )}
+          {resendMessage && (
+            <div className={styles.success} role="status">
+              {resendMessage}
+            </div>
+          )}
+          <button type="button" className={styles.socialButton} onClick={handleResendConfirmation} disabled={resending}>
+            {resending ? "Sending…" : "Send the link again"}
           </button>
           <div className={styles.footer}>
             <p className={styles.footerText}>
               Already confirmed?{" "}
               <Link href="/auth/login" className={styles.footerLink}>
-                Sign in
+                Log in
               </Link>
             </p>
           </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className={styles.container}>
-      <div className={`glass ${styles.card}`}>
+    <main className={styles.container}>
+      <div className={styles.card}>
         <div className={styles.header}>
-          <h1 className={styles.logo}>
-            Bento<span className={styles.logoAccent}>Folio</span>
+          <h1 className={styles.title}>
+            Create your <span className={styles.serif}>page.</span>
           </h1>
-          <h2 className={styles.title}>Create your portfolio</h2>
-          <p className={styles.subtitle}>
-            Start building your beautiful bento resume
-          </p>
+          <p className={styles.subtitle}>Free forever. You&apos;ll pick a layout next.</p>
         </div>
 
-        {error && <div className={styles.error}>{error}</div>}
+        {claimed && (
+          <div className={styles.claiming}>
+            <span>
+              Claiming <b>bentofolio.dev/{claimed}</b>
+            </span>
+            <button type="button" onClick={() => setClaimed("")}>
+              Pick another
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div className={styles.error} role="alert">
+            {error}
+          </div>
+        )}
+
+        <div className={styles.socialButtons}>
+          <button type="button" className={styles.socialButton} onClick={handleGithubSignup} disabled={github}>
+            {github ? <Loader2 size={17} className={styles.spinner} aria-hidden="true" /> : <Github size={17} aria-hidden="true" />}
+            Continue with GitHub
+          </button>
+        </div>
+
+        <div className={styles.divider}>
+          <span className={styles.dividerLine} />
+          <span className={styles.dividerText}>or with email</span>
+          <span className={styles.dividerLine} />
+        </div>
 
         <form className={styles.form} onSubmit={handleEmailSignup}>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="signup-username">Username</label>
+            <label className={styles.label} htmlFor="signup-email">
+              Email
+            </label>
             <input
-              id="signup-username"
-              type="text"
-              className={styles.input}
-              placeholder="yourname"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase())}
-              autoComplete="username"
-              autoCapitalize="none"
-              spellCheck={false}
-              maxLength={30}
-              aria-describedby="signup-username-hint"
-              required
-            />
-            <span
-              id="signup-username-hint"
-              aria-live="polite"
-              style={{
-                minHeight: 18,
-                fontSize: 13,
-                color:
-                  usernameHint?.ok === true
-                    ? "#1f7a45"
-                    : usernameHint?.ok === false
-                      ? "#b42318"
-                      : "inherit",
-                opacity: usernameHint?.ok === null ? 0.7 : 1,
-              }}
-            >
-              {usernameHint
-                ? `bentofolio.dev/${typedUsername} · ${usernameHint.text}`
-                : " "}
-            </span>
-          </div>
-
-          <div className={styles.field}>
-            <label className={styles.label}>Email</label>
-            <input
+              id="signup-email"
               type="email"
               className={styles.input}
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete="email"
               required
             />
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Password</label>
+            <label className={styles.label} htmlFor="signup-password">
+              Password
+            </label>
             <input
+              id="signup-password"
               type="password"
               className={styles.input}
-              placeholder="••••••••"
+              placeholder="At least 6 characters"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
               minLength={6}
               required
             />
           </div>
 
-          <button
-            type="submit"
-            className={styles.submitButton}
-            disabled={loading}
-          >
-            {loading ? "Creating account..." : "Create Account"}
+          <button type="submit" className={styles.submitButton} disabled={loading}>
+            {loading && <Loader2 size={16} className={styles.spinner} aria-hidden="true" />}
+            {loading ? "Creating your account…" : "Create account"}
           </button>
         </form>
-
-        <div className={styles.divider}>
-          <span className={styles.dividerLine} />
-          <span className={styles.dividerText}>or</span>
-          <span className={styles.dividerLine} />
-        </div>
-
-        <div className={styles.socialButtons}>
-          <button className={styles.socialButton} onClick={handleGithubSignup}>
-            <Github size={18} />
-            GitHub
-          </button>
-        </div>
 
         <div className={styles.footer}>
           <p className={styles.footerText}>
             Already have an account?{" "}
             <Link href="/auth/login" className={styles.footerLink}>
-              Sign in
+              Log in
             </Link>
           </p>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
