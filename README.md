@@ -136,21 +136,32 @@ Custom domains are enforced server-side in `/api/profile`; non-Pro users cannot 
 
 ## Custom Domain Setup
 
-The app rewrites custom-domain root traffic in middleware:
+Pro users connect their own domain in **Settings → Custom domain**. The app
+adds it to this Vercel project through the Vercel API (apex domains also get
+`www.` redirecting to the apex), shows the DNS records to add, and checks them.
 
-- If host is not the app host, localhost, or `*.vercel.app`
-- And path is `/`
-- It looks up `profiles.custom_domain = host`
-- If profile is Pro, it rewrites to `/{username}`
+Set these server variables (Production and Preview):
 
-Domain DNS examples:
+- `VERCEL_API_TOKEN`: a token from vercel.com/account/tokens with access to
+  the project's team.
+- `VERCEL_PROJECT_ID`: Project → Settings → General → Project ID (`prj_…`).
+- `VERCEL_TEAM_ID`: only if the project belongs to a team (`team_…`).
+
+Without them the Settings page says custom domains aren't switched on yet.
+
+Requests to a custom host on `/` are rewritten in middleware to the owner's
+page (`www.` is ignored; the profile must be Pro).
+
+Standard DNS (the Settings page shows Vercel's exact values):
 
 ```text
 A     @      76.76.21.21
 CNAME www    cname.vercel-dns.com
+CNAME cv     cname.vercel-dns.com   (for a subdomain like cv.mira.design)
 ```
 
-Also add the domain in your hosting provider dashboard.
+Run `supabase/migrations/016_page_settings.sql` for the display settings
+(default Grid/CV view, Discover listing, "Made with" tag on Pro pages).
 
 ## Creative Tab Data
 

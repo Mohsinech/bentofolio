@@ -25,6 +25,7 @@ import {
   Save,
   Search,
   Send,
+  Settings,
   Smartphone,
   Sun,
   Trash2,
@@ -685,6 +686,9 @@ function EditorStudio() {
                 View live
               </Link>
             )}
+            <Link href="/settings" className={styles.iconButton} aria-label="Settings" title="Settings">
+              <Settings size={15} />
+            </Link>
             <button type="button" className={styles.iconButton} onClick={signOut} aria-label="Log out">
               <LogOut size={15} />
             </button>
