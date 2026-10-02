@@ -203,7 +203,7 @@ Open `http://localhost:3000`.
 Founders can connect Stripe or Lemon Squeezy to a SaaS block so its MRR and
 monthly revenue come from the provider and show as "Verified".
 
-- Run `supabase/migrations/014_revenue_connections.sql`.
+- Run `supabase/migrations/014_revenue_connections.sql`, then `015_revenue_total.sql`.
 - Set two server variables in Vercel (Production and Preview):
   - `REVENUE_ENCRYPTION_KEY`: 32 random bytes, base64. Generate with
     `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.

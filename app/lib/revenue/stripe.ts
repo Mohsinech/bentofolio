@@ -110,7 +110,7 @@ export async function fetchStripeRevenue(
 ): Promise<RevenueSnapshot> {
   checkStripeKeyFormat(key);
   const trimmed = key.trim();
-  const { keys, start } = monthWindow(now);
+  const { keys } = monthWindow(now);
 
   // Subscriptions: the default list leaves out canceled ones.
   const subscriptions = await stripeList<StripeSubscription>(
@@ -130,18 +130,17 @@ export async function fetchStripeRevenue(
     customersByCurrency.set(currency, (customersByCurrency.get(currency) ?? 0) + 1);
   }
 
-  const invoices = await stripeList<StripeInvoice>(
-    trimmed,
-    "/invoices",
-    { status: "paid", "created[gte]": String(Math.floor(start.getTime() / 1000)) },
-    fetchImpl
-  );
+  // All paid invoices (newest first): the last 12 months feed the chart and
+  // every one counts toward the all-time total.
+  const invoices = await stripeList<StripeInvoice>(trimmed, "/invoices", { status: "paid" }, fetchImpl);
+  const allTime = new Map<string, number>();
 
   const revenueByCurrency = new Map<string, Map<string, number>>();
   const revenueTotals = new Map<string, number>();
   for (const invoice of invoices) {
     if (!invoice.amount_paid) continue;
     const currency = invoice.currency.toUpperCase();
+    allTime.set(currency, (allTime.get(currency) ?? 0) + invoice.amount_paid);
     const paidAt = invoice.status_transitions?.paid_at ?? invoice.created;
     const month = monthKey(new Date(paidAt * 1000));
     if (!keys.includes(month)) continue;
@@ -163,5 +162,6 @@ export async function fetchStripeRevenue(
     revenue: keys.map((month) => round2(toMajor(months.get(month) ?? 0, currency))),
     revenueStart: keys[0],
     customers: customersByCurrency.get(currency) ?? 0,
+    totalRevenue: round2(toMajor(allTime.get(currency) ?? 0, currency)),
   };
 }

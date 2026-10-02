@@ -8,6 +8,7 @@ export interface RevenueSnapshot {
   revenue: number[]; // 12 months, oldest first, major units
   revenueStart: string; // "YYYY-MM" of revenue[0]
   customers: number; // active subscriptions counted in MRR
+  totalRevenue: number; // all-time revenue, major units, same currency
 }
 
 export class RevenueError extends Error {

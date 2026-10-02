@@ -764,23 +764,33 @@ function formatMoney(value: number, currency?: string): string {
 
 // Revenue trend: the line draws itself in, the area fades in under it, and the
 // latest point pulses. Hovering a month shows its value.
-function monthLabel(start: string | undefined, offset: number): string | null {
+function monthLabel(start: string | undefined, offset: number, short = false): string | null {
   const match = start?.match(/^(\d{4})-(\d{2})$/);
   if (!match) return null;
   const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1 + offset, 1));
+  if (short) {
+    const month = new Intl.DateTimeFormat("en", { month: "short", timeZone: "UTC" }).format(date);
+    return `${month} ’${String(date.getUTCFullYear()).slice(2)}`;
+  }
   return new Intl.DateTimeFormat("en", { month: "short", year: "numeric", timeZone: "UTC" }).format(date);
 }
+
+// Top of the scale: the y position (0-100) of the highest value.
+const CHART_TOP = 14;
 
 function RevenueChart({
   values,
   currency,
   label,
   start,
+  detailed,
 }: {
   values: number[];
   currency?: string;
   label: string;
   start?: string;
+  // Tall blocks show the period total and month labels; strips stay compact.
+  detailed: boolean;
 }) {
   const [hover, setHover] = useState<number | null>(null);
   const geometry = useMemo(() => {
@@ -789,46 +799,78 @@ function RevenueChart({
     const span = max - min || 1;
     const points = values.map((value, index) => ({
       x: values.length === 1 ? 50 : (index / (values.length - 1)) * 100,
-      y: 92 - ((value - min) / span) * 80,
+      y: 98 - ((value - min) / span) * (98 - CHART_TOP),
     }));
     const line = points.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(2)},${p.y.toFixed(2)}`).join(" ");
-    return { points, line, area: `${line} L100,100 L0,100 Z` };
+    return { points, line, area: `${line} L100,100 L0,100 Z`, max: Math.max(...values, 0) };
   }, [values]);
 
   const last = geometry.points[geometry.points.length - 1];
   const hovered = hover !== null ? geometry.points[hover] : null;
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const first = monthLabel(start, 0, true);
+  const end = monthLabel(start, values.length - 1, true);
 
   return (
-    <div className={styles.chart} onMouseLeave={() => setHover(null)}>
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}>
-        <line x1="0" x2="100" y1="99.5" y2="99.5" className={styles.chartBase} vectorEffect="non-scaling-stroke" />
-        <path d={geometry.area} className={styles.chartArea} />
-        <path d={geometry.line} pathLength={1} className={styles.chartLine} vectorEffect="non-scaling-stroke" />
-      </svg>
-      <span className={styles.chartEnd} style={{ left: `${last.x}%`, top: `${last.y}%` }} />
-      {hovered && hover !== null && (
-        <>
-          <span className={styles.chartCross} style={{ left: `${hovered.x}%` }} />
-          <span className={styles.chartPoint} style={{ left: `${hovered.x}%`, top: `${hovered.y}%` }} />
-          <span
-            className={styles.chartTip}
-            role="status"
-            style={{
-              left: `${hovered.x}%`,
-              top: `${hovered.y}%`,
-              transform: hovered.x > 75 ? "translate(-100%, -120%)" : hovered.x < 25 ? "translate(0, -120%)" : "translate(-50%, -120%)",
-            }}
-          >
-            {monthLabel(start, hover) && <span className={styles.chartTipMonth}>{monthLabel(start, hover)}</span>}
-            {formatMoney(values[hover], currency)}
-          </span>
-        </>
+    <div className={styles.chartWrap}>
+      {detailed && (
+        <div className={styles.chartHead}>
+          <span>Revenue · last {values.length} months</span>
+          <span className={styles.chartHeadValue}>{formatMoney(total, currency)}</span>
+        </div>
       )}
-      <div className={styles.chartHits}>
-        {values.map((_, index) => (
-          <span key={index} onMouseEnter={() => setHover(index)} />
-        ))}
+      <div className={styles.chart} onMouseLeave={() => setHover(null)}>
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label={label}>
+          {geometry.max > 0 && (
+            <line
+              x1="0"
+              x2="100"
+              y1={CHART_TOP}
+              y2={CHART_TOP}
+              className={styles.chartGrid}
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
+          <line x1="0" x2="100" y1="99.5" y2="99.5" className={styles.chartBase} vectorEffect="non-scaling-stroke" />
+          <path d={geometry.area} className={styles.chartArea} />
+          <path d={geometry.line} pathLength={1} className={styles.chartLine} vectorEffect="non-scaling-stroke" />
+        </svg>
+        <span className={styles.chartEnd} style={{ left: `${last.x}%`, top: `${last.y}%` }} />
+        {hovered && hover !== null && (
+          <>
+            <span className={styles.chartCross} style={{ left: `${hovered.x}%` }} />
+            <span className={styles.chartPoint} style={{ left: `${hovered.x}%`, top: `${hovered.y}%` }} />
+            <span
+              className={styles.chartTip}
+              role="status"
+              style={{
+                left: `${hovered.x}%`,
+                top: `${hovered.y}%`,
+                transform: hovered.x > 75 ? "translate(-100%, -120%)" : hovered.x < 25 ? "translate(0, -120%)" : "translate(-50%, -120%)",
+              }}
+            >
+              {monthLabel(start, hover) && <span className={styles.chartTipMonth}>{monthLabel(start, hover)}</span>}
+              {formatMoney(values[hover], currency)}
+            </span>
+          </>
+        )}
+        {geometry.max > 0 && (
+          <span className={styles.chartMax} style={{ top: `${CHART_TOP}%` }} aria-hidden="true">
+            {formatMoney(geometry.max, currency)}
+          </span>
+        )}
+        <div className={styles.chartHits}>
+          {values.map((_, index) => (
+            <span key={index} onMouseEnter={() => setHover(index)} />
+          ))}
+        </div>
       </div>
+      {detailed && first && end && (
+        <div className={styles.chartAxis} aria-hidden="true">
+          <span>{first}</span>
+          <span>{end}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -856,7 +898,17 @@ function useCountUp(target: number, run: boolean) {
 function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type: "saas" }>["data"]; size: Size; editing: boolean }) {
   const revenue = (data.revenue || []).filter((v) => typeof v === "number" && Number.isFinite(v));
   const mrr = typeof data.mrr === "number" && Number.isFinite(data.mrr) ? data.mrr : revenue[revenue.length - 1] ?? 0;
-  const shown = useCountUp(mrr, !editing);
+  const total = typeof data.totalRevenue === "number" && Number.isFinite(data.totalRevenue) ? data.totalRevenue : 0;
+  // No recurring revenue (one-time sales): lead with the all-time total.
+  const headlineIsTotal = mrr <= 0 && total > 0;
+  const headline = headlineIsTotal ? total : mrr;
+  const shown = useCountUp(headline, !editing);
+  const facts = [
+    !headlineIsTotal && total > 0 ? `${formatMoney(total, data.currency)} total revenue` : null,
+    data.verified && typeof data.customers === "number" && data.customers > 0
+      ? `${data.customers.toLocaleString("en")} paying ${data.customers === 1 ? "customer" : "customers"}`
+      : null,
+  ].filter(Boolean);
   const prev = revenue.length >= 2 ? revenue[revenue.length - 2] : null;
   const growth = prev && prev > 0 ? ((revenue[revenue.length - 1] - prev) / prev) * 100 : null;
   const name = text(data.name) || "My product";
@@ -879,7 +931,7 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
       <div className={styles.saasNumbers}>
         <div className={styles.stat}>
           <span className={styles.statLabel}>
-            MRR
+            {headlineIsTotal ? "Total revenue" : "MRR"}
             {data.verified ? (
               <span
                 className={styles.verifiedBadge}
@@ -890,16 +942,14 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
                 <BadgeCheck size={12} aria-hidden="true" />
                 Verified · {data.verified.provider === "stripe" ? "Stripe" : "Lemon Squeezy"}
               </span>
-            ) : mrr > 0 || revenue.length > 0 ? (
+            ) : headline > 0 || revenue.length > 0 ? (
               <span className={styles.selfReported} title="Typed in by the owner, not connected to a payment provider">
                 Self-reported
               </span>
             ) : null}
           </span>
           <span className={`${styles.statValue} ${styles.bigNumber}`}>{formatMoney(Math.round(shown), data.currency)}</span>
-          {data.verified && typeof data.customers === "number" && data.customers > 0 && !strip && (
-            <span className={styles.statLabel}>{data.customers.toLocaleString("en")} paying customers</span>
-          )}
+          {facts.length > 0 && !strip && <span className={styles.saasFacts}>{facts.join(" · ")}</span>}
         </div>
         {growth !== null && (
           <span className={`${styles.growth} ${growth < 0 ? styles.growthDown : ""}`}>
@@ -912,6 +962,7 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
           values={revenue}
           currency={data.currency}
           start={data.revenueStart}
+          detailed={isTall(size)}
           label={`${name} revenue over the last ${revenue.length} months`}
         />
       )}

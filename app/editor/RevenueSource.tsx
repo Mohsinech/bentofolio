@@ -138,6 +138,10 @@ export function RevenueSource({
               <span className={styles.statLabel}>MRR</span>
             </div>
             <div>
+              <span className={styles.statValue}>{money(connection.total_revenue ?? 0, connection.currency)}</span>
+              <span className={styles.statLabel}>total revenue</span>
+            </div>
+            <div>
               <span className={styles.statValue}>{connection.customers ?? 0}</span>
               <span className={styles.statLabel}>subscriptions</span>
             </div>

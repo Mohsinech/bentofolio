@@ -606,7 +606,9 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
           />
           <RevenueSource
             blockId={blockId}
-            hasManualNumbers={Boolean(content.data.mrr) || (content.data.revenue || []).length > 0}
+            hasManualNumbers={
+              Boolean(content.data.mrr) || Boolean(content.data.totalRevenue) || (content.data.revenue || []).length > 0
+            }
           >
             <Field
               label="MRR"
@@ -619,6 +621,12 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
               value={content.data.currency || "USD"}
               options={["USD", "EUR", "GBP", "MAD", "INR", "CAD", "AUD"].map((c) => ({ value: c, label: c }))}
               onChange={(v) => handleChange("currency", v)}
+            />
+            <Field
+              label="Total revenue (all time, optional)"
+              value={content.data.totalRevenue ? String(content.data.totalRevenue) : ""}
+              onChange={(v) => handleChange("totalRevenue", v.trim() ? Number(v) : undefined)}
+              type="number"
             />
             <RevenueField
               values={content.data.revenue || []}

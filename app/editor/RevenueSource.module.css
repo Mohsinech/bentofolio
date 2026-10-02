@@ -209,8 +209,9 @@
 }
 
 .stats {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 12px 16px;
 }
 
 .stats > div {

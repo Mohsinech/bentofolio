@@ -11,6 +11,7 @@ export interface VerifiedRevenue {
   revenue: number[] | null;
   revenue_start: string | null;
   customers: number | null;
+  total_revenue?: number | string | null;
   synced_at: string | null;
 }
 
@@ -51,6 +52,7 @@ export function applyVerifiedRevenue(
         revenue: Array.isArray(row.revenue) ? row.revenue.map(Number) : [],
         revenueStart: row.revenue_start ?? undefined,
         customers: row.customers ?? undefined,
+        totalRevenue: row.total_revenue == null ? undefined : Number(row.total_revenue),
         verified: { provider: row.provider, syncedAt: row.synced_at! },
       },
     };

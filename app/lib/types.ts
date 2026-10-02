@@ -165,6 +165,9 @@ export interface SaaSContent {
   revenueStart?: string;
   // Active subscriptions (set by a provider sync).
   customers?: number;
+  // All-time revenue, same currency. Shown as the headline when there's no MRR
+  // (one-time sales), otherwise next to it.
+  totalRevenue?: number;
   // Only ever set by the server from a live provider connection; anything
   // saved in page data is ignored and removed when the page is shown.
   verified?: { provider: "stripe" | "lemonsqueezy"; syncedAt: string };

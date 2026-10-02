@@ -7,7 +7,7 @@ import { fetchLemonSqueezyRevenue } from "./lemonsqueezy";
 // Server-only: everything here uses the service role and handles API keys.
 
 export const CONNECTION_FIELDS =
-  "block_id, provider, key_hint, status, last_error, mrr, currency, revenue, revenue_start, customers, synced_at";
+  "block_id, provider, key_hint, status, last_error, mrr, currency, revenue, revenue_start, customers, total_revenue, synced_at";
 
 export function isProvider(value: unknown): value is RevenueProvider {
   return value === "stripe" || value === "lemonsqueezy";
@@ -46,6 +46,7 @@ function snapshotColumns(snapshot: RevenueSnapshot) {
     revenue: snapshot.revenue,
     revenue_start: snapshot.revenueStart,
     customers: snapshot.customers,
+    total_revenue: snapshot.totalRevenue,
     synced_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -78,7 +79,10 @@ export async function connectRevenue(
     )
     .select(CONNECTION_FIELDS)
     .single();
-  if (error) throw new RevenueError("provider", "Couldn't save the connection. Try again.");
+  if (error) {
+    console.error("Revenue connection save failed:", error);
+    throw new RevenueError("provider", "Couldn't save the connection. Try again.");
+  }
   return data;
 }
 
