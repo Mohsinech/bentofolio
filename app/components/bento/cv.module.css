@@ -408,3 +408,66 @@ a.title:hover,
     gap: 14px;
   }
 }
+
+/* ATS PDF (CvPrint). Hidden on screen; replaces the web CV when printing. */
+.ats {
+  display: none;
+}
+
+@media print {
+  .ats {
+    display: block;
+    color: #000;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 10.5pt;
+    line-height: 1.4;
+  }
+  .ats h1 {
+    margin: 0;
+    font-size: 20pt;
+    font-weight: 700;
+    line-height: 1.15;
+  }
+  .ats h2 {
+    margin: 14pt 0 6pt;
+    padding-bottom: 3pt;
+    border-bottom: 1px solid #000;
+    font-size: 11pt;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    break-after: avoid;
+  }
+  .ats p {
+    margin: 0;
+  }
+  .ats ul {
+    margin: 3pt 0 0;
+    padding-left: 14pt;
+  }
+  .ats li {
+    margin: 1pt 0;
+  }
+  .atsHead {
+    display: flex;
+    flex-direction: column;
+    gap: 3pt;
+  }
+  .atsHeadline {
+    font-size: 11.5pt;
+  }
+  .atsContact {
+    font-size: 9.5pt;
+  }
+  .atsItem {
+    margin-bottom: 7pt;
+    break-inside: avoid;
+  }
+  .atsTitle {
+    font-size: 10.5pt;
+  }
+  .atsMeta {
+    color: #333;
+    font-size: 9.5pt;
+  }
+}

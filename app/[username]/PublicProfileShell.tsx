@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Check, Download } from "lucide-react";
 import type { BlockContent, BlockLayout, ThemeId } from "@/app/lib/types";
 import { BentoGrid } from "@/app/components/bento/BentoGrid";
-import { CvView, hasCvContent } from "@/app/components/bento/CvView";
+import { CvPrint, CvView, hasCvContent } from "@/app/components/bento/CvView";
 import cvStyles from "@/app/components/bento/cv.module.css";
 import { bentoFontClasses } from "@/app/components/bento/fonts";
 import { publicLayout, resolveLayout } from "@/app/components/bento/grid-layout";
@@ -106,7 +106,13 @@ export function PublicProfileShell({
         </header>
 
         {showCv ? (
-          <CvView username={username} layout={visible} content={content} avatarUrl={avatarUrl} />
+          <>
+            {/* Pro pages print the ATS-friendly CV instead of the web one. */}
+            <div data-print-hide={isPro ? "" : undefined}>
+              <CvView username={username} layout={visible} content={content} avatarUrl={avatarUrl} />
+            </div>
+            {isPro && <CvPrint username={username} layout={visible} content={content} />}
+          </>
         ) : visible.length > 0 ? (
           <BentoGrid layout={visible} content={content} avatarUrl={avatarUrl} isPro={isPro} />
         ) : (
