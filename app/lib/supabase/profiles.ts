@@ -25,7 +25,7 @@ export interface ProfileData {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function toProfileData(data: any): ProfileData {
+export function toProfileData(data: any): ProfileData {
   return {
     id: data.id,
     username: data.username,
