@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import {
+  BarChart3,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -686,6 +687,10 @@ function EditorStudio() {
                 View live
               </Link>
             )}
+            {/* Everyone: free accounts see their views there, with the upgrade. */}
+            <Link href="/editor/analytics" className={styles.iconButton} aria-label="Analytics" title="Analytics">
+              <BarChart3 size={15} />
+            </Link>
             <Link href="/settings" className={styles.iconButton} aria-label="Settings" title="Settings">
               <Settings size={15} />
             </Link>
