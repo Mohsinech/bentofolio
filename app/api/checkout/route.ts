@@ -195,10 +195,12 @@ export async function POST(request: Request) {
             checkout_data: {
               email: user.email,
               discount_code: discountCode || undefined,
+              // Lemon Squeezy turns empty strings into null and then rejects
+              // them, so empty fields are left out.
               custom: {
                 user_id: user.id,
-                username: profile?.username || "",
-                discount_code: discountCode || "",
+                ...(profile?.username ? { username: profile.username } : {}),
+                ...(discountCode ? { discount_code: discountCode } : {}),
               },
             },
             checkout_options: {
