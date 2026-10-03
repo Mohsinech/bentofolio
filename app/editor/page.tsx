@@ -15,7 +15,8 @@ import {
   BarChart3,
   ChevronLeft,
   ChevronRight,
-  Eye,
+  Copy,
+  ExternalLink,
   Laptop,
   Loader2,
   LogOut,
@@ -23,9 +24,7 @@ import {
   PanelLeftClose,
   PanelRightClose,
   Plus,
-  Save,
   Search,
-  Send,
   Settings,
   Smartphone,
   Sun,
@@ -163,7 +162,7 @@ function EditorStudio() {
   const [previewMode, setPreviewMode] = useState<PreviewMode>("desktop");
   const [themeOverride, setThemeOverride] = useState<ThemeId | null>(null);
   const [status, setStatus] = useState<string | null>(null);
-  const [leftCollapsed, setLeftCollapsed] = useState(true);
+  const [leftCollapsed, setLeftCollapsed] = useState(false);
   const [rightCollapsed, setRightCollapsed] = useState(false);
   const [leftPanelWidth, setLeftPanelWidth] = useState<number>(PANEL_SIZES.left.default);
   const [rightPanelWidth, setRightPanelWidth] = useState<number>(PANEL_SIZES.right.default);
@@ -172,6 +171,7 @@ function EditorStudio() {
   const hydratedProfileIdRef = useRef<string | null>(null);
   const savedSnapshotRef = useRef<string>("");
   const canvasRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const resizeStateRef = useRef<{
     side: ResizeSide;
     startX: number;
@@ -261,7 +261,7 @@ function EditorStudio() {
   useEffect(() => {
     setLeftPanelWidth(readStoredWidth(PANEL_STORAGE_KEYS.leftWidth, "left"));
     setRightPanelWidth(readStoredWidth(PANEL_STORAGE_KEYS.rightWidth, "right"));
-    setLeftCollapsed(readStoredBoolean(PANEL_STORAGE_KEYS.leftCollapsed, true));
+    setLeftCollapsed(readStoredBoolean(PANEL_STORAGE_KEYS.leftCollapsed, false));
     setRightCollapsed(readStoredBoolean(PANEL_STORAGE_KEYS.rightCollapsed, false));
     setPreferencesLoaded(true);
   }, []);
@@ -380,7 +380,13 @@ function EditorStudio() {
   function handleSelectBlock(id: string) {
     selectBlock(id);
     setRightCollapsed(false);
-    setLeftCollapsed(true);
+  }
+
+  // "+ Add block" under the canvas: the library, ready to search.
+  function openLibrary() {
+    setLeftTab("blocks");
+    setLeftCollapsed(false);
+    window.setTimeout(() => searchRef.current?.focus(), 60);
   }
 
   function handleResizePointerDown(side: ResizeSide, event: ReactPointerEvent<HTMLDivElement>) {
@@ -453,7 +459,6 @@ function EditorStudio() {
     // First free spot in the grid, top to bottom.
     setLayout(addItem(layout, { id, type, w: size.w, h: size.h } as BlockLayout));
     setContent({ ...content, [id]: createDefaultBlockContent(type) });
-    setLeftTab("structure");
     handleSelectBlock(id);
     showStatus(`${getBlockDefinition(type).v2Name} added`);
   }
@@ -532,172 +537,170 @@ function EditorStudio() {
     return "Live";
   }
 
+  function statusTone() {
+    if (saveError && !busy) return styles.statusError;
+    if (busy || hasUnsavedChanges || hasUnpublishedChanges) return styles.statusDraft;
+    return styles.statusLive;
+  }
+
   if (loading) {
     return (
-      <main className={styles.loading}>
-        <Loader2 className={styles.spin} size={26} />
-        <span>Opening BentoFolio editor...</span>
+      <main className={`${styles.loading} ${bentoFontClasses}`}>
+        <Loader2 className={styles.spin} size={22} />
+        <span>Opening your editor…</span>
       </main>
     );
   }
 
   if (error || !profile) {
     return (
-      <main className={styles.loading}>
-        <span>{error || "Could not load your portfolio."}</span>
+      <main className={`${styles.loading} ${bentoFontClasses}`}>
+        <span>{error || "Couldn't load your page."}</span>
         <Link href="/auth/login">Sign in again</Link>
       </main>
     );
   }
 
+  const changeAddress = () => setUsernameDialog(isPlaceholderUsername(profile.username) ? "claim" : "change");
+  const visibleCount = layout.filter(
+    (block) =>
+      !(getBlockDefinition(block.type).accessLevel === "pro" && !hasProAccess) &&
+      hasRenderableBlockContent(block.type, content[block.id])
+  ).length;
+
   return (
     <>
-      <main className={styles.mobileLock}>
-        <Link href="/" className={styles.mobileLockLogo}>
-          Bento<span>Folio</span>
+      <main className={`${styles.mobileLock} ${bentoFontClasses}`}>
+        <Link href="/" className={styles.mobileLockBrand} aria-label="bentofolio home">
+          <span className={styles.mark} aria-hidden="true">
+            <i />
+            <i />
+            <i />
+          </span>
+          bentofolio
         </Link>
         <section className={styles.mobileLockCard}>
-          <Laptop size={30} />
-          <span>Desktop editing</span>
-          <h1>Full editing works best on desktop.</h1>
+          <Laptop size={22} aria-hidden="true" />
+          <h1>The editor needs a bigger screen.</h1>
           <p>
-            Your portfolio is fully responsive, but the editor needs room for the block
-            library, canvas, and properties panel.
+            Your page works on every phone, but arranging blocks needs room for the library, the grid and the
+            inspector. Open bentofolio.dev on a laptop or desktop to edit.
           </p>
           <div className={styles.mobileLockActions}>
-            {profileUrl && <Link href={profileUrl}>View portfolio</Link>}
-            <button type="button" onClick={() => window.alert("We will remind you in-product soon.")}>
-              Open desktop later
-            </button>
+            {profileUrl && (
+              <Link href={profileUrl} className={styles.primary}>
+                View your page
+              </Link>
+            )}
+            <Link href="/settings" className={styles.ghost}>
+              Settings
+            </Link>
+            <Link href="/editor/analytics" className={styles.ghost}>
+              Analytics
+            </Link>
           </div>
         </section>
       </main>
 
-      <main className={styles.editorShell} data-editor-theme={selectedTheme}>
-        <header className={styles.toolbar}>
-          <div className={styles.toolbarIdentity}>
-            <Link href="/" className={styles.productMark} aria-label="BentoFolio home">
-              <span>B</span>
-              <strong>BentoFolio</strong>
-            </Link>
-            <div className={styles.portfolioMeta} title={`@${profile.username}`}>
-              <strong>{previewData.brandName}</strong>
-              <span>@{profile.username}</span>
-            </div>
+      <main className={`${styles.editorShell} ${bentoFontClasses}`}>
+        <header className={styles.topbar}>
+          <Link href="/" className={styles.mark} aria-label="bentofolio home">
+            <i />
+            <i />
+            <i />
+          </Link>
+          <div className={styles.pageMeta}>
+            <button type="button" className={styles.pageUrl} onClick={changeAddress} title="Change your page address">
+              bentofolio.dev/{profile.username}
+            </button>
+            <span
+              className={`${styles.status} ${statusTone()}`}
+              aria-live="polite"
+              title={saveError && !busy ? saveError : undefined}
+            >
+              {busy ? <Loader2 className={styles.spin} size={12} aria-hidden="true" /> : <span className={styles.statusDot} />}
+              <span className={styles.statusText}>{describeState()}</span>
+            </span>
           </div>
 
-          <div className={styles.toolbarViewControls}>
-            <div className={styles.segmented} role="group" aria-label="Preview size">
+          <div className={styles.topCenter}>
+            <div className={styles.seg} role="group" aria-label="Preview size">
               <button
                 type="button"
-                className={previewMode === "desktop" ? styles.segmentActive : ""}
+                className={previewMode === "desktop" ? styles.segOn : ""}
                 onClick={() => setPreviewMode("desktop")}
                 aria-pressed={previewMode === "desktop"}
               >
-                <Laptop size={14} />
+                <Laptop size={14} aria-hidden="true" />
                 Desktop
               </button>
               <button
                 type="button"
-                className={previewMode === "mobile" ? styles.segmentActive : ""}
+                className={previewMode === "mobile" ? styles.segOn : ""}
                 onClick={() => setPreviewMode("mobile")}
                 aria-pressed={previewMode === "mobile"}
               >
-                <Smartphone size={14} />
+                <Smartphone size={14} aria-hidden="true" />
                 Mobile
               </button>
             </div>
-
-            <div className={styles.segmented} role="group" aria-label="Theme">
+            <div className={styles.seg} role="group" aria-label="Page theme">
               <button
                 type="button"
-                className={selectedTheme === "light" ? styles.segmentActive : ""}
+                className={selectedTheme === "light" ? styles.segOn : ""}
                 onClick={() => setThemeOverride("light")}
                 aria-pressed={selectedTheme === "light"}
               >
-                <Sun size={14} />
+                <Sun size={14} aria-hidden="true" />
                 Light
               </button>
               <button
                 type="button"
-                className={selectedTheme === "dark" ? styles.segmentActive : ""}
+                className={selectedTheme === "dark" ? styles.segOn : ""}
                 onClick={() => setThemeOverride("dark")}
                 aria-pressed={selectedTheme === "dark"}
               >
-                <Moon size={14} />
+                <Moon size={14} aria-hidden="true" />
                 Dark
               </button>
             </div>
-
-            {profileUrl && (
-              <Link href={profileUrl} className={styles.tertiaryAction}>
-                <Eye size={14} />
-                Preview
-              </Link>
-            )}
           </div>
 
-          <div className={styles.toolbarActions}>
-            <button
-              type="button"
-              className={styles.secondaryAction}
-              onClick={() => {
-                setLeftTab("blocks");
-                setLeftCollapsed(false);
-              }}
-            >
-              <Plus size={14} />
-              Blocks
-            </button>
-            <div className={styles.saveCluster}>
-              <div
-                className={`${styles.saveState} ${
-                  saveError && !busy
-                    ? styles.saveStateError
-                    : hasUnsavedChanges || hasUnpublishedChanges
-                      ? styles.saveStateUnsaved
-                      : styles.saveStateSaved
-                }`}
-                aria-live="polite"
-                title={saveError && !busy ? saveError : undefined}
-              >
-                {busy ? <Loader2 className={styles.spin} size={15} /> : <span className={styles.saveDot} />}
-                <span>{describeState()}</span>
-              </div>
-              <button
-                type="button"
-                className={styles.secondaryAction}
-                onClick={() => handleSave()}
-                disabled={busy || !hasUnsavedChanges}
-              >
-                {saving ? <Loader2 className={styles.spin} size={14} /> : <Save size={14} />}
-                Save draft
-              </button>
-              <button
-                type="button"
-                className={styles.primaryAction}
-                onClick={handlePublish}
-                disabled={busy || !hasUnpublishedChanges}
-                title="Copy your draft to your live page"
-              >
-                {publishing ? <Loader2 className={styles.spin} size={14} /> : <Send size={14} />}
-                {saveError && !busy ? "Retry publish" : "Publish"}
-              </button>
-            </div>
-            {profileUrl && (
-              <Link href={profileUrl} className={styles.secondaryAction}>
-                View live
-              </Link>
-            )}
+          <div className={styles.topActions}>
             {/* Everyone: free accounts see their views there, with the upgrade. */}
             <Link href="/editor/analytics" className={styles.iconButton} aria-label="Analytics" title="Analytics">
-              <BarChart3 size={15} />
+              <BarChart3 size={16} />
             </Link>
             <Link href="/settings" className={styles.iconButton} aria-label="Settings" title="Settings">
-              <Settings size={15} />
+              <Settings size={16} />
             </Link>
-            <button type="button" className={styles.iconButton} onClick={signOut} aria-label="Log out">
-              <LogOut size={15} />
+            <button type="button" className={styles.iconButton} onClick={signOut} aria-label="Log out" title="Log out">
+              <LogOut size={16} />
+            </button>
+            <span className={styles.divider} aria-hidden="true" />
+            {profileUrl && (
+              <Link href={profileUrl} className={styles.ghost} target="_blank" rel="noopener" title="Open your live page">
+                View page
+              </Link>
+            )}
+            <button
+              type="button"
+              className={styles.ghost}
+              onClick={() => handleSave()}
+              disabled={busy || !hasUnsavedChanges}
+            >
+              {saving && <Loader2 className={styles.spin} size={14} aria-hidden="true" />}
+              Save draft
+            </button>
+            <button
+              type="button"
+              className={styles.primary}
+              onClick={handlePublish}
+              disabled={busy || !hasUnpublishedChanges}
+              title="Copy your draft to your live page"
+            >
+              {publishing && <Loader2 className={styles.spin} size={14} aria-hidden="true" />}
+              {saveError && !busy ? "Retry publish" : "Publish"}
             </button>
           </div>
         </header>
@@ -708,16 +711,39 @@ function EditorStudio() {
           } ${activeResize ? styles.resizing : ""}`}
           style={workspaceStyle}
         >
-          <aside className={styles.leftPanel} aria-label="Editor block panel">
-            <button
-              type="button"
-              className={styles.panelCollapse}
-              onClick={() => setLeftCollapsed(true)}
-              aria-label="Collapse block panel"
-              aria-expanded={!leftCollapsed}
-            >
-              <PanelLeftClose size={15} />
-            </button>
+          <aside className={styles.leftPanel} aria-label="Blocks">
+            <div className={styles.panelHead}>
+              <div className={styles.seg} role="tablist" aria-label="Left panel">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={leftTab === "blocks"}
+                  className={leftTab === "blocks" ? styles.segOn : ""}
+                  onClick={() => setLeftTab("blocks")}
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={leftTab === "structure"}
+                  className={leftTab === "structure" ? styles.segOn : ""}
+                  onClick={() => setLeftTab("structure")}
+                >
+                  Layers
+                  <span className={styles.count}>{layout.length}</span>
+                </button>
+              </div>
+              <button
+                type="button"
+                className={styles.panelCollapse}
+                onClick={() => setLeftCollapsed(true)}
+                aria-label="Hide blocks panel"
+                aria-expanded={!leftCollapsed}
+              >
+                <PanelLeftClose size={15} />
+              </button>
+            </div>
             <div
               className={`${styles.resizeHandle} ${styles.leftResizeHandle}`}
               role="separator"
@@ -732,64 +758,48 @@ function EditorStudio() {
               onKeyDown={(event) => handleResizeKeyDown("left", event)}
             />
 
-            <div className={styles.tabs} role="tablist" aria-label="Editor left panel">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={leftTab === "blocks"}
-                className={leftTab === "blocks" ? styles.tabActive : ""}
-                onClick={() => setLeftTab("blocks")}
-              >
-                Blocks
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={leftTab === "structure"}
-                className={leftTab === "structure" ? styles.tabActive : ""}
-                onClick={() => setLeftTab("structure")}
-              >
-                Structure
-              </button>
-            </div>
-
             {leftTab === "blocks" ? (
               <div className={styles.panelScroll}>
-                <label className={styles.searchBox}>
-                  <Search size={15} />
+                <label className={styles.search}>
+                  <Search size={14} aria-hidden="true" />
                   <span className={styles.visuallyHidden}>Search blocks</span>
                   <input
+                    ref={searchRef}
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
                     placeholder="Search blocks"
                   />
                 </label>
 
+                {Object.keys(groupedBlocks).length === 0 && (
+                  <p className={styles.panelNote}>No block matches “{search.trim()}”.</p>
+                )}
+
                 {Object.entries(groupedBlocks).map(([category, entries]) => (
-                  <section key={category} className={styles.blockGroup}>
-                    <h2>{category}</h2>
+                  <section key={category} className={styles.group}>
+                    <h2 className={styles.lbl}>{category}</h2>
                     {entries.map((entry) => {
                       const Icon = entry.icon;
                       const locked = entry.accessLevel === "pro" && !hasProAccess;
-
                       return (
-                        <article key={entry.legacyType} className={styles.blockCard}>
-                          <Icon size={17} />
-                          <div>
-                            <strong>{entry.v2Name}</strong>
-                            <p>{entry.description}</p>
-                          </div>
-                          <span className={locked ? styles.proBadge : styles.freeBadge}>
-                            {entry.accessLevel === "pro" ? "Pro" : "Free"}
+                        <button
+                          key={entry.legacyType}
+                          type="button"
+                          className={styles.blockItem}
+                          onClick={() => handleAddBlock(entry.legacyType)}
+                          title={entry.description}
+                          aria-label={`Add ${entry.v2Name}${locked ? " (Pro)" : ""}`}
+                        >
+                          <span className={styles.blockTile} aria-hidden="true">
+                            <Icon size={14} />
                           </span>
-                          <button
-                            type="button"
-                            onClick={() => handleAddBlock(entry.legacyType)}
-                            aria-label={`Add ${entry.v2Name}`}
-                          >
-                            <Plus size={15} />
-                          </button>
-                        </article>
+                          <span className={styles.blockName}>{entry.v2Name}</span>
+                          {locked ? (
+                            <span className={styles.proBadge}>PRO</span>
+                          ) : (
+                            <Plus size={14} className={styles.blockAdd} aria-hidden="true" />
+                          )}
+                        </button>
                       );
                     })}
                   </section>
@@ -798,12 +808,9 @@ function EditorStudio() {
             ) : (
               <div className={styles.panelScroll}>
                 {layout.length === 0 ? (
-                  <div className={styles.panelEmpty}>
-                    <strong>No blocks yet</strong>
-                    <p>Add your introduction, portrait, projects, and contact CTA.</p>
-                  </div>
+                  <p className={styles.panelNote}>No blocks yet. Add Profile first, then your work and a way to reach you.</p>
                 ) : (
-                  <ol className={styles.structureList}>
+                  <ol className={styles.layers}>
                     {sortByPosition<BlockLayout>(layout).map((block) => {
                       const definition = getBlockDefinition(block.type);
                       const Icon = definition.icon;
@@ -812,33 +819,26 @@ function EditorStudio() {
                       const complete = hasRenderableBlockContent(block.type, content[block.id]);
 
                       return (
-                        <li key={block.id}>
-                          <button
-                            type="button"
-                            className={isSelected ? styles.structureActive : ""}
-                            onClick={() => handleSelectBlock(block.id)}
-                          >
-                            <Icon size={16} />
-                            <span>
+                        <li key={block.id} className={isSelected ? styles.layerOn : ""}>
+                          <button type="button" className={styles.layerMain} onClick={() => handleSelectBlock(block.id)}>
+                            <span className={styles.blockTile} aria-hidden="true">
+                              <Icon size={14} />
+                            </span>
+                            <span className={styles.layerText}>
                               <strong>{definition.v2Name}</strong>
-                              <small>
-                                {lockedPro
-                                  ? "Pro · hidden on your page"
-                                  : complete
-                                    ? `${block.w}×${block.h}`
-                                    : "Needs content · hidden"}
+                              <small className={lockedPro || !complete ? styles.layerHidden : undefined}>
+                                {lockedPro ? "Pro · hidden on your page" : complete ? `${block.w}×${block.h}` : "Needs content · hidden"}
                               </small>
                             </span>
                           </button>
-                          <div className={styles.structureActions}>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveBlock(block.id)}
-                              aria-label={`Remove ${definition.v2Name}`}
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            className={styles.layerRemove}
+                            onClick={() => handleRemoveBlock(block.id)}
+                            aria-label={`Remove ${definition.v2Name}`}
+                          >
+                            <Trash2 size={13} />
+                          </button>
                         </li>
                       );
                     })}
@@ -849,82 +849,73 @@ function EditorStudio() {
           </aside>
 
           {leftCollapsed && (
-            <button
-              type="button"
-              className={styles.restoreLeft}
-              onClick={() => setLeftCollapsed(false)}
-              aria-label="Expand block panel"
-            >
-              <ChevronRight size={16} />
+            <button type="button" className={styles.restoreLeft} onClick={() => setLeftCollapsed(false)} aria-label="Show blocks panel">
+              <ChevronRight size={15} />
             </button>
           )}
 
-          <section className={styles.canvasPanel} aria-label="Portfolio preview">
-            <div className={styles.canvasTopline}>
-              <div>
-                <strong>Preview</strong>
-              </div>
-            </div>
-
+          <section className={styles.canvasPanel} aria-label="Your page">
             {layout.length === 0 ? (
               <div className={styles.emptyCanvas}>
-                <h2>Add your introduction</h2>
-                <p>Start with Profile, then add projects, skills and a way to contact you. Drag blocks to arrange them.</p>
-                <button type="button" onClick={() => handleAddBlock("identity")}>
-                  <Plus size={15} />
+                <p className={styles.lbl}>Empty page</p>
+                <h2>Start with who you are.</h2>
+                <p>Add Profile, then your work, your numbers and a way to reach you. Drag blocks to arrange them.</p>
+                <button type="button" className={styles.primary} onClick={() => handleAddBlock("identity")}>
+                  <Plus size={15} aria-hidden="true" />
                   Add Profile
                 </button>
               </div>
             ) : (
               <div
                 ref={canvasRef}
-                className={`${styles.previewScroll} ${
-                  previewMode === "mobile" ? styles.mobilePreview : styles.desktopPreview
-                }`}
+                className={`${styles.previewScroll} ${previewMode === "mobile" ? styles.mobilePreview : styles.desktopPreview}`}
                 data-preview-mode={previewMode}
               >
-                <div className={styles.artboardViewport}>
-                  <div className={styles.artboard}>
-                    <div
-                      className={`${bentoStyles.theme} ${bentoFontClasses}`}
-                      data-theme={selectedTheme}
-                      style={{ background: "var(--bento-bg)", padding: previewMode === "mobile" ? 14 : 28, borderRadius: 14 }}
-                    >
-                      <BentoGrid
-                        layout={layout}
-                        content={canvasContent}
-                        avatarUrl={profile.avatarUrl}
-                        isPro={Boolean(hasProAccess)}
-                        forceMobile={previewMode === "mobile"}
-                        editor={{
-                          selectedId: selectedBlockId,
-                          onSelect: (id) => (id ? handleSelectBlock(id) : selectBlock(null)),
-                          onLayoutChange: setLayout,
-                          onDuplicate: handleDuplicateBlock,
-                          onDelete: handleRemoveBlock,
-                        }}
-                      />
-                    </div>
+                <div className={styles.artboard}>
+                  <div className={styles.canvasHead}>
+                    <span className={styles.lbl}>
+                      {previewMode === "mobile" ? "Phone · one column" : "4-column grid · drag to move, pull corners to resize"}
+                    </span>
+                    <span className={styles.lbl}>
+                      {visibleCount === layout.length
+                        ? `${layout.length} ${layout.length === 1 ? "block" : "blocks"}`
+                        : `${visibleCount} of ${layout.length} shown`}
+                    </span>
                   </div>
+                  <div
+                    className={`${bentoStyles.theme} ${bentoFontClasses} ${styles.page}`}
+                    data-theme={selectedTheme}
+                    style={{ padding: previewMode === "mobile" ? 14 : 28 }}
+                  >
+                    <BentoGrid
+                      layout={layout}
+                      content={canvasContent}
+                      avatarUrl={profile.avatarUrl}
+                      isPro={Boolean(hasProAccess)}
+                      forceMobile={previewMode === "mobile"}
+                      editor={{
+                        selectedId: selectedBlockId,
+                        onSelect: (id) => (id ? handleSelectBlock(id) : selectBlock(null)),
+                        onLayoutChange: setLayout,
+                        onDuplicate: handleDuplicateBlock,
+                        onDelete: handleRemoveBlock,
+                      }}
+                    />
+                  </div>
+                  <button type="button" className={styles.addBlock} onClick={openLibrary}>
+                    <Plus size={15} aria-hidden="true" />
+                    Add block
+                  </button>
                 </div>
               </div>
             )}
           </section>
 
-          <aside className={styles.rightPanel} aria-label="Properties panel">
-            <button
-              type="button"
-              className={styles.panelCollapse}
-              onClick={() => setRightCollapsed(true)}
-              aria-label="Collapse properties panel"
-              aria-expanded={!rightCollapsed}
-            >
-              <PanelRightClose size={15} />
-            </button>
+          <aside className={styles.rightPanel} aria-label="Inspector">
             <div
               className={`${styles.resizeHandle} ${styles.rightResizeHandle}`}
               role="separator"
-              aria-label="Resize properties panel"
+              aria-label="Resize inspector"
               aria-orientation="vertical"
               aria-valuemin={PANEL_SIZES.right.min}
               aria-valuemax={PANEL_SIZES.right.max}
@@ -937,78 +928,108 @@ function EditorStudio() {
 
             {selectedContent && selectedDefinition && selectedBlockId ? (
               <>
-                <div className={styles.propertiesHead}>
-                  <span>{selectedDefinition.productCategory}</span>
-                  <h2>{selectedDefinition.v2Name}</h2>
-                  {selectedLayout && (
-                    <p>
-                      Current size: {selectedLayout.w} x {selectedLayout.h}
-                    </p>
-                  )}
-                </div>
-                <BlockEditor embedded />
-                <div className={styles.destructiveZone}>
-                  <button type="button" onClick={() => handleRemoveBlock(selectedBlockId)}>
-                    <Trash2 size={14} />
-                    Remove block
+                <div className={styles.propsHead}>
+                  <div>
+                    <span className={styles.lbl}>
+                      {selectedDefinition.productCategory}
+                      {selectedLayout ? ` · ${selectedLayout.w}×${selectedLayout.h}` : ""}
+                    </span>
+                    <h2>{selectedDefinition.v2Name}</h2>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.panelCollapse}
+                    onClick={() => setRightCollapsed(true)}
+                    aria-label="Hide inspector"
+                    aria-expanded={!rightCollapsed}
+                  >
+                    <PanelRightClose size={15} />
                   </button>
+                </div>
+                <div className={styles.propsBody}>
+                  <BlockEditor embedded />
+                </div>
+                <div className={styles.propsFoot}>
+                  <div className={styles.footButtons}>
+                    <button type="button" className={styles.ghost} onClick={() => handleDuplicateBlock(selectedBlockId)}>
+                      <Copy size={13} aria-hidden="true" />
+                      Duplicate
+                    </button>
+                    <button type="button" className={styles.danger} onClick={() => handleRemoveBlock(selectedBlockId)}>
+                      <Trash2 size={13} aria-hidden="true" />
+                      Delete
+                    </button>
+                  </div>
+                  <p>Save keeps your draft. Your live page only changes when you press Publish.</p>
                 </div>
               </>
             ) : (
-              <div className={styles.settingsPanel}>
-                <span>Portfolio settings</span>
-                <h2>{previewData.brandName}</h2>
-                <dl>
+              <>
+                <div className={styles.propsHead}>
                   <div>
-                    <dt>Theme</dt>
-                    <dd>{selectedTheme}</dd>
+                    <span className={styles.lbl}>Page</span>
+                    <h2>{previewData.brandName}</h2>
                   </div>
-                  <div>
-                    <dt>Public URL</dt>
-                    <dd>
-                      {profileUrl || "Not available"}{" "}
-                      <button
-                        type="button"
-                        className={styles.inlineLink}
-                        onClick={() =>
-                          setUsernameDialog(
-                            isPlaceholderUsername(profile.username) ? "claim" : "change"
-                          )
-                        }
-                      >
-                        {isPlaceholderUsername(profile.username) ? "Claim name" : "Change"}
-                      </button>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt>Status</dt>
-                    <dd>
-                      {hasUnsavedChanges
-                        ? "Unsaved changes"
-                        : hasUnpublishedChanges
-                          ? "Draft not published"
-                          : "Live"}
-                    </dd>
-                  </div>
-                </dl>
-                {profileUrl && (
-                  <Link href={profileUrl} className={styles.settingsLink}>
-                    <Eye size={14} />
-                    Open public portfolio
-                  </Link>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    className={styles.panelCollapse}
+                    onClick={() => setRightCollapsed(true)}
+                    aria-label="Hide inspector"
+                    aria-expanded={!rightCollapsed}
+                  >
+                    <PanelRightClose size={15} />
+                  </button>
+                </div>
+                <div className={styles.pagePanel}>
+                  <p className={styles.hint}>Select a block on the grid to edit it.</p>
+                  <dl className={styles.pageRows}>
+                    <div>
+                      <dt>Address</dt>
+                      <dd>
+                        <span>bentofolio.dev/{profile.username}</span>
+                        <button type="button" className={styles.inlineLink} onClick={changeAddress}>
+                          {isPlaceholderUsername(profile.username) ? "Claim a name" : "Change"}
+                        </button>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Theme</dt>
+                      <dd>{selectedTheme === "dark" ? "Dark" : "Light"}</dd>
+                    </div>
+                    <div>
+                      <dt>Status</dt>
+                      <dd>{hasUnsavedChanges ? "Unsaved changes" : hasUnpublishedChanges ? "Draft not published" : "Live"}</dd>
+                    </div>
+                    <div>
+                      <dt>Plan</dt>
+                      <dd>
+                        {hasProAccess ? (
+                          "Pro"
+                        ) : (
+                          <>
+                            <span>Free</span>
+                            <button type="button" className={styles.inlineLink} onClick={() => openUpgrade()}>
+                              Get Pro
+                            </button>
+                          </>
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                  {profileUrl && (
+                    <Link href={profileUrl} className={styles.ghost} target="_blank" rel="noopener">
+                      <ExternalLink size={13} aria-hidden="true" />
+                      Open your live page
+                    </Link>
+                  )}
+                </div>
+              </>
             )}
           </aside>
 
           {rightCollapsed && (
-            <button
-              type="button"
-              className={styles.restoreRight}
-              onClick={() => setRightCollapsed(false)}
-              aria-label="Expand properties panel"
-            >
-              <ChevronLeft size={16} />
+            <button type="button" className={styles.restoreRight} onClick={() => setRightCollapsed(false)} aria-label="Show inspector">
+              <ChevronLeft size={15} />
             </button>
           )}
         </section>
@@ -1016,11 +1037,7 @@ function EditorStudio() {
           <UsernameDialog
             mode={usernameDialog}
             currentUsername={profile.username}
-            initialValue={
-              usernameDialog === "claim" && githubUsername
-                ? normalizeUsername(githubUsername)
-                : ""
-            }
+            initialValue={usernameDialog === "claim" && githubUsername ? normalizeUsername(githubUsername) : ""}
             onSave={handleUsernameSave}
             onClose={() => setUsernameDialog(null)}
           />
