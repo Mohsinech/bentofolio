@@ -15,7 +15,7 @@ export function BrandLink() {
   );
 }
 
-export function MarketingHeader({ active }: { active?: "pricing" | "discover" }) {
+export function MarketingHeader({ active }: { active?: "pricing" | "discover" | "invite" }) {
   return (
     <header className={`${styles.sec} ${styles.header}`}>
       <BrandLink />
@@ -25,6 +25,9 @@ export function MarketingHeader({ active }: { active?: "pricing" | "discover" })
         </Link>
         <Link href="/pricing" className={`${styles.navHideSm} ${active === "pricing" ? styles.navActive : ""}`}>
           Pricing
+        </Link>
+        <Link href="/invite" className={`${styles.navHideSm} ${active === "invite" ? styles.navActive : ""}`}>
+          Invite
         </Link>
         <AccountLinks />
       </nav>
@@ -39,6 +42,7 @@ export function FooterLinks({ light = false }: { light?: boolean }) {
       <nav aria-label="Footer">
         <Link href="/discover">Discover</Link>
         <Link href="/pricing">Pricing</Link>
+        <Link href="/invite">Invite</Link>
         <Link href="/contact">Contact</Link>
         <a href="https://x.com/muhsench" target="_blank" rel="noopener noreferrer">
           @muhsench
