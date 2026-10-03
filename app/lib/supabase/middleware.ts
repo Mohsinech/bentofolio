@@ -78,7 +78,7 @@ export async function updateSession(request: NextRequest) {
   const isPasswordUpdatePage =
     request.nextUrl.pathname === "/auth/update-password";
   // Pages that need a signed-in account.
-  const isEditorPage = ["/editor", "/settings", "/onboarding"].some((path) => request.nextUrl.pathname.startsWith(path));
+  const isEditorPage = ["/editor", "/settings", "/onboarding", "/upgrade"].some((path) => request.nextUrl.pathname.startsWith(path));
 
   // Redirect to login if accessing editor without auth
   if (isEditorPage && !user) {
