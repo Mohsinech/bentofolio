@@ -495,7 +495,7 @@ export const blockRegistry = {
   },
   spotify: {
     legacyType: "spotify",
-    v2Name: "Embed",
+    v2Name: "Spotify",
     v2Category: "Media and Conversion",
     productCategory: "Media",
     description: "Legacy Spotify media embed, now represented by the V2 Embed block.",
@@ -621,7 +621,7 @@ export const blockRegistry = {
   },
   projects: {
     legacyType: "projects",
-    v2Name: "Projects",
+    v2Name: "Repositories",
     v2Category: "Work",
     productCategory: "Work",
     description: "Code-oriented project collection with repository metadata and language stats.",
@@ -742,7 +742,7 @@ export const blockRegistry = {
   },
   youtube: {
     legacyType: "youtube",
-    v2Name: "Embed",
+    v2Name: "YouTube",
     v2Category: "Media and Conversion",
     productCategory: "Media",
     description: "Legacy YouTube video embed, now represented by the V2 Embed block.",
@@ -826,7 +826,7 @@ export const blockRegistry = {
   },
   instagram: {
     legacyType: "instagram",
-    v2Name: "Embed",
+    v2Name: "Instagram",
     v2Category: "Media and Conversion",
     productCategory: "Media",
     description: "Legacy Instagram profile or post card, now represented by the V2 Embed block.",

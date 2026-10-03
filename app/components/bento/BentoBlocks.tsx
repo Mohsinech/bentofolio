@@ -106,10 +106,12 @@ function IdentityBlock({
   data,
   size,
   avatarUrl,
+  editing = false,
 }: {
   data: Extract<BlockContent, { type: "identity" }>["data"];
   size: Size;
   avatarUrl?: string | null;
+  editing?: boolean;
 }) {
   const name = text(data.name);
   const headline = text(data.headline) || text(data.title);
@@ -120,7 +122,17 @@ function IdentityBlock({
         ? text(data.avatar) || null
         : text(data.avatar) || avatarUrl || null;
   const status = text(data.availability);
-  const meta = [text(data.location), text(data.website)].filter(Boolean);
+  // Location, email and website under the name; email and website are links
+  // on the live page (plain text while editing, so a click selects the block).
+  const email = text(data.email).replace(/^mailto:/i, "");
+  const website = text(data.website);
+  const meta: { key: string; label: string; href?: string }[] = [
+    ...(text(data.location) ? [{ key: "location", label: text(data.location) }] : []),
+    ...(email && email.includes("@") ? [{ key: "email", label: email, href: `mailto:${email}` }] : []),
+    ...(website && !/^mailto:/i.test(website)
+      ? [{ key: "website", label: website.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, ""), href: website }]
+      : []),
+  ];
   const showBio = (isTall(size) || isWide(size)) && text(data.bio);
 
   return (
@@ -145,7 +157,22 @@ function IdentityBlock({
         <h1 className={styles.name}>{name || "Your name"}</h1>
         {headline && <p className={styles.headline}>{headline}</p>}
         {showBio && <p className={styles.bio}>{text(data.bio)}</p>}
-        {meta.length > 0 && <span className={styles.meta}>{meta.join(" · ")}</span>}
+        {meta.length > 0 && (
+          <span className={styles.meta}>
+            {meta.map((item, index) => (
+              <span key={item.key}>
+                {index > 0 && " · "}
+                {item.href && !editing ? (
+                  <ExternalLink href={item.href} className={styles.metaLink}>
+                    {item.label}
+                  </ExternalLink>
+                ) : (
+                  item.label
+                )}
+              </span>
+            ))}
+          </span>
+        )}
       </div>
     </div>
   );
@@ -1043,7 +1070,7 @@ export function BentoBlockBody({
   const size = { w: layout.w, h: layout.h };
   switch (content.type) {
     case "identity":
-      return <IdentityBlock data={content.data} size={size} avatarUrl={avatarUrl} />;
+      return <IdentityBlock data={content.data} size={size} avatarUrl={avatarUrl} editing={editing} />;
     case "map":
       return <MapBlock data={content.data} editing={editing} />;
     case "techstack":

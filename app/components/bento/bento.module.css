@@ -727,6 +727,18 @@
 .meta {
   font: 500 12px/1.4 var(--bento-mono), ui-monospace, monospace;
   color: var(--bento-muted);
+  overflow-wrap: anywhere;
+}
+
+.metaLink {
+  color: inherit !important;
+  text-decoration: none;
+}
+
+.metaLink:hover {
+  color: var(--bento-ink) !important;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .identityHero .name {
