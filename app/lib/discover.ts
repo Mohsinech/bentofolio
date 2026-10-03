@@ -75,7 +75,7 @@ export async function getDiscoverProfiles(limit = 120): Promise<DiscoverProfile[
     );
 
     const profiles = await Promise.all(
-      rows.map(async (row) => {
+      rows.map(async (row): Promise<(DiscoverProfile & { updatedAt: number }) | null> => {
         const profile = toProfileData(row);
         const hasSaas = Object.values(profile.content || {}).some((block) => block?.type === "saas");
         const verified = hasSaas ? await getVerifiedRevenue(profile.id) : [];
