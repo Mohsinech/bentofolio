@@ -1,15 +1,24 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
-  X,
+  ArrowDown,
+  ArrowLeft,
+  ArrowUp,
+  Check,
+  ChevronDown,
+  Clock,
+  FileText,
+  Github,
+  ImagePlus,
+  Loader2,
+  LocateFixed,
+  MapPin,
   Plus,
+  Search,
   Trash2,
   Upload,
-  FileText,
-  MapPin,
-  Loader2,
-  Github,
+  X,
 } from "lucide-react";
 import NextImage from "next/image";
 import { useEditor } from "@/app/lib/editor-context";
@@ -25,7 +34,7 @@ import {
   getTechsByCategory,
   TechItem,
 } from "@/app/lib/tech-stack";
-import { getTechIconUrl, techIcons } from "@/app/lib/tech-icons";
+import { getTechIconUrl } from "@/app/lib/tech-icons";
 import styles from "./BlockEditor.module.css";
 import { RevenueSource } from "./RevenueSource";
 
@@ -69,7 +78,6 @@ const SOCIAL_PLATFORM_SUGGESTIONS = [
   "Other",
 ];
 
-const SKILL_CATEGORY_SUGGESTIONS = ["Development", "Design", "Marketing", "Productivity", "Other"];
 const TIMEZONE_SUGGESTIONS = [
   "Africa/Casablanca",
   "Europe/London",
@@ -167,13 +175,13 @@ function formatStructuredPeriod(item: {
   return item.period || "";
 }
 
+
 interface BlockEditorProps {
   embedded?: boolean;
 }
 
 export function BlockEditor({ embedded = false }: BlockEditorProps) {
-  const { selectedBlockId, content, updateBlockContent, selectBlock } =
-    useEditor();
+  const { selectedBlockId, content, updateBlockContent, selectBlock } = useEditor();
   const selectedContent = selectedBlockId ? content[selectedBlockId] : null;
 
   if (!selectedBlockId || !selectedContent) {
@@ -185,15 +193,10 @@ export function BlockEditor({ embedded = false }: BlockEditorProps) {
     );
   }
 
-  // When embedded in PropertiesPanel, don't show the header
   if (embedded) {
     return (
       <div className={styles.fieldsOnly}>
-        <BlockFields
-          blockId={selectedBlockId}
-          content={selectedContent}
-          onUpdate={updateBlockContent}
-        />
+        <BlockFields key={selectedBlockId} blockId={selectedBlockId} content={selectedContent} onUpdate={updateBlockContent} />
       </div>
     );
   }
@@ -202,20 +205,12 @@ export function BlockEditor({ embedded = false }: BlockEditorProps) {
     <div className={styles.editor}>
       <div className={styles.header}>
         <span className={styles.title}>Edit {selectedContent.type}</span>
-        <button
-          className={styles.closeButton}
-          onClick={() => selectBlock(null)}
-        >
+        <button type="button" className={styles.closeButton} onClick={() => selectBlock(null)} aria-label="Close">
           <X size={16} />
         </button>
       </div>
-
       <div className={styles.fields}>
-        <BlockFields
-          blockId={selectedBlockId}
-          content={selectedContent}
-          onUpdate={updateBlockContent}
-        />
+        <BlockFields key={selectedBlockId} blockId={selectedBlockId} content={selectedContent} onUpdate={updateBlockContent} />
       </div>
     </div>
   );
@@ -227,6 +222,32 @@ interface BlockFieldsProps {
   onUpdate: (id: string, content: BlockContent) => void;
 }
 
+// List helpers for blocks with items.
+function patchAt<T>(list: T[] | undefined, index: number, patch: Partial<T>): T[] {
+  const next = [...(list || [])];
+  next[index] = { ...next[index], ...patch };
+  return next;
+}
+
+function moveIn<T>(list: T[] | undefined, from: number, to: number): T[] {
+  const next = [...(list || [])];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+function removeAt<T>(list: T[] | undefined, index: number): T[] {
+  return (list || []).filter((_, i) => i !== index);
+}
+
+function monthLabel(value?: string) {
+  const match = value?.match(/^(\d{4})-(\d{2})$/);
+  if (!match) return value || "";
+  return new Intl.DateTimeFormat("en", { month: "short", year: "numeric", timeZone: "UTC" }).format(
+    new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, 1))
+  );
+}
+
 function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
   const handleChange = (field: string, value: unknown) => {
     if (content.type === "identity" && field === "availabilityLabel") {
@@ -236,402 +257,282 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
       });
       return;
     }
-
-    onUpdate(blockId, {
-      ...content,
-      data: { ...content.data, [field]: value },
-    } as BlockContent);
+    onUpdate(blockId, { ...content, data: { ...content.data, [field]: value } } as BlockContent);
   };
 
   switch (content.type) {
     case "identity":
       return <ProfileFields content={content.data} onChange={handleChange} />;
 
-    case "map":
+    case "map": {
+      const data = content.data;
+      const zoom = data.zoom || 12;
       return (
         <>
-          <Field
-            label="Eyebrow"
-            value={content.data.eyebrow || ""}
-            onChange={(value) => handleChange("eyebrow", value)}
-            placeholder="LOCATION"
-          />
-          <Field
-            label="Heading"
-            value={content.data.heading || ""}
-            onChange={(value) => handleChange("heading", value)}
-            placeholder={content.data.location || "Casablanca, Morocco"}
-          />
           <LocationAutocompleteField
-            value={content.data.location}
+            value={data.location}
             onChange={(value) => handleChange("location", value)}
-            onSelect={(place) => {
+            onSelect={(place) =>
               onUpdate(blockId, {
                 ...content,
                 data: {
-                  ...content.data,
+                  ...data,
                   location: place.label,
-                  heading: content.data.heading || place.label,
+                  heading: data.heading && data.heading !== data.location ? data.heading : place.label,
                   lat: place.lat,
                   lng: place.lng,
-                  variant: content.data.variant || "map",
+                  variant: data.variant || "map",
                 },
-              });
-            }}
+              })
+            }
+            hint={data.lat && data.lng ? undefined : "Pick a suggestion to place it on the map."}
           />
-          <div className={styles.field}>
-            <label className={styles.label}>Short description</label>
-            <textarea
-              className={styles.textarea}
-              value={content.data.description || ""}
-              onChange={(event) => handleChange("description", event.target.value)}
-              placeholder="Available for remote work worldwide."
-              rows={3}
-            />
-            <p className={styles.fieldHint}>
-              {(content.data.description || "").length}/120 characters suggested
-            </p>
-          </div>
-          <FreeTextCombobox
-            label="Timezone"
-            value={content.data.timezone || ""}
-            onChange={(value) => handleChange("timezone", value)}
-            suggestions={TIMEZONE_SUGGESTIONS}
-            placeholder="Africa/Casablanca"
+          <Field
+            label="Heading"
+            value={data.heading || ""}
+            onChange={(value) => handleChange("heading", value)}
+            placeholder={data.location || "Casablanca, Morocco"}
           />
-          <SelectField
-            label="Display style"
-            value={content.data.variant || (content.data.lat && content.data.lng ? "map" : "text")}
+          <Field
+            label="Short description"
+            value={data.description || ""}
+            onChange={(value) => handleChange("description", value)}
+            placeholder="Available for remote work worldwide."
+            multiline
+            limit={120}
+          />
+          <TimezoneField value={data.timezone || ""} onChange={(value) => handleChange("timezone", value)} />
+          <Segmented
+            label="Show as"
+            value={data.variant || (data.lat && data.lng ? "map" : "text")}
             onChange={(value) => handleChange("variant", value)}
             options={[
               { value: "map", label: "Map" },
-              { value: "text", label: "Text" },
+              { value: "text", label: "Text only" },
             ]}
           />
+          {(data.variant || "map") === "map" && (
+            <Segmented
+              label="Map area"
+              value={zoom >= 11 ? "12" : zoom >= 7 ? "8" : "5"}
+              onChange={(value) => handleChange("zoom", Number(value))}
+              options={[
+                { value: "12", label: "City" },
+                { value: "8", label: "Region" },
+                { value: "5", label: "Country" },
+              ]}
+            />
+          )}
           <Field
-            label="Map zoom"
-            value={String(content.data.zoom || 12)}
-            onChange={(value) => handleChange("zoom", Number(value) || 12)}
-            type="number"
-            placeholder="12"
+            label="Eyebrow"
+            value={data.eyebrow || ""}
+            onChange={(value) => handleChange("eyebrow", value)}
+            placeholder="Location"
           />
           <Field
-            label="Optional action URL"
-            value={content.data.actionUrl || ""}
+            label="Link (optional)"
+            value={data.actionUrl || ""}
             onChange={(value) => handleChange("actionUrl", value)}
             onBlur={(value) => handleChange("actionUrl", normalizeWebsiteInput(value))}
-            placeholder="https://maps.google.com/..."
+            placeholder="https://maps.google.com/…"
             type="url"
           />
         </>
       );
+    }
 
     case "github":
       return (
         <GitHubImportEditor
           content={content.data}
-          onChange={(githubContent) =>
-            onUpdate(blockId, { type: "github", data: githubContent })
-          }
-          onImport={(githubContent) =>
-            onUpdate(blockId, {
-              type: "github",
-              data: { ...content.data, ...githubContent },
-            })
-          }
+          onChange={(githubContent) => onUpdate(blockId, { type: "github", data: githubContent })}
+          onImport={(githubContent) => onUpdate(blockId, { type: "github", data: { ...content.data, ...githubContent } })}
         />
       );
 
-    case "link":
-      const actionType =
-        content.data.actionType === "copy-email" ? "copy-email" : "email";
+    case "link": {
+      const data = content.data;
+      const actionType = data.actionType === "copy-email" ? "copy-email" : "email";
       return (
         <>
           <Field
-            label="Eyebrow"
-            value={content.data.eyebrow ?? ""}
-            onChange={(v) => handleChange("eyebrow", v)}
-            placeholder="Start here"
-          />
-          <div className={styles.field}>
-            <label className={styles.label}>Main heading</label>
-            <textarea
-              className={styles.textarea}
-              value={content.data.title}
-              onChange={(event) => handleChange("title", event.target.value)}
-              placeholder="Let's collaborate"
-              rows={2}
-            />
-            <p className={styles.fieldHint}>
-              {content.data.title.length}/48 characters suggested
-            </p>
-          </div>
-          <div className={styles.field}>
-            <label className={styles.label}>Description</label>
-            <textarea
-              className={styles.textarea}
-              value={content.data.description || ""}
-              onChange={(event) => handleChange("description", event.target.value)}
-              placeholder="Tell me about your project and I'll reply within 24 hours."
-              rows={3}
-            />
-            <p className={styles.fieldHint}>
-              {(content.data.description || "").length}/120 characters suggested
-            </p>
-          </div>
-          <SelectField
-            label="Action type"
-            value={actionType}
-            onChange={(value) => handleChange("actionType", value)}
-            options={[
-              { value: "email", label: "Send email" },
-              { value: "copy-email", label: "Copy email" },
-            ]}
+            label="Main heading"
+            value={data.title}
+            onChange={(v) => handleChange("title", v)}
+            placeholder="Let's collaborate"
+            limit={48}
           />
           <Field
-            label="Destination"
-            value={content.data.url}
+            label="Description"
+            value={data.description || ""}
+            onChange={(v) => handleChange("description", v)}
+            placeholder="Tell me about your project and I'll reply within 24 hours."
+            multiline
+            limit={120}
+          />
+          <Field
+            label="Email address"
+            value={data.url.replace(/^mailto:/i, "")}
             onChange={(v) => handleChange("url", v)}
             onBlur={(value) => handleChange("url", normalizeActionDestination(value, actionType))}
             placeholder="hello@example.com"
             type="email"
+            autoComplete="email"
+            error={data.url && !isLikelyCtaDestination(actionType, data.url) ? "That doesn't look like an email address." : undefined}
           />
-          {content.data.url && !isLikelyCtaDestination(actionType, content.data.url) && (
-            <p className={styles.fieldHint}>Enter a valid destination for this action type.</p>
-          )}
+          <Segmented
+            label="When clicked"
+            value={actionType}
+            onChange={(value) => handleChange("actionType", value)}
+            options={[
+              { value: "email", label: "Open email" },
+              { value: "copy-email", label: "Copy address" },
+            ]}
+          />
           {actionType === "email" && (
             <>
               <Field
                 label="Email subject"
-                value={content.data.emailSubject || ""}
+                value={data.emailSubject || ""}
                 onChange={(v) => handleChange("emailSubject", v)}
                 placeholder="Project inquiry"
               />
-              <div className={styles.field}>
-                <label className={styles.label}>Email body</label>
-                <textarea
-                  className={styles.textarea}
-                  value={content.data.emailBody || ""}
-                  onChange={(event) => handleChange("emailBody", event.target.value)}
-                  placeholder="Hi, I'd like to discuss..."
-                  rows={3}
-                />
-              </div>
+              <Field
+                label="Email body"
+                value={data.emailBody || ""}
+                onChange={(v) => handleChange("emailBody", v)}
+                placeholder="Hi, I'd like to discuss…"
+                multiline
+              />
             </>
           )}
           <Field
+            label="Eyebrow"
+            value={data.eyebrow ?? ""}
+            onChange={(v) => handleChange("eyebrow", v)}
+            placeholder="Start here"
+          />
+          <Field
             label="Button label"
-            value={content.data.buttonLabel || ""}
+            value={data.buttonLabel || ""}
             onChange={(v) => handleChange("buttonLabel", v)}
             placeholder="Start a project"
           />
-          <SelectField
-            label="Visual style"
-            value={content.data.variant || "surface"}
+          <Segmented
+            label="Style"
+            value={data.variant || "surface"}
             onChange={(value) => handleChange("variant", value)}
             options={[
-              { value: "surface", label: "Surface" },
-              { value: "contrast", label: "Contrast" },
+              { value: "surface", label: "Plain" },
+              { value: "contrast", label: "Dark" },
               { value: "accent", label: "Accent" },
               { value: "outline", label: "Outline" },
             ]}
           />
         </>
       );
+    }
 
-    case "work":
+    case "work": {
+      const items = content.data.items || [];
       return (
         <>
-          <Field
-            label="Title"
-            value={content.data.title || ""}
-            onChange={(v) => handleChange("title", v)}
-            placeholder="Recent work"
+          <Field label="Title" value={content.data.title || ""} onChange={(v) => handleChange("title", v)} placeholder="Recent work" />
+          <Field label="Subtitle" value={content.data.subtitle || ""} onChange={(v) => handleChange("subtitle", v)} placeholder="Selected projects" />
+          <ArrayField
+            label="Projects"
+            items={items}
+            addLabel="Add project"
+            summary={(item) => ({
+              title: item.title,
+              meta: [item.client, item.year].filter(Boolean).join(" · "),
+              image: item.image,
+            })}
+            renderItem={(item, i) => (
+              <>
+                <Field compact label="Title" value={item.title || ""} onChange={(v) => handleChange("items", patchAt(items, i, { title: v }))} placeholder="Portfolio OS" />
+                <div className={styles.row}>
+                  <Field compact label="Client" value={item.client || ""} onChange={(v) => handleChange("items", patchAt(items, i, { client: v }))} placeholder="Northstar" />
+                  <Field compact label="Year" value={item.year || ""} onChange={(v) => handleChange("items", patchAt(items, i, { year: v }))} placeholder="2026" inputMode="numeric" width="5.5rem" />
+                </div>
+                <FreeTextCombobox
+                  compact
+                  label="Category"
+                  value={item.category || ""}
+                  onChange={(v) => handleChange("items", patchAt(items, i, { category: v }))}
+                  suggestions={["Product design", "Web app", "Brand identity", "Design system", "Development", "Mobile app"]}
+                  placeholder="Product design"
+                />
+                <ImageUploadField label="Cover image" value={item.image || ""} onChange={(image) => handleChange("items", patchAt(items, i, { image }))} />
+                <Field
+                  compact
+                  label="Link"
+                  value={item.url || ""}
+                  onChange={(v) => handleChange("items", patchAt(items, i, { url: v }))}
+                  onBlur={(v) => handleChange("items", patchAt(items, i, { url: normalizeWebsiteInput(v) }))}
+                  placeholder="https://…"
+                  type="url"
+                />
+              </>
+            )}
+            onAdd={() => handleChange("items", [...items, { title: "", client: "", category: "", year: "", image: "", url: "" }])}
+            onRemove={(i) => handleChange("items", removeAt(items, i))}
+            onMove={(from, to) => handleChange("items", moveIn(items, from, to))}
           />
           <Field
-            label="Subtitle"
-            value={content.data.subtitle || ""}
-            onChange={(v) => handleChange("subtitle", v)}
-            placeholder="Selected projects"
-          />
-          <Field
-            label="Email"
+            label="Contact email (optional)"
             value={content.data.email || ""}
             onChange={(v) => handleChange("email", v)}
-            placeholder="hello@icloud.com"
+            placeholder="hello@example.com"
+            type="email"
+            autoComplete="email"
           />
-          <ArrayField
-            label="Work Items"
-            items={content.data.items || []}
-            renderItem={(item, idx) => (
-              <div key={idx} className={styles.arrayItemColumn}>
-                <input
-                  className={styles.input}
-                  value={item.title || ""}
-                  list="work-title-suggestions"
-                  autoComplete="on"
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], title: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Project title"
-                />
-                <input
-                  className={styles.input}
-                  value={item.client || ""}
-                  list="work-client-suggestions"
-                  autoComplete="on"
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], client: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Client or studio"
-                />
-                <input
-                  className={styles.input}
-                  value={item.category || ""}
-                  list="work-category-suggestions"
-                  autoComplete="on"
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], category: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Product design, web app..."
-                />
-                <input
-                  className={styles.smallInput}
-                  value={item.year || ""}
-                  autoComplete="on"
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], year: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="2026"
-                />
-                <ImageUploadField
-                  label="Preview image"
-                  value={item.image || ""}
-                  onChange={(url) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], image: url };
-                    handleChange("items", newItems);
-                  }}
-                  small
-                  maxSizeMB={10}
-                />
-                <input
-                  className={styles.input}
-                  value={item.url || ""}
-                  list="url-suggestions"
-                  autoComplete="on"
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[idx] = { ...newItems[idx], url: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Project URL"
-                />
-              </div>
-            )}
-            onAdd={() =>
-              handleChange("items", [
-                ...(content.data.items || []),
-                {
-                  title: "",
-                  client: "",
-                  category: "",
-                  year: "",
-                  image: "",
-                  url: "",
-                },
-              ])
-            }
-            onRemove={(i) => {
-              const newItems = (content.data.items || []).filter(
-                (_, idx) => idx !== i,
-              );
-              handleChange("items", newItems);
-            }}
-          />
-          <datalist id="work-title-suggestions">
-            {["Portfolio OS", "Creator dashboard", "Mobile app redesign", "Brand system"].map((item) => (
-              <option key={item} value={item} />
-            ))}
-          </datalist>
-          <datalist id="work-client-suggestions">
-            {["Northstar Studio", "Bento Labs", "Independent", "Studio"].map((item) => (
-              <option key={item} value={item} />
-            ))}
-          </datalist>
-          <datalist id="work-category-suggestions">
-            {["Product design", "Web app", "Brand identity", "Design system", "Development"].map((item) => (
-              <option key={item} value={item} />
-            ))}
-          </datalist>
-          <datalist id="url-suggestions">
-            {["https://example.com", "https://dribbble.com/username", "https://github.com/username"].map((item) => (
-              <option key={item} value={item} />
-            ))}
-          </datalist>
         </>
       );
+    }
 
     case "saas":
       return (
         <>
+          <Field label="Name" value={content.data.name} onChange={(v) => handleChange("name", v)} placeholder="Vocaflow" />
+          <Field label="Tagline" value={content.data.tagline} onChange={(v) => handleChange("tagline", v)} placeholder="Transcripts in one click" limit={80} />
           <Field
-            label="Name"
-            value={content.data.name}
-            onChange={(v) => handleChange("name", v)}
-          />
-          <Field
-            label="Tagline"
-            value={content.data.tagline}
-            onChange={(v) => handleChange("tagline", v)}
-          />
-          <Field
-            label="URL"
+            label="Website"
             value={content.data.url}
             onChange={(v) => handleChange("url", v)}
+            onBlur={(v) => handleChange("url", normalizeWebsiteInput(v))}
+            placeholder="vocaflow.app"
+            type="url"
           />
-          <ImageUploadField
-            label="Logo"
-            value={content.data.logo || ""}
-            onChange={(v) => handleChange("logo", v)}
-            small
-          />
+          <ImageUploadField label="Logo" value={content.data.logo || ""} onChange={(v) => handleChange("logo", v)} small />
           <RevenueSource
             blockId={blockId}
-            hasManualNumbers={
-              Boolean(content.data.mrr) || Boolean(content.data.totalRevenue) || (content.data.revenue || []).length > 0
-            }
+            hasManualNumbers={Boolean(content.data.mrr) || Boolean(content.data.totalRevenue) || (content.data.revenue || []).length > 0}
           >
+            <div className={styles.row}>
+              <Field
+                label="MRR"
+                value={content.data.mrr ? String(content.data.mrr) : ""}
+                onChange={(v) => handleChange("mrr", Number(v.replace(/[^0-9.]/g, "")) || 0)}
+                placeholder="4200"
+                inputMode="decimal"
+              />
+              <SelectField
+                label="Currency"
+                value={content.data.currency || "USD"}
+                options={["USD", "EUR", "GBP", "MAD", "INR", "CAD", "AUD"].map((c) => ({ value: c, label: c }))}
+                onChange={(v) => handleChange("currency", v)}
+                width="6.5rem"
+              />
+            </div>
             <Field
-              label="MRR"
-              value={String(content.data.mrr)}
-              onChange={(v) => handleChange("mrr", Number(v))}
-              type="number"
-            />
-            <SelectField
-              label="Currency"
-              value={content.data.currency || "USD"}
-              options={["USD", "EUR", "GBP", "MAD", "INR", "CAD", "AUD"].map((c) => ({ value: c, label: c }))}
-              onChange={(v) => handleChange("currency", v)}
-            />
-            <Field
-              label="Total revenue (all time, optional)"
+              label="Total revenue, all time (optional)"
               value={content.data.totalRevenue ? String(content.data.totalRevenue) : ""}
-              onChange={(v) => handleChange("totalRevenue", v.trim() ? Number(v) : undefined)}
-              type="number"
+              onChange={(v) => handleChange("totalRevenue", v.trim() ? Number(v.replace(/[^0-9.]/g, "")) || undefined : undefined)}
+              placeholder="52000"
+              inputMode="decimal"
             />
-            <RevenueField
-              values={content.data.revenue || []}
-              onChange={(values) => handleChange("revenue", values)}
-            />
+            <RevenueField values={content.data.revenue || []} onChange={(values) => handleChange("revenue", values)} />
           </RevenueSource>
         </>
       );
@@ -639,112 +540,99 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
     case "availability":
       return (
         <>
-          <SelectField
+          <Segmented
             label="Status"
             value={content.data.status}
             options={[
               { value: "available", label: "Available" },
               { value: "busy", label: "Busy" },
-              { value: "not-available", label: "Not Available" },
+              { value: "not-available", label: "Booked" },
             ]}
             onChange={(v) => handleChange("status", v)}
           />
+          <Field label="Message" value={content.data.message} onChange={(v) => handleChange("message", v)} placeholder="Open for new projects" multiline limit={90} />
+          <Field label="Next opening" value={content.data.nextOpening || ""} onChange={(v) => handleChange("nextOpening", v)} placeholder="2 spots this month" />
+          <div className={styles.row}>
+            <Field label="Response time" value={content.data.responseTime || ""} onChange={(v) => handleChange("responseTime", v)} placeholder="Within 24h" />
+            <Field label="Rate" value={content.data.rate || ""} onChange={(v) => handleChange("rate", v)} placeholder="From $2k" />
+          </div>
+          <TimezoneField value={content.data.timezone || ""} onChange={(v) => handleChange("timezone", v)} />
           <Field
-            label="Message"
-            value={content.data.message}
-            onChange={(v) => handleChange("message", v)}
-            multiline
-          />
-          <Field
-            label="Next opening"
-            value={content.data.nextOpening || ""}
-            onChange={(v) => handleChange("nextOpening", v)}
-            placeholder="2 spots this month"
-          />
-          <Field
-            label="Response time"
-            value={content.data.responseTime || ""}
-            onChange={(v) => handleChange("responseTime", v)}
-            placeholder="Replies within 24h"
-          />
-          <Field
-            label="Timezone"
-            value={content.data.timezone || ""}
-            onChange={(v) => handleChange("timezone", v)}
-            placeholder="GMT+1"
-          />
-          <Field
-            label="Rate"
-            value={content.data.rate || ""}
-            onChange={(v) => handleChange("rate", v)}
-            placeholder="Projects from $2k"
-          />
-          <CheckboxField
-            label="Open to work"
-            checked={content.data.forHire}
-            onChange={(v) => handleChange("forHire", v)}
-          />
-          <Field
-            label="Contact"
+            label="How to reach you"
             value={content.data.preferredContact || ""}
             onChange={(v) => handleChange("preferredContact", v)}
-            placeholder="hello@example.com or https://cal.com/you"
+            onBlur={(v) => handleChange("preferredContact", v.trim() ? normalizeWebsiteInput(v) : "")}
+            placeholder="hello@example.com or cal.com/you"
           />
-          <Field
-            label="CTA label"
-            value={content.data.ctaLabel || ""}
-            onChange={(v) => handleChange("ctaLabel", v)}
-            placeholder="Start a project"
-          />
+          <Field label="Button label" value={content.data.ctaLabel || ""} onChange={(v) => handleChange("ctaLabel", v)} placeholder="Start a project" />
+          <Toggle label="Open to work" checked={content.data.forHire} onChange={(v) => handleChange("forHire", v)} />
         </>
       );
 
     case "techstack":
       return (
         <>
-          <Field
-            label="Eyebrow"
-            value={content.data.eyebrow || ""}
-            onChange={(v) => handleChange("eyebrow", v)}
-            placeholder="SKILLS"
-          />
-          <Field
-            label="Heading"
-            value={content.data.heading || ""}
-            onChange={(v) => handleChange("heading", v)}
-            placeholder="Tools I use"
-          />
-          <FreeTextCombobox
-            label="Category"
-            value={content.data.category || ""}
-            onChange={(v) => handleChange("category", v)}
-            suggestions={SKILL_CATEGORY_SUGGESTIONS}
-            placeholder="Development, Design..."
-          />
-          <TechStackEditor
-            items={content.data.items}
-            onChange={(items) => handleChange("items", items)}
-          />
+          <Field label="Heading" value={content.data.heading || ""} onChange={(v) => handleChange("heading", v)} placeholder="Tools I use" />
+          <TechStackEditor items={content.data.items} onChange={(items) => handleChange("items", items)} />
+          <Field label="Eyebrow" value={content.data.eyebrow || ""} onChange={(v) => handleChange("eyebrow", v)} placeholder="Skills" />
         </>
       );
 
-    case "social":
+    case "social": {
+      const items = content.data.items;
       return (
         <>
-          <Field
-            label="Eyebrow"
-            value={content.data.eyebrow || ""}
-            onChange={(v) => handleChange("eyebrow", v)}
-            placeholder="Connect"
+          <ArrayField
+            label="Links"
+            items={items}
+            addLabel="Add link"
+            summary={(item) => ({
+              title: SOCIAL_PLATFORM_SUGGESTIONS.find((name) => normalizeSocialPlatform(name) === item.platform) || item.platform || "Link",
+              meta: item.username || item.url.replace(/^(https?:\/\/|mailto:)/i, ""),
+            })}
+            renderItem={(item, i) => (
+              <>
+                <Segmented
+                  compact
+                  label="Platform"
+                  value={item.platform}
+                  wrap
+                  options={SOCIAL_PLATFORMS.map((p) => ({ value: p.value, label: p.label }))}
+                  onChange={(value) => handleChange("items", patchAt(items, i, { platform: value as typeof item.platform }))}
+                />
+                <Field
+                  compact
+                  label={item.platform === "email" ? "Email" : "Link"}
+                  value={item.url.replace(/^mailto:/i, "")}
+                  onChange={(v) => handleChange("items", patchAt(items, i, { url: v }))}
+                  onBlur={(v) => {
+                    // A pasted profile link picks its platform.
+                    const platform = guessPlatform(v) || item.platform;
+                    handleChange("items", patchAt(items, i, { url: normalizeWebsiteInput(v), platform: platform as typeof item.platform }));
+                  }}
+                  placeholder={item.platform === "email" ? "hello@example.com" : "https://…"}
+                  error={item.url && !isLikelySocialUrl(item.platform, item.url) ? "Enter a valid link or email address." : undefined}
+                />
+                <Field
+                  compact
+                  label="Label (optional)"
+                  value={item.username || ""}
+                  onChange={(v) => handleChange("items", patchAt(items, i, { username: v }))}
+                  placeholder="@yourname"
+                />
+              </>
+            )}
+            onAdd={() =>
+              handleChange(
+                "items",
+                items.some((item) => !item.url.trim()) ? items : [...items, { platform: "website" as const, url: "", username: "" }]
+              )
+            }
+            onRemove={(i) => handleChange("items", removeAt(items, i))}
+            onMove={(from, to) => handleChange("items", moveIn(items, from, to))}
           />
-          <Field
-            label="Heading"
-            value={content.data.heading || ""}
-            onChange={(v) => handleChange("heading", v)}
-            placeholder="Social Links"
-          />
-          <SelectField
-            label="Layout style"
+          <Segmented
+            label="Layout"
             value={content.data.variant || "icons"}
             onChange={(value) => handleChange("variant", value)}
             options={[
@@ -753,463 +641,212 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
               { value: "list", label: "List" },
             ]}
           />
-          <ArrayField
-            label="Social Links"
-            items={content.data.items}
-            renderItem={(item, i) => (
-              <div className={styles.arrayItemColumn}>
-                <FreeTextCombobox
-                  label="Platform"
-                  value={item.platform || ""}
-                  onChange={(value) => {
-                    const newItems = [...content.data.items];
-                    newItems[i] = {
-                      ...item,
-                      platform: normalizeSocialPlatform(value) as typeof item.platform,
-                    };
-                    handleChange("items", newItems);
-                  }}
-                  suggestions={SOCIAL_PLATFORM_SUGGESTIONS}
-                  placeholder="GitHub, Website, Other..."
-                />
-                <input
-                  className={styles.input}
-                  value={item.username || ""}
-                  onChange={(e) => {
-                    const newItems = [...content.data.items];
-                    newItems[i] = { ...item, username: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Label or username"
-                />
-                <input
-                  className={styles.input}
-                  value={item.url}
-                  onChange={(e) => {
-                    const newItems = [...content.data.items];
-                    newItems[i] = { ...item, url: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  onBlur={(event) => {
-                    const newItems = [...content.data.items];
-                    newItems[i] = { ...item, url: normalizeWebsiteInput(event.target.value) };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="https://... or hello@example.com"
-                />
-                {item.url && !isLikelySocialUrl(item.platform, item.url) && (
-                  <p className={styles.fieldHint}>Enter a valid URL or email address.</p>
-                )}
-              </div>
-            )}
-            onAdd={() =>
-              handleChange(
-                "items",
-                content.data.items.some((item) => !item.url.trim())
-                  ? content.data.items
-                  : [
-                      ...content.data.items,
-                      { platform: "website" as const, url: "", username: "" },
-                    ]
-              )
-            }
-            onRemove={(i) => {
-              const newItems = content.data.items.filter((_, idx) => idx !== i);
-              handleChange("items", newItems);
-            }}
-            onMove={(from, to) => {
-              const newItems = [...content.data.items];
-              const [item] = newItems.splice(from, 1);
-              newItems.splice(to, 0, item);
-              handleChange("items", newItems);
-            }}
-          />
+          <Field label="Heading" value={content.data.heading || ""} onChange={(v) => handleChange("heading", v)} placeholder="Elsewhere" />
         </>
       );
+    }
 
     case "spotify":
       return (
-        <>
-          <Field
-            label="Spotify URL"
-            value={content.data.spotifyUrl || ""}
-            onChange={(v) => handleChange("spotifyUrl", v)}
-            placeholder="https://open.spotify.com/playlist/... or track/album"
-          />
-          <p className={styles.fieldHint}>
-            Paste any Spotify link (track, playlist, album, or artist)
-          </p>
-        </>
-      );
-
-    case "experience":
-      return (
-        <>
-          <Field
-            label="Eyebrow"
-            value={content.data.eyebrow || ""}
-            onChange={(v) => handleChange("eyebrow", v)}
-            placeholder="CAREER"
-          />
-          <Field
-            label="Heading"
-            value={content.data.heading || ""}
-            onChange={(v) => handleChange("heading", v)}
-            placeholder="Experience"
-          />
-          <ArrayField
-            label="Work Experience"
-            items={content.data.items || []}
-            renderItem={(item, i) => (
-              <div className={styles.arrayItemColumn}>
-                <div className={styles.companyInputRow}>
-                  <div className={styles.companyLogoPreview}>
-                    {item.logo || getCompanyLogo(item.company || "") ? (
-                      <NextImage
-                        src={item.logo || getCompanyLogo(item.company || "") || ""}
-                        alt={item.company || "Company logo"}
-                        width={28}
-                        height={28}
-                      />
-                    ) : (
-                      <span>{(item.company || "?").slice(0, 1).toUpperCase()}</span>
-                    )}
-                  </div>
-                  <input
-                    className={styles.input}
-                    value={item.company || ""}
-                    list="experience-company-suggestions"
-                    autoComplete="on"
-                    onChange={(e) => {
-                      const company = e.target.value;
-                      const newItems = [...(content.data.items || [])];
-                      newItems[i] = {
-                        ...item,
-                        company,
-                      };
-                      handleChange("items", newItems);
-                    }}
-                    placeholder="Upwork, Facebook, Figma..."
-                  />
-                </div>
-                <FreeTextCombobox
-                  label="Role"
-                  value={item.role || ""}
-                  onChange={(value) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, role: value };
-                    handleChange("items", newItems);
-                  }}
-                  suggestions={PROFESSIONAL_TITLE_SUGGESTIONS}
-                  placeholder="Product Designer"
-                />
-                <FreeTextCombobox
-                  label="Employment type"
-                  value={item.employmentType || ""}
-                  onChange={(value) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, employmentType: value };
-                    handleChange("items", newItems);
-                  }}
-                  suggestions={EMPLOYMENT_TYPE_SUGGESTIONS}
-                  placeholder="Full-time, Freelance..."
-                />
-                <input
-                  className={styles.smallInput}
-                  value={item.startDate || ""}
-                  type="month"
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = {
-                      ...item,
-                      startDate: e.target.value,
-                      period: formatStructuredPeriod({ ...item, startDate: e.target.value }),
-                    };
-                    handleChange("items", newItems);
-                  }}
-                  aria-label="Start date"
-                />
-                <CheckboxField
-                  label="Currently working here"
-                  checked={Boolean(item.isCurrent)}
-                  onChange={(checked) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = {
-                      ...item,
-                      isCurrent: checked,
-                      endDate: checked ? "" : item.endDate,
-                      period: formatStructuredPeriod({
-                        ...item,
-                        isCurrent: checked,
-                        endDate: checked ? "" : item.endDate,
-                      }),
-                    };
-                    handleChange("items", newItems);
-                  }}
-                />
-                {!item.isCurrent && (
-                  <input
-                    className={styles.smallInput}
-                    value={item.endDate || ""}
-                    type="month"
-                    onChange={(e) => {
-                      const newItems = [...(content.data.items || [])];
-                      newItems[i] = {
-                        ...item,
-                        endDate: e.target.value,
-                        period: formatStructuredPeriod({ ...item, endDate: e.target.value }),
-                      };
-                      handleChange("items", newItems);
-                    }}
-                    aria-label="End date"
-                  />
-                )}
-                <input
-                  className={styles.smallInput}
-                  value={item.period || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, period: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Legacy period, e.g. 2022 - Present"
-                />
-                <input
-                  className={styles.input}
-                  value={item.location || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, location: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Remote, San Francisco..."
-                />
-                <textarea
-                  className={styles.textarea}
-                  value={item.description || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, description: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="What did you do there?"
-                  rows={3}
-                />
-                <ImageUploadField
-                  label="Company logo"
-                  value={item.logo || ""}
-                  onChange={(logo) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, logo };
-                    handleChange("items", newItems);
-                  }}
-                  small
-                />
-                <input
-                  className={styles.input}
-                  value={item.companyUrl || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, companyUrl: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="https://company.com"
-                />
-              </div>
-            )}
-            onAdd={() =>
-              handleChange("items", [
-                ...(content.data.items || []),
-                { company: "", role: "", period: "", logo: "" },
-              ])
-            }
-            onRemove={(i) => {
-              const newItems = (content.data.items || []).filter(
-                (_, idx) => idx !== i,
-              );
-              handleChange("items", newItems);
-            }}
-            onMove={(from, to) => {
-              const newItems = [...(content.data.items || [])];
-              const [item] = newItems.splice(from, 1);
-              newItems.splice(to, 0, item);
-              handleChange("items", newItems);
-            }}
-          />
-          <datalist id="experience-company-suggestions">
-            {getFieldSuggestions("Company").map((company) => (
-              <option key={company} value={company} />
-            ))}
-          </datalist>
-        </>
-      );
-
-    case "education":
-      return (
-        <>
-          <Field
-            label="Title"
-            value={content.data.title || "Education"}
-            onChange={(v) => handleChange("title", v)}
-          />
-          <ArrayField
-            label="Education"
-            items={content.data.items || []}
-            renderItem={(item, i) => (
-              <div className={styles.arrayItemColumn}>
-                <input
-                  className={styles.input}
-                  value={item.school || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, school: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="School"
-                />
-                <input
-                  className={styles.input}
-                  value={item.degree || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, degree: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Degree / Program"
-                />
-                <input
-                  className={styles.smallInput}
-                  value={item.period || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, period: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="2021 - 2024"
-                />
-                <input
-                  className={styles.input}
-                  value={item.description || ""}
-                  onChange={(e) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, description: e.target.value };
-                    handleChange("items", newItems);
-                  }}
-                  placeholder="Short description"
-                />
-                <ImageUploadField
-                  label="Logo"
-                  value={item.logo || ""}
-                  onChange={(url) => {
-                    const newItems = [...(content.data.items || [])];
-                    newItems[i] = { ...item, logo: url };
-                    handleChange("items", newItems);
-                  }}
-                  small
-                />
-              </div>
-            )}
-            onAdd={() =>
-              handleChange("items", [
-                ...(content.data.items || []),
-                { school: "", degree: "", period: "", description: "", logo: "" },
-              ])
-            }
-            onRemove={(i) => {
-              const newItems = (content.data.items || []).filter(
-                (_, idx) => idx !== i,
-              );
-              handleChange("items", newItems);
-            }}
-          />
-        </>
-      );
-
-    case "projects":
-      return (
-        <ProjectsEditor
-          items={content.data.items || []}
-          onChange={(items) => handleChange("items", items)}
+        <Field
+          label="Spotify link"
+          value={content.data.spotifyUrl || ""}
+          onChange={(v) => handleChange("spotifyUrl", v)}
+          placeholder="https://open.spotify.com/…"
+          type="url"
+          hint="A track, playlist, album or artist link."
+          error={
+            content.data.spotifyUrl && !/open\.spotify\.com\/|spotify:/i.test(content.data.spotifyUrl)
+              ? "That isn't a Spotify link."
+              : undefined
+          }
         />
       );
+
+    case "experience": {
+      const items = content.data.items || [];
+      return (
+        <>
+          <Field label="Heading" value={content.data.heading || ""} onChange={(v) => handleChange("heading", v)} placeholder="Experience" />
+          <ArrayField
+            label="Roles"
+            items={items}
+            addLabel="Add role"
+            summary={(item) => ({
+              title: item.role || item.company,
+              meta: [item.role ? item.company : "", formatStructuredPeriod({ ...item, startDate: monthLabel(item.startDate), endDate: monthLabel(item.endDate) })]
+                .filter(Boolean)
+                .join(" · "),
+              image: item.logo || getCompanyLogo(item.company || "") || undefined,
+            })}
+            renderItem={(item, i) => {
+              const update = (patch: Partial<typeof item>) => {
+                const next = { ...item, ...patch };
+                handleChange("items", patchAt(items, i, { ...patch, period: formatStructuredPeriod(next) }));
+              };
+              return (
+                <>
+                  <FreeTextCombobox
+                    compact
+                    label="Role"
+                    value={item.role || ""}
+                    onChange={(value) => handleChange("items", patchAt(items, i, { role: value }))}
+                    suggestions={PROFESSIONAL_TITLE_SUGGESTIONS}
+                    placeholder="Product designer"
+                  />
+                  <FreeTextCombobox
+                    compact
+                    label="Company"
+                    value={item.company || ""}
+                    onChange={(value) => handleChange("items", patchAt(items, i, { company: value }))}
+                    suggestions={COMPANY_SUGGESTIONS}
+                    placeholder="Figma, Upwork, Freelance…"
+                    adornment={
+                      item.logo || getCompanyLogo(item.company || "") ? (
+                        <NextImage src={item.logo || getCompanyLogo(item.company || "") || ""} alt="" width={18} height={18} unoptimized />
+                      ) : undefined
+                    }
+                  />
+                  <div className={styles.row}>
+                    <Field compact label="Start" type="month" value={item.startDate || ""} onChange={(v) => update({ startDate: v })} />
+                    {item.isCurrent ? (
+                      <div className={`${styles.field} ${styles.compact}`}>
+                        <span className={styles.label}>End</span>
+                        <span className={styles.staticValue}>Present</span>
+                      </div>
+                    ) : (
+                      <Field compact label="End" type="month" value={item.endDate || ""} onChange={(v) => update({ endDate: v })} />
+                    )}
+                  </div>
+                  <Toggle
+                    label="I work here now"
+                    checked={Boolean(item.isCurrent)}
+                    onChange={(checked) => update({ isCurrent: checked, endDate: checked ? "" : item.endDate })}
+                  />
+                  {!item.startDate && item.period && (
+                    <Field
+                      compact
+                      label="Period"
+                      value={item.period}
+                      onChange={(v) => handleChange("items", patchAt(items, i, { period: v }))}
+                      hint="Pick start and end months above to replace this."
+                    />
+                  )}
+                  <div className={styles.row}>
+                    <FreeTextCombobox
+                      compact
+                      label="Type"
+                      value={item.employmentType || ""}
+                      onChange={(value) => handleChange("items", patchAt(items, i, { employmentType: value }))}
+                      suggestions={EMPLOYMENT_TYPE_SUGGESTIONS}
+                      placeholder="Full-time"
+                    />
+                    <Field compact label="Location" value={item.location || ""} onChange={(v) => handleChange("items", patchAt(items, i, { location: v }))} placeholder="Remote" />
+                  </div>
+                  <Field
+                    compact
+                    label="What you did"
+                    value={item.description || ""}
+                    onChange={(v) => handleChange("items", patchAt(items, i, { description: v }))}
+                    placeholder="Led the redesign of…"
+                    multiline
+                    limit={200}
+                  />
+                  <Field
+                    compact
+                    label="Company website"
+                    value={item.companyUrl || ""}
+                    onChange={(v) => handleChange("items", patchAt(items, i, { companyUrl: v }))}
+                    onBlur={(v) => handleChange("items", patchAt(items, i, { companyUrl: v.trim() ? normalizeWebsiteInput(v) : "" }))}
+                    placeholder="company.com"
+                    type="url"
+                  />
+                  <ImageUploadField label="Logo (if not found)" value={item.logo || ""} onChange={(logo) => handleChange("items", patchAt(items, i, { logo }))} small />
+                </>
+              );
+            }}
+            onAdd={() => handleChange("items", [...items, { company: "", role: "", period: "", logo: "" }])}
+            onRemove={(i) => handleChange("items", removeAt(items, i))}
+            onMove={(from, to) => handleChange("items", moveIn(items, from, to))}
+          />
+          <Field label="Eyebrow" value={content.data.eyebrow || ""} onChange={(v) => handleChange("eyebrow", v)} placeholder="Career" />
+        </>
+      );
+    }
+
+    case "education": {
+      const items = content.data.items || [];
+      return (
+        <>
+          <Field label="Heading" value={content.data.title || ""} onChange={(v) => handleChange("title", v)} placeholder="Education" />
+          <ArrayField
+            label="Schools"
+            items={items}
+            addLabel="Add school"
+            summary={(item) => ({ title: item.school, meta: [item.degree, item.period].filter(Boolean).join(" · "), image: item.logo })}
+            renderItem={(item, i) => (
+              <>
+                <Field compact label="School" value={item.school || ""} onChange={(v) => handleChange("items", patchAt(items, i, { school: v }))} placeholder="University of…" />
+                <Field compact label="Degree or program" value={item.degree || ""} onChange={(v) => handleChange("items", patchAt(items, i, { degree: v }))} placeholder="BSc Computer Science" />
+                <Field compact label="Years" value={item.period || ""} onChange={(v) => handleChange("items", patchAt(items, i, { period: v }))} placeholder="2021 – 2024" />
+                <Field compact label="Note (optional)" value={item.description || ""} onChange={(v) => handleChange("items", patchAt(items, i, { description: v }))} placeholder="Graduated with honours" />
+                <ImageUploadField label="Logo" value={item.logo || ""} onChange={(logo) => handleChange("items", patchAt(items, i, { logo }))} small />
+              </>
+            )}
+            onAdd={() => handleChange("items", [...items, { school: "", degree: "", period: "", description: "", logo: "" }])}
+            onRemove={(i) => handleChange("items", removeAt(items, i))}
+            onMove={(from, to) => handleChange("items", moveIn(items, from, to))}
+          />
+        </>
+      );
+    }
+
+    case "projects":
+      return <ProjectsEditor items={content.data.items || []} onChange={(items) => handleChange("items", items)} />;
 
     case "resume":
       return (
         <>
-          <input
-            className={styles.input}
-            value={content.data.title || "My Resume"}
-            onChange={(e) => handleChange("title", e.target.value)}
-            placeholder="My Resume"
-          />
           <FileUploadField
-            label="Upload Resume (PDF)"
+            label="Your CV"
             value={content.data.fileUrl || ""}
-            onChange={(v) => handleChange("fileUrl", v)}
+            fileName={content.data.fileName}
+            onChange={(fileUrl, fileName) =>
+              onUpdate(blockId, { ...content, data: { ...content.data, fileUrl, fileName: fileName ?? content.data.fileName } })
+            }
             accept=".pdf,.doc,.docx"
-            hint="Upload your resume file"
           />
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-editor-body), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.lastUpdated || ""}
-            onChange={(e) => handleChange("lastUpdated", e.target.value)}
-            placeholder="e.g. Jan 2026"
-          />
+          <Field label="Title" value={content.data.title || ""} onChange={(v) => handleChange("title", v)} placeholder="Resume" />
+          <Field label="Last updated" value={content.data.lastUpdated || ""} onChange={(v) => handleChange("lastUpdated", v)} placeholder="Jan 2026" />
+          <Field label="Button label" value={content.data.buttonLabel || ""} onChange={(v) => handleChange("buttonLabel", v)} placeholder="Download CV" />
         </>
       );
+
     case "quote":
       return (
         <>
-          <textarea
-            className={styles.textarea}
-            style={{
-              fontFamily: "var(--font-editor-body), system-ui",
-              marginBottom: 6,
-            }}
+          <Field
+            label="Quote"
             value={content.data.quote || ""}
-            onChange={(e) => handleChange("quote", e.target.value)}
-            placeholder="Enter quote..."
-            rows={3}
+            onChange={(v) => handleChange("quote", v)}
+            placeholder="Mira shipped our new site in two weeks…"
+            multiline
+            rows={4}
+            limit={220}
           />
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-editor-heading), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.author || ""}
-            onChange={(e) => handleChange("author", e.target.value)}
-            placeholder="Author name"
-          />
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-editor-body), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.role || ""}
-            onChange={(e) => handleChange("role", e.target.value)}
-            placeholder="Author role (optional)"
-          />
-          <input
-            className={styles.input}
-            style={{
-              fontFamily: "var(--font-editor-body), system-ui",
-              marginBottom: 6,
-            }}
-            value={content.data.company || ""}
-            onChange={(e) => handleChange("company", e.target.value)}
-            placeholder="Author company (optional)"
-          />
-          <ImageUploadField
-            label="Avatar"
-            value={content.data.avatar || ""}
-            onChange={(v) => handleChange("avatar", v)}
-            small
+          <Field label="Name" value={content.data.author || ""} onChange={(v) => handleChange("author", v)} placeholder="Sam Rivera" />
+          <div className={styles.row}>
+            <Field label="Role" value={content.data.role || ""} onChange={(v) => handleChange("role", v)} placeholder="Founder" />
+            <Field label="Company" value={content.data.company || ""} onChange={(v) => handleChange("company", v)} placeholder="Northstar" />
+          </div>
+          <ImageUploadField label="Their photo" value={content.data.avatar || ""} onChange={(v) => handleChange("avatar", v)} small round />
+          <Field
+            label="Source link (optional)"
+            value={content.data.sourceUrl || ""}
+            onChange={(v) => handleChange("sourceUrl", v)}
+            onBlur={(v) => handleChange("sourceUrl", v.trim() ? normalizeWebsiteInput(v) : "")}
+            placeholder="linkedin.com/…"
+            type="url"
           />
         </>
       );
@@ -1218,310 +855,169 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
       return (
         <>
           <Field
-            label="Title"
-            value={content.data.title || ""}
-            onChange={(v) => handleChange("title", v)}
-            placeholder="Featured video"
-          />
-          <Field
-            label="URL"
+            label="YouTube link"
             value={content.data.url || ""}
             onChange={(v) => handleChange("url", v)}
-            placeholder="https://youtube.com/watch?v=..."
+            placeholder="https://youtube.com/watch?v=…"
+            type="url"
+            error={content.data.url && !/youtu(\.be|be\.com)/i.test(content.data.url) ? "That isn't a YouTube link." : undefined}
           />
+          <Field label="Title" value={content.data.title || ""} onChange={(v) => handleChange("title", v)} placeholder="Featured video" />
         </>
       );
 
-    case "gallery":
+    case "gallery": {
+      const images = content.data.images || [];
       return (
         <>
-          <Field
-            label="Title"
-            value={content.data.title || ""}
-            onChange={(v) => handleChange("title", v)}
-            placeholder="Gallery"
-          />
+          <Field label="Title" value={content.data.title || ""} onChange={(v) => handleChange("title", v)} placeholder="Gallery" />
           <ArrayField
             label="Images"
-            items={content.data.images || []}
+            items={images}
+            addLabel="Add image"
+            summary={(item) => ({ title: item.alt || "Image", image: item.src })}
             renderItem={(item, i) => (
-              <div className={styles.arrayItemColumn}>
-                <ImageUploadField
-                  label="Image"
-                  value={item.src || ""}
-                  onChange={(src) => {
-                    const images = [...(content.data.images || [])];
-                    images[i] = { ...item, src };
-                    handleChange("images", images);
-                  }}
-                  small
-                />
-                <input
-                  className={styles.input}
-                  value={item.alt || ""}
-                  onChange={(event) => {
-                    const images = [...(content.data.images || [])];
-                    images[i] = { ...item, alt: event.target.value };
-                    handleChange("images", images);
-                  }}
-                  placeholder="Caption"
-                />
-              </div>
+              <>
+                <ImageUploadField label="Image" value={item.src || ""} onChange={(src) => handleChange("images", patchAt(images, i, { src }))} />
+                <Field compact label="Caption" value={item.alt || ""} onChange={(v) => handleChange("images", patchAt(images, i, { alt: v }))} placeholder="Studio, 2026" />
+              </>
             )}
-            onAdd={() =>
-              handleChange("images", [...(content.data.images || []), { src: "", alt: "" }])
-            }
-            onRemove={(i) =>
-              handleChange(
-                "images",
-                (content.data.images || []).filter((_, idx) => idx !== i),
-              )
-            }
+            onAdd={() => handleChange("images", [...images, { src: "", alt: "" }])}
+            onRemove={(i) => handleChange("images", removeAt(images, i))}
+            onMove={(from, to) => handleChange("images", moveIn(images, from, to))}
           />
         </>
       );
+    }
 
-    case "instagram":
-      const handleInstagramProfileChange = (value: string) => {
+    case "instagram": {
+      const setFromValue = (value: string, field: "handle" | "profileUrl") => {
         const username = extractInstagramUsername(value);
-
         if (!username) {
-          handleChange("profileUrl", value);
+          handleChange(field, value);
           return;
         }
-
         onUpdate(blockId, {
           ...content,
-          data: {
-            ...content.data,
-            handle: `@${username}`,
-            profileUrl: `https://instagram.com/${username}`,
-          },
+          data: { ...content.data, handle: `@${username}`, profileUrl: `https://instagram.com/${username}` },
         });
       };
-
-      const handleInstagramHandleChange = (value: string) => {
-        const username = extractInstagramUsername(value);
-
-        if (!username) {
-          handleChange("handle", value);
-          return;
-        }
-
-        onUpdate(blockId, {
-          ...content,
-          data: {
-            ...content.data,
-            handle: `@${username}`,
-            profileUrl: content.data.profileUrl || `https://instagram.com/${username}`,
-          },
-        });
-      };
-
       return (
         <>
           <Field
-            label="Handle"
+            label="Instagram handle or link"
             value={content.data.handle || ""}
-            onChange={handleInstagramHandleChange}
+            onChange={(v) => setFromValue(v, "handle")}
             placeholder="@yourhandle"
+            hint={content.data.profileUrl ? content.data.profileUrl.replace(/^https?:\/\//, "") : undefined}
           />
+          <ImageUploadField label="Profile picture" value={content.data.image || ""} onChange={(v) => handleChange("image", v)} small round />
+          <div className={styles.row}>
+            <Field label="Followers" value={content.data.followers || ""} onChange={(v) => handleChange("followers", v)} placeholder="12.4k" />
+            <Field label="Posts" value={content.data.posts || ""} onChange={(v) => handleChange("posts", v)} placeholder="186" />
+          </div>
+          <Field label="Engagement" value={content.data.engagement || ""} onChange={(v) => handleChange("engagement", v)} placeholder="8.7%" />
           <Field
-            label="Profile URL"
-            value={content.data.profileUrl || ""}
-            onChange={handleInstagramProfileChange}
-            placeholder="https://instagram.com/yourhandle"
-          />
-          <ImageUploadField
-            label="Profile image"
-            value={content.data.image || ""}
-            onChange={(v) => handleChange("image", v)}
-            small
-          />
-          <Field
-            label="Followers"
-            value={content.data.followers || ""}
-            onChange={(v) => handleChange("followers", v)}
-            placeholder="12.4k"
-          />
-          <Field
-            label="Posts"
-            value={content.data.posts || ""}
-            onChange={(v) => handleChange("posts", v)}
-            placeholder="186"
-          />
-          <Field
-            label="Engagement"
-            value={content.data.engagement || ""}
-            onChange={(v) => handleChange("engagement", v)}
-            placeholder="8.7%"
-          />
-          <Field
-            label="Featured post URL"
+            label="Featured post (optional)"
             value={content.data.featuredPostUrl || ""}
             onChange={(v) => handleChange("featuredPostUrl", v)}
-            placeholder="https://instagram.com/p/..."
+            placeholder="https://instagram.com/p/…"
+            type="url"
           />
         </>
       );
+    }
 
-    case "services":
+    case "services": {
+      const items = content.data.items || [];
       return (
         <>
-          <Field
-            label="Title"
-            value={content.data.title || ""}
-            onChange={(v) => handleChange("title", v)}
-          />
+          <Field label="Title" value={content.data.title || ""} onChange={(v) => handleChange("title", v)} placeholder="Services" />
           <ArrayField
             label="Services"
-            items={content.data.items || []}
+            items={items}
+            addLabel="Add service"
             renderItem={(item, i) => (
               <input
                 className={styles.input}
                 value={item || ""}
+                aria-label={`Service ${i + 1}`}
                 onChange={(event) => {
-                  const items = [...(content.data.items || [])];
-                  items[i] = event.target.value;
-                  handleChange("items", items);
+                  const next = [...items];
+                  next[i] = event.target.value;
+                  handleChange("items", next);
                 }}
                 placeholder="Product design"
               />
             )}
-            onAdd={() => handleChange("items", [...(content.data.items || []), ""])}
-            onRemove={(i) =>
-              handleChange(
-                "items",
-                (content.data.items || []).filter((_, idx) => idx !== i),
-              )
-            }
+            onAdd={() => handleChange("items", [...items, ""])}
+            onRemove={(i) => handleChange("items", removeAt(items, i))}
+            onMove={(from, to) => handleChange("items", moveIn(items, from, to))}
           />
         </>
       );
+    }
 
-    case "tools":
+    case "tools": {
+      const items = content.data.items || [];
       return (
         <>
           <Field
-            label="Eyebrow"
-            value={content.data.eyebrow || ""}
-            onChange={(v) => handleChange("eyebrow", v)}
-            placeholder="SKILLS"
-          />
-          <Field
             label="Heading"
             value={content.data.heading || content.data.title || ""}
-            onChange={(v) => {
-              onUpdate(blockId, {
-                ...content,
-                data: { ...content.data, heading: v, title: v },
-              });
-            }}
+            onChange={(v) => onUpdate(blockId, { ...content, data: { ...content.data, heading: v, title: v } })}
             placeholder="Tools I use"
           />
-          <FreeTextCombobox
-            label="Category"
-            value={content.data.category || ""}
-            onChange={(v) => handleChange("category", v)}
-            suggestions={SKILL_CATEGORY_SUGGESTIONS}
-            placeholder="Design, Development..."
-          />
-          <ArrayField
-            label="Tools"
-            items={content.data.items || []}
-            renderItem={(item, i) => (
-              <div className={styles.arrayItemColumn}>
-                <FreeTextCombobox
-                  label="Tool"
-                  value={item.name || ""}
-                  onChange={(value) => {
-                    const items = [...(content.data.items || [])];
-                    const known = getTechByName(value);
-                    items[i] = {
-                      ...item,
-                      name: value,
-                      icon: known?.icon || item.icon || initialsForSkill(value),
-                      category: known?.category || item.category,
-                    };
-                    handleChange("items", items);
-                  }}
-                  suggestions={techIcons.map((icon) => icon.name)}
-                  placeholder="Figma"
-                />
-                <input
-                  className={styles.smallInput}
-                  value={item.icon || ""}
-                  onChange={(event) => {
-                    const items = [...(content.data.items || [])];
-                    items[i] = { ...item, icon: event.target.value };
-                    handleChange("items", items);
-                  }}
-                  placeholder="Icon text"
-                />
-              </div>
-            )}
-            onAdd={() => handleChange("items", [...(content.data.items || []), { name: "", icon: "" }])}
-            onRemove={(i) =>
+          <TechStackEditor
+            items={items.map((item) => ({ name: item.name, icon: item.icon || initialsForSkill(item.name), category: item.category }))}
+            onChange={(next) =>
+              // Keep each tool's other details (link, level) when it stays.
               handleChange(
                 "items",
-                (content.data.items || []).filter((_, idx) => idx !== i),
+                next.map((entry) => ({ ...items.find((item) => item.name === entry.name), ...entry }))
               )
             }
-            onMove={(from, to) => {
-              const items = [...(content.data.items || [])];
-              const [item] = items.splice(from, 1);
-              items.splice(to, 0, item);
-              handleChange("items", items);
-            }}
           />
+          <Field label="Eyebrow" value={content.data.eyebrow || ""} onChange={(v) => handleChange("eyebrow", v)} placeholder="Skills" />
         </>
       );
+    }
 
-    case "stats":
+    case "stats": {
+      const items = content.data.items || [];
       return (
         <ArrayField
-          label="Stats"
-          items={content.data.items || []}
+          label="Numbers"
+          items={items}
+          addLabel="Add number"
           renderItem={(item, i) => (
-            <div className={styles.arrayItemColumn}>
+            <div className={styles.row}>
               <input
                 className={styles.input}
+                style={{ width: "6rem", flex: "none" }}
                 value={item.value || ""}
-                onChange={(event) => {
-                  const items = [...(content.data.items || [])];
-                  items[i] = { ...item, value: event.target.value };
-                  handleChange("items", items);
-                }}
+                aria-label="Value"
+                onChange={(event) => handleChange("items", patchAt(items, i, { value: event.target.value }))}
                 placeholder="42"
               />
               <input
                 className={styles.input}
                 value={item.label || ""}
-                onChange={(event) => {
-                  const items = [...(content.data.items || [])];
-                  items[i] = { ...item, label: event.target.value };
-                  handleChange("items", items);
-                }}
-                placeholder="Projects"
+                aria-label="Label"
+                onChange={(event) => handleChange("items", patchAt(items, i, { label: event.target.value }))}
+                placeholder="Projects shipped"
               />
             </div>
           )}
-          onAdd={() => handleChange("items", [...(content.data.items || []), { value: "", label: "" }])}
-          onRemove={(i) =>
-            handleChange(
-              "items",
-              (content.data.items || []).filter((_, idx) => idx !== i),
-            )
-          }
+          onAdd={() => handleChange("items", [...items, { value: "", label: "" }])}
+          onRemove={(i) => handleChange("items", removeAt(items, i))}
+          onMove={(from, to) => handleChange("items", moveIn(items, from, to))}
         />
       );
+    }
 
     default:
-      return (
-        <p className={styles.noFields}>
-          No editable fields for this block type
-        </p>
-      );
+      return <p className={styles.noFields}>This block has nothing to edit.</p>;
   }
 }
 
@@ -1657,7 +1153,66 @@ function extractInstagramUsername(value: string) {
   }
 }
 
-// Input field component
+
+// ---------------------------------------------------------------------------
+// Shared fields
+// ---------------------------------------------------------------------------
+
+const SOCIAL_PLATFORMS: { value: string; label: string; hosts?: RegExp }[] = [
+  { value: "github", label: "GitHub", hosts: /(^|\.)github\.com$/ },
+  { value: "linkedin", label: "LinkedIn", hosts: /(^|\.)linkedin\.com$/ },
+  { value: "twitter", label: "X", hosts: /(^|\.)(x\.com|twitter\.com)$/ },
+  { value: "instagram", label: "Instagram", hosts: /(^|\.)instagram\.com$/ },
+  { value: "youtube", label: "YouTube", hosts: /(^|\.)(youtube\.com|youtu\.be)$/ },
+  { value: "dribbble", label: "Dribbble", hosts: /(^|\.)dribbble\.com$/ },
+  { value: "behance", label: "Behance", hosts: /(^|\.)behance\.net$/ },
+  { value: "tiktok", label: "TikTok", hosts: /(^|\.)tiktok\.com$/ },
+  { value: "threads", label: "Threads", hosts: /(^|\.)threads\.net$/ },
+  { value: "facebook", label: "Facebook", hosts: /(^|\.)(facebook\.com|fb\.com)$/ },
+  { value: "website", label: "Website" },
+  { value: "email", label: "Email" },
+];
+
+// A pasted link picks its platform (github.com/… → GitHub).
+function guessPlatform(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (/^(mailto:)?[^@\s/]+@[^@\s]+\.[^@\s]+$/i.test(trimmed)) return "email";
+  try {
+    const host = new URL(/^[a-z][a-z\d+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`).hostname.replace(/^www\./, "");
+    return SOCIAL_PLATFORMS.find((p) => p.hosts?.test(host))?.value ?? null;
+  } catch {
+    return null;
+  }
+}
+
+const COMPANY_SUGGESTIONS = [
+  "Freelance",
+  "Self-employed",
+  "Upwork",
+  "Fiverr",
+  "Google",
+  "Meta",
+  "Apple",
+  "Microsoft",
+  "Amazon",
+  "Netflix",
+  "Spotify",
+  "Figma",
+  "Notion",
+  "Vercel",
+  "Stripe",
+  "Shopify",
+  "Airbnb",
+  "Uber",
+  "Adobe",
+  "Canva",
+  "GitHub",
+  "LinkedIn",
+];
+
+const AVAILABILITY_SUGGESTIONS = ["Available for work", "Open to freelance", "Open to full-time roles", "Booking next month", "Not taking work"];
+
 interface FieldProps {
   label: string;
   value: string;
@@ -1665,7 +1220,63 @@ interface FieldProps {
   onBlur?: (value: string) => void;
   type?: string;
   multiline?: boolean;
+  rows?: number;
   placeholder?: string;
+  // Suggested length: shows a counter, amber past it.
+  limit?: number;
+  hint?: string;
+  error?: string;
+  autoComplete?: string;
+  inputMode?: "text" | "numeric" | "decimal" | "email" | "url";
+  // Smaller label, for fields inside a list item.
+  compact?: boolean;
+  width?: string;
+}
+
+function FieldShell({
+  id,
+  label,
+  compact,
+  width,
+  hint,
+  error,
+  counter,
+  children,
+}: {
+  id: string;
+  label: string;
+  compact?: boolean;
+  width?: string;
+  hint?: string;
+  error?: string;
+  counter?: { length: number; limit: number };
+  children: React.ReactNode;
+}) {
+  const over = counter ? counter.length > counter.limit : false;
+  return (
+    <div className={`${styles.field} ${compact ? styles.compact : ""}`} style={width ? { flex: `0 0 ${width}`, width } : undefined}>
+      <div className={styles.labelRow}>
+        <label className={styles.label} htmlFor={id}>
+          {label}
+        </label>
+        {counter && counter.length > counter.limit * 0.7 && (
+          <span className={`${styles.counter} ${over ? styles.counterOver : ""}`} aria-live="polite">
+            {counter.length}/{counter.limit}
+          </span>
+        )}
+      </div>
+      {children}
+      {error ? (
+        <p className={styles.fieldError} id={`${id}-msg`}>
+          {error}
+        </p>
+      ) : hint ? (
+        <p className={styles.fieldHint} id={`${id}-msg`}>
+          {hint}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function Field({
@@ -1675,325 +1286,149 @@ function Field({
   onBlur,
   type = "text",
   multiline,
+  rows = 3,
   placeholder,
+  limit,
+  hint,
+  error,
+  autoComplete = "off",
+  inputMode,
+  compact,
+  width,
 }: FieldProps) {
-  const suggestions = getFieldSuggestions(label);
-  const listId =
-    !multiline && type === "text" && suggestions.length > 0
-      ? `suggestions-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
-      : undefined;
-
+  const id = useId();
+  const shared = {
+    id,
+    className: `${multiline ? styles.textarea : styles.input} ${error ? styles.invalid : ""}`,
+    value,
+    placeholder,
+    "aria-invalid": error ? true : undefined,
+    "aria-describedby": error || hint ? `${id}-msg` : undefined,
+    onBlur: onBlur ? (event: { target: { value: string } }) => onBlur(event.target.value) : undefined,
+  };
   return (
-    <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
+    <FieldShell
+      id={id}
+      label={label}
+      compact={compact}
+      width={width}
+      hint={hint}
+      error={error}
+      counter={limit ? { length: value.length, limit } : undefined}
+    >
       {multiline ? (
-        <textarea
-          className={styles.textarea}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={(e) => onBlur?.(e.target.value)}
-          rows={3}
-          placeholder={placeholder}
-        />
+        <textarea {...shared} rows={rows} onChange={(event) => onChange(event.target.value)} />
       ) : (
         <input
-          className={styles.input}
+          {...shared}
           type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onBlur={(e) => onBlur?.(e.target.value)}
-          placeholder={placeholder}
-          autoComplete="on"
-          list={listId}
+          inputMode={inputMode}
+          autoComplete={autoComplete}
+          spellCheck={type === "text" ? undefined : false}
+          onChange={(event) => onChange(event.target.value)}
         />
       )}
-      {listId && (
-        <datalist id={listId}>
-          {suggestions.map((suggestion) => (
-            <option key={suggestion} value={suggestion} />
-          ))}
-        </datalist>
-      )}
-    </div>
+    </FieldShell>
   );
 }
 
-function getFieldSuggestions(label: string) {
-  const key = label.toLowerCase();
-
-  if (key.includes("title")) {
-    return [
-      "Product Designer",
-      "Creative Developer",
-      "Full-Stack Developer",
-      "Design Engineer",
-      "Brand Designer",
-      "Recent work",
-      "Selected projects",
-    ];
-  }
-
-  if (key.includes("subtitle")) {
-    return ["Selected projects", "Recent launches", "Case studies", "Client work"];
-  }
-
-  if (key.includes("status") || key.includes("availability")) {
-    return ["Available for work", "Open to freelance", "Booking Q3 projects", "Busy this month"];
-  }
-
-  if (key.includes("email")) {
-    return ["hello@icloud.com", "work@example.com", "studio@example.com"];
-  }
-
-  if (key.includes("url") || key.includes("website")) {
-    return ["https://example.com", "https://dribbble.com/username", "https://github.com/username"];
-  }
-
-  if (key.includes("company") || key.includes("client")) {
-    return [
-      "Upwork",
-      "Facebook",
-      "Meta",
-      "Google",
-      "Apple",
-      "Microsoft",
-      "Amazon",
-      "Netflix",
-      "Spotify",
-      "LinkedIn",
-      "GitHub",
-      "Figma",
-      "Adobe",
-      "Canva",
-      "Notion",
-      "Vercel",
-      "Stripe",
-      "Shopify",
-      "Airbnb",
-      "Uber",
-      "Independent",
-      "Studio",
-      "Bento Labs",
-      "Northstar Studio",
-    ];
-  }
-
-  return [];
-}
-
-interface LocationSuggestion {
-  id: string;
-  label: string;
-  detail: string;
-  lat: number;
-  lng: number;
-}
-
-interface NominatimPlace {
-  place_id: number;
-  display_name: string;
-  lat: string;
-  lon: string;
-  type?: string;
-  address?: {
-    city?: string;
-    town?: string;
-    village?: string;
-    state?: string;
-    country?: string;
-  };
-}
-
-function LocationAutocompleteField({
+// Two to four choices: one click, all visible.
+function Segmented({
+  label,
   value,
+  options,
   onChange,
-  onSelect,
+  compact,
+  wrap,
 }: {
+  label: string;
   value: string;
+  options: { value: string; label: string }[];
   onChange: (value: string) => void;
-  onSelect: (place: LocationSuggestion) => void;
+  compact?: boolean;
+  wrap?: boolean;
 }) {
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const listId = useId();
-
-  useEffect(() => {
-    const query = value.trim();
-    if (query.length < 3) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
-    }
-
-    const cacheKey = query.toLowerCase();
-    const cached = locationSuggestionCache.get(cacheKey);
-    if (cached) {
-      setSuggestions(cached);
-      setOpen(cached.length > 0);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=5&q=${encodeURIComponent(query)}`,
-          { signal: controller.signal },
-        );
-        const places = (await response.json()) as NominatimPlace[];
-        const mappedPlaces = places
-          .map((place) => {
-            const city =
-              place.address?.city ||
-              place.address?.town ||
-              place.address?.village ||
-              "";
-            const detail = [city, place.address?.state, place.address?.country]
-              .filter(Boolean)
-              .join(", ");
-
-            return {
-              id: String(place.place_id),
-              label: place.display_name,
-              detail: detail || place.type || "Location",
-              lat: Number(place.lat),
-              lng: Number(place.lon),
-            };
-          })
-          .filter((place) => Number.isFinite(place.lat) && Number.isFinite(place.lng));
-
-        locationSuggestionCache.set(cacheKey, mappedPlaces);
-        setSuggestions(mappedPlaces);
-        setOpen(mappedPlaces.length > 0);
-        setActiveIndex(0);
-      } catch (error) {
-        if ((error as DOMException).name !== "AbortError") {
-          setSuggestions([]);
-        }
-      } finally {
-        setLoading(false);
-      }
-    }, 420);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [value]);
-
-  function selectSuggestion(place: LocationSuggestion) {
-    onSelect(place);
-    setOpen(false);
-    setActiveIndex(0);
-  }
-
   return (
-    <div className={styles.field}>
-      <label className={styles.label}>Location</label>
-      <div className={styles.locationInputWrap}>
-        <MapPin size={15} className={styles.locationInputIcon} />
-        <input
-          className={`${styles.input} ${styles.locationInput}`}
-          type="text"
-          value={value}
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={listId}
-          aria-autocomplete="list"
-          aria-activedescendant={open && suggestions[activeIndex] ? `${listId}-${activeIndex}` : undefined}
-          onChange={(event) => {
-            onChange(event.target.value);
-            setActiveIndex(0);
-          }}
-          onFocus={() => suggestions.length > 0 && setOpen(true)}
-          onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              setOpen(false);
-              return;
-            }
-
-            if (!open || suggestions.length === 0) return;
-
-            if (event.key === "ArrowDown") {
-              event.preventDefault();
-              setActiveIndex((index) => Math.min(index + 1, suggestions.length - 1));
-            }
-
-            if (event.key === "ArrowUp") {
-              event.preventDefault();
-              setActiveIndex((index) => Math.max(index - 1, 0));
-            }
-
-            if (event.key === "Enter") {
-              event.preventDefault();
-              selectSuggestion(suggestions[activeIndex]);
-            }
-          }}
-          placeholder="Search a city, country, or place"
-        />
-        {loading && <Loader2 size={15} className={styles.locationSpinner} />}
+    <div className={`${styles.field} ${compact ? styles.compact : ""}`}>
+      <span className={styles.label}>{label}</span>
+      <div className={`${styles.segmentControl} ${wrap ? styles.segmentWrap : ""}`} role="radiogroup" aria-label={label}>
+        {options.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={value === option.value}
+            className={value === option.value ? styles.segmentControlActive : ""}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        ))}
       </div>
-
-      {open && suggestions.length > 0 && (
-        <div className={styles.locationSuggestions} id={listId} role="listbox">
-          {suggestions.map((place, index) => (
-            <button
-              key={place.id}
-              id={`${listId}-${index}`}
-              type="button"
-              role="option"
-              aria-selected={index === activeIndex}
-              className={index === activeIndex ? styles.autocompleteOptionActive : undefined}
-              onMouseDown={(event) => event.preventDefault()}
-              onClick={() => selectSuggestion(place)}
-            >
-              <MapPin size={14} />
-              <span>
-                <strong>{place.label.split(",")[0]}</strong>
-                <small>{place.detail}</small>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
 
-// Select field component
 interface SelectFieldProps {
   label: string;
   value: string;
   options: { value: string; label: string }[];
   onChange: (value: string) => void;
+  width?: string;
+}
+
+// Few options become a segmented control; more get a styled select.
+function SelectField({ label, value, options, onChange, width }: SelectFieldProps) {
+  const id = useId();
+  if (options.length <= 4 && !width) {
+    return <Segmented label={label} value={value} options={options} onChange={onChange} />;
+  }
+  return (
+    <FieldShell id={id} label={label} width={width}>
+      <div className={styles.selectWrap}>
+        <select id={id} className={styles.select} value={value} onChange={(e) => onChange(e.target.value)}>
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown size={14} className={styles.selectChevron} aria-hidden="true" />
+      </div>
+    </FieldShell>
+  );
+}
+
+function Toggle({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
+  return (
+    <label className={styles.toggleField}>
+      <span>{label}</span>
+      <input type="checkbox" role="switch" checked={checked} onChange={(e) => onChange(e.target.checked)} className={styles.toggleInput} />
+      <span className={styles.toggleTrack} aria-hidden="true">
+        <span className={styles.toggleThumb} />
+      </span>
+    </label>
+  );
 }
 
 // Monthly revenue for the SaaS chart, oldest first. Kept as text while typing
 // so "1200, " doesn't get rewritten under the cursor.
-function RevenueField({
-  values,
-  onChange,
-}: {
-  values: number[];
-  onChange: (values: number[]) => void;
-}) {
+function RevenueField({ values, onChange }: { values: number[]; onChange: (values: number[]) => void }) {
   const [draft, setDraft] = useState(() => values.join(", "));
   const id = useId();
-
   return (
-    <div className={styles.field}>
-      <label className={styles.label} htmlFor={id}>
-        Monthly revenue
-      </label>
+    <FieldShell
+      id={id}
+      label="Monthly revenue"
+      hint="Oldest to newest, separated by commas. The chart shows from 2 months, on L and Wide sizes."
+    >
       <textarea
         id={id}
         className={styles.textarea}
         value={draft}
         placeholder="1200, 1450, 1890, 2380, 3050"
         rows={2}
+        inputMode="decimal"
         onChange={(event) => {
           setDraft(event.target.value);
           onChange(
@@ -2005,107 +1440,65 @@ function RevenueField({
           );
         }}
       />
-      <span className={styles.fieldHint}>
-        Oldest to newest, separated by commas. The chart shows when there are 2 or more months
-        and the block is size L or Wide.
-      </span>
-    </div>
+    </FieldShell>
   );
 }
 
-function SelectField({ label, value, options, onChange }: SelectFieldProps) {
-  return (
-    <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
-      <select
-        className={styles.select}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      >
-        {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
+// ---------------------------------------------------------------------------
+// Profile
+// ---------------------------------------------------------------------------
 
-function ProfileFields({
-  content,
-  onChange,
-}: {
-  content: IdentityContent;
-  onChange: (field: string, value: unknown) => void;
-}) {
+function ProfileFields({ content, onChange }: { content: IdentityContent; onChange: (field: string, value: unknown) => void }) {
   const portraitType = content.portraitType || "memoji";
   const availability = content.eyebrow ?? content.availability ?? "";
-  const bioLength = content.bio?.length || 0;
 
   return (
     <>
-      <Field
-        label="Name"
-        value={content.name || ""}
-        onChange={(value) => onChange("name", value)}
-        placeholder="Alice Chen"
-      />
+      <Field label="Name" value={content.name || ""} onChange={(value) => onChange("name", value)} placeholder="Mira Chen" autoComplete="name" />
       <FreeTextCombobox
-        label="Professional title"
+        label="Title"
         value={content.title || ""}
         onChange={(value) => onChange("title", value)}
         suggestions={PROFESSIONAL_TITLE_SUGGESTIONS}
-        placeholder="Product Designer"
+        placeholder="Product designer"
       />
       <Field
-        label="Main headline"
+        label="Headline"
         value={content.headline || ""}
         onChange={(value) => onChange("headline", value)}
         placeholder="Designing sharp products people remember."
         multiline
+        rows={2}
+        limit={90}
       />
-      <div className={styles.field}>
-        <label className={styles.label}>Introduction</label>
-        <textarea
-          className={styles.textarea}
-          value={content.bio || ""}
-          onChange={(event) => onChange("bio", event.target.value)}
-          rows={4}
-          placeholder="A short note about what you do, who you help, and how you work."
-        />
-        <p className={styles.fieldHint}>{bioLength}/240 characters suggested</p>
-      </div>
-      <div className={styles.field}>
-        <label className={styles.label}>Portrait</label>
-        <div className={styles.segmentControl} role="group" aria-label="Portrait type">
-          {(["photo", "memoji", "none"] as const).map((type) => (
-            <button
-              key={type}
-              type="button"
-              className={portraitType === type ? styles.segmentControlActive : ""}
-              onClick={() => {
-                onChange("portraitType", type);
-                if (type === "memoji" && !content.avatar) {
-                  onChange("avatar", DEFAULT_MEMOJI_AVATAR);
-                }
-              }}
-              aria-pressed={portraitType === type}
-            >
-              {type[0].toUpperCase() + type.slice(1)}
-            </button>
-          ))}
-        </div>
-      </div>
+      <Field
+        label="Introduction"
+        value={content.bio || ""}
+        onChange={(value) => onChange("bio", value)}
+        placeholder="What you do, who you help, and how you work."
+        multiline
+        rows={4}
+        limit={240}
+        hint="Shows on the larger profile sizes."
+      />
+      <Segmented
+        label="Portrait"
+        value={portraitType}
+        options={[
+          { value: "photo", label: "Photo" },
+          { value: "memoji", label: "Memoji" },
+          { value: "none", label: "None" },
+        ]}
+        onChange={(type) => {
+          onChange("portraitType", type);
+          if (type === "memoji" && !content.avatar) onChange("avatar", DEFAULT_MEMOJI_AVATAR);
+        }}
+      />
       {portraitType === "photo" && (
         <>
-          <ImageUploadField
-            label="Photo"
-            value={content.avatar || ""}
-            onChange={(value) => onChange("avatar", value)}
-          />
-          <SelectField
-            label="Focal point"
+          <ImageUploadField label="Photo" value={content.avatar || ""} onChange={(value) => onChange("avatar", value)} small round />
+          <Segmented
+            label="Crop"
             value={content.portraitFocalPoint || "center top"}
             onChange={(value) => onChange("portraitFocalPoint", value)}
             options={[
@@ -2118,69 +1511,65 @@ function ProfileFields({
       )}
       {portraitType === "memoji" && (
         <div className={styles.field}>
-          <label className={styles.label}>Memoji</label>
-          <div className={styles.memojiPicker}>
-            {MEMOJI_OPTIONS.map((src) => (
+          <span className={styles.label}>Memoji</span>
+          <div className={styles.memojiPicker} role="radiogroup" aria-label="Memoji">
+            {MEMOJI_OPTIONS.map((src, index) => (
               <button
                 key={src}
                 type="button"
+                role="radio"
                 className={content.avatar === src ? styles.memojiActive : ""}
                 onClick={() => onChange("avatar", src)}
-                aria-label="Select memoji"
-                aria-pressed={content.avatar === src}
+                aria-label={`Memoji ${index + 1}`}
+                aria-checked={content.avatar === src}
               >
-                <NextImage src={src} alt="" width={42} height={42} />
+                <NextImage src={src} alt="" width={40} height={40} />
               </button>
             ))}
           </div>
-          {content.avatar && (
-            <button
-              type="button"
-              className={styles.secondaryEditorButton}
-              onClick={() => onChange("avatar", "")}
-            >
-              Remove memoji
-            </button>
-          )}
         </div>
       )}
-      {portraitType === "none" && (
-        <p className={styles.fieldHint}>
-          No portrait card will render publicly. The identity card expands into that space.
-        </p>
-      )}
-      <Field
-        label="Availability label"
+      <FreeTextCombobox
+        label="Status"
         value={availability}
-        onChange={(value) => {
-          onChange("availabilityLabel", value);
-        }}
-        placeholder="Available for freelance"
+        onChange={(value) => onChange("availabilityLabel", value)}
+        suggestions={AVAILABILITY_SUGGESTIONS}
+        placeholder="Available for work"
+        hint="The green pill on your card. Leave empty to hide it."
+        showAll
       />
-      <Field
-        label="Location"
+      <LocationAutocompleteField
         value={content.location || ""}
         onChange={(value) => onChange("location", value)}
-        placeholder="London, UK"
+        onSelect={(place) => onChange("location", place.label)}
+        placeholder="City, country"
       />
       <Field
         label="Email"
-        value={content.email || ""}
-        onChange={(value) => onChange("email", value)}
+        value={(content.email || "").replace(/^mailto:/i, "")}
+        onChange={(value) => onChange("email", value.trim())}
         placeholder="hello@example.com"
         type="email"
+        autoComplete="email"
+        hint="Shown on your card as a link."
+        error={content.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(content.email.replace(/^mailto:/i, "")) ? "Check the address." : undefined}
       />
       <Field
         label="Website"
         value={content.website || ""}
         onChange={(value) => onChange("website", value)}
-        onBlur={(value) => onChange("website", normalizeWebsiteInput(value))}
-        placeholder="example.com"
+        onBlur={(value) => onChange("website", value.trim() ? normalizeWebsiteInput(value) : "")}
+        placeholder="yourname.com"
         type="url"
+        autoComplete="url"
       />
     </>
   );
 }
+
+// ---------------------------------------------------------------------------
+// Combobox: free text with suggestions in our own dropdown
+// ---------------------------------------------------------------------------
 
 interface FreeTextComboboxProps {
   label: string;
@@ -2188,74 +1577,69 @@ interface FreeTextComboboxProps {
   onChange: (value: string) => void;
   suggestions: string[];
   placeholder?: string;
+  hint?: string;
+  compact?: boolean;
+  // Small picture or icon inside the input, on the left.
+  adornment?: React.ReactNode;
+  // Show every suggestion on focus, not only matches.
+  showAll?: boolean;
 }
 
-function FreeTextCombobox({
-  label,
-  value,
-  onChange,
-  suggestions,
-  placeholder,
-}: FreeTextComboboxProps) {
+function FreeTextCombobox({ label, value, onChange, suggestions, placeholder, hint, compact, adornment, showAll }: FreeTextComboboxProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const reactId = useId();
-  const listId = `combobox-${reactId}`;
+  const [typed, setTyped] = useState(false);
+  const id = useId();
+  const listId = `${id}-list`;
   const query = value.trim().toLowerCase();
   const filtered = suggestions
-    .filter((suggestion) => !query || suggestion.toLowerCase().includes(query))
+    .filter((s) => (showAll && !typed) || !query || s.toLowerCase().includes(query))
+    .filter((s) => s.toLowerCase() !== query || (showAll && !typed))
     .slice(0, 8);
 
-  const selectSuggestion = (suggestion: string) => {
+  const choose = (suggestion: string) => {
     onChange(suggestion);
     setIsOpen(false);
+    setTyped(false);
     setActiveIndex(0);
   };
 
   return (
-    <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
+    <FieldShell id={id} label={label} compact={compact} hint={hint}>
       <div className={styles.autocompleteWrapper}>
+        {adornment && <span className={styles.inputAdornment}>{adornment}</span>}
         <input
-          className={styles.input}
+          id={id}
+          className={`${styles.input} ${adornment ? styles.withAdornment : ""}`}
           role="combobox"
-          aria-expanded={isOpen}
+          aria-expanded={isOpen && filtered.length > 0}
           aria-controls={listId}
           aria-autocomplete="list"
-          aria-activedescendant={
-            isOpen && filtered[activeIndex] ? `${listId}-${activeIndex}` : undefined
-          }
+          aria-activedescendant={isOpen && filtered[activeIndex] ? `${listId}-${activeIndex}` : undefined}
           value={value}
+          autoComplete="off"
           onChange={(event) => {
             onChange(event.target.value);
+            setTyped(true);
             setIsOpen(true);
             setActiveIndex(0);
           }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={(event) => {
-            if (event.key === "Escape") {
-              setIsOpen(false);
-              return;
-            }
-
+            if (event.key === "Escape") return setIsOpen(false);
             if (!isOpen || filtered.length === 0) return;
-
             if (event.key === "ArrowDown") {
               event.preventDefault();
               setActiveIndex((index) => Math.min(index + 1, filtered.length - 1));
-            }
-
-            if (event.key === "ArrowUp") {
+            } else if (event.key === "ArrowUp") {
               event.preventDefault();
               setActiveIndex((index) => Math.max(index - 1, 0));
-            }
-
-            if (event.key === "Enter") {
+            } else if (event.key === "Enter") {
               event.preventDefault();
-              selectSuggestion(filtered[activeIndex]);
+              choose(filtered[activeIndex]);
             }
           }}
-          onBlur={() => window.setTimeout(() => setIsOpen(false), 140)}
+          onBlur={() => window.setTimeout(() => setIsOpen(false), 120)}
           placeholder={placeholder}
         />
         {isOpen && filtered.length > 0 && (
@@ -2265,467 +1649,744 @@ function FreeTextCombobox({
                 key={suggestion}
                 id={`${listId}-${index}`}
                 type="button"
-                className={`${styles.autocompleteOption} ${
-                  index === activeIndex ? styles.autocompleteOptionActive : ""
-                }`}
+                className={`${styles.autocompleteOption} ${index === activeIndex ? styles.autocompleteOptionActive : ""}`}
                 role="option"
                 aria-selected={index === activeIndex}
                 onMouseDown={(event) => event.preventDefault()}
-                onClick={() => selectSuggestion(suggestion)}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => choose(suggestion)}
               >
                 <span>{suggestion}</span>
+                {suggestion === value && <Check size={13} aria-hidden="true" />}
               </button>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </FieldShell>
   );
 }
 
-// Checkbox field component
-interface CheckboxFieldProps {
+// ---------------------------------------------------------------------------
+// Location: search places, or use where you are
+// ---------------------------------------------------------------------------
+
+interface LocationSuggestion {
+  id: string;
+  // Short: "Casablanca, Morocco".
   label: string;
-  checked: boolean;
-  onChange: (value: boolean) => void;
+  detail: string;
+  lat: number;
+  lng: number;
 }
 
-function CheckboxField({ label, checked, onChange }: CheckboxFieldProps) {
+interface NominatimPlace {
+  place_id: number;
+  display_name: string;
+  name?: string;
+  lat: string;
+  lon: string;
+  type?: string;
+  address?: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    county?: string;
+    state?: string;
+    country?: string;
+  };
+}
+
+function toSuggestion(place: NominatimPlace): LocationSuggestion | null {
+  const lat = Number(place.lat);
+  const lng = Number(place.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const a = place.address || {};
+  const town = a.city || a.town || a.village || a.municipality || place.name || place.display_name.split(",")[0];
+  const country = a.country || "";
+  const label = [town, country && country !== town ? country : ""].filter(Boolean).join(", ");
+  const detail = [a.state || a.county, country].filter((part) => part && part !== town).join(", ");
+  return { id: String(place.place_id), label: label || place.display_name, detail, lat, lng };
+}
+
+function LocationAutocompleteField({
+  label = "Location",
+  value,
+  onChange,
+  onSelect,
+  placeholder = "Search a city",
+  hint,
+}: {
+  label?: string;
+  value: string;
+  onChange: (value: string) => void;
+  onSelect: (place: LocationSuggestion) => void;
+  placeholder?: string;
+  hint?: string;
+}) {
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  // Only search after the person types (not for a value loaded from the page).
+  const [typed, setTyped] = useState(false);
+  const id = useId();
+  const listId = `${id}-list`;
+
+  useEffect(() => {
+    const query = value.trim();
+    if (!typed || query.length < 2) {
+      setSuggestions([]);
+      setOpen(false);
+      return;
+    }
+    const cacheKey = query.toLowerCase();
+    const cached = locationSuggestionCache.get(cacheKey);
+    if (cached) {
+      setSuggestions(cached);
+      setOpen(cached.length > 0);
+      return;
+    }
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&featuretype=settlement&accept-language=en&q=${encodeURIComponent(query)}`,
+          { signal: controller.signal }
+        );
+        const places = (await response.json()) as NominatimPlace[];
+        const seen = new Set<string>();
+        const mapped = places
+          .map(toSuggestion)
+          .filter((place): place is LocationSuggestion => Boolean(place))
+          .filter((place) => (seen.has(place.label) ? false : (seen.add(place.label), true)))
+          .slice(0, 5);
+        locationSuggestionCache.set(cacheKey, mapped);
+        setSuggestions(mapped);
+        setOpen(true);
+        setActiveIndex(0);
+      } catch (error) {
+        if ((error as DOMException).name !== "AbortError") setSuggestions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 350);
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [value, typed]);
+
+  function choose(place: LocationSuggestion) {
+    onSelect(place);
+    setTyped(false);
+    setOpen(false);
+    setActiveIndex(0);
+    setMessage(null);
+  }
+
+  function useCurrentLocation() {
+    if (!("geolocation" in navigator)) {
+      setMessage("Your browser can't share a location.");
+      return;
+    }
+    setLocating(true);
+    setMessage(null);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=10&accept-language=en&lat=${latitude}&lon=${longitude}`
+          );
+          const place = toSuggestion((await response.json()) as NominatimPlace);
+          if (place) choose({ ...place, lat: latitude, lng: longitude });
+          else setMessage("Couldn't name that place. Type your city instead.");
+        } catch {
+          setMessage("Couldn't look up your location. Type your city instead.");
+        } finally {
+          setLocating(false);
+        }
+      },
+      () => {
+        setLocating(false);
+        setMessage("Location access was blocked. Type your city instead.");
+      },
+      { timeout: 10000, maximumAge: 600000 }
+    );
+  }
+
+  const noResults = open && typed && !loading && suggestions.length === 0 && value.trim().length >= 2;
+
   return (
-    <div className={styles.checkboxField}>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className={styles.checkbox}
+    <FieldShell id={id} label={label} hint={message || hint}>
+      <div className={styles.autocompleteWrapper}>
+        <MapPin size={15} className={styles.locationInputIcon} aria-hidden="true" />
+        <input
+          id={id}
+          className={`${styles.input} ${styles.locationInput}`}
+          type="text"
+          value={value}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={open && suggestions[activeIndex] ? `${listId}-${activeIndex}` : undefined}
+          autoComplete="off"
+          onChange={(event) => {
+            onChange(event.target.value);
+            setTyped(true);
+            setActiveIndex(0);
+          }}
+          onFocus={() => suggestions.length > 0 && setOpen(true)}
+          onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+          onKeyDown={(event) => {
+            if (event.key === "Escape") return setOpen(false);
+            if (!open || suggestions.length === 0) return;
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              setActiveIndex((index) => Math.min(index + 1, suggestions.length - 1));
+            } else if (event.key === "ArrowUp") {
+              event.preventDefault();
+              setActiveIndex((index) => Math.max(index - 1, 0));
+            } else if (event.key === "Enter") {
+              event.preventDefault();
+              choose(suggestions[activeIndex]);
+            }
+          }}
+          placeholder={placeholder}
+        />
+        {loading || locating ? (
+          <Loader2 size={15} className={styles.locationSpinner} aria-label="Searching" />
+        ) : (
+          <button type="button" className={styles.inputAction} onClick={useCurrentLocation} title="Use my location" aria-label="Use my location">
+            <LocateFixed size={15} />
+          </button>
+        )}
+        {(open && suggestions.length > 0) || noResults ? (
+          <div className={styles.autocompleteDropdown} id={listId} role="listbox">
+            {suggestions.map((place, index) => (
+              <button
+                key={place.id}
+                id={`${listId}-${index}`}
+                type="button"
+                role="option"
+                aria-selected={index === activeIndex}
+                className={`${styles.autocompleteOption} ${styles.placeOption} ${index === activeIndex ? styles.autocompleteOptionActive : ""}`}
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActiveIndex(index)}
+                onClick={() => choose(place)}
+              >
+                <MapPin size={14} aria-hidden="true" />
+                <span>
+                  <strong>{place.label}</strong>
+                  {place.detail && <small>{place.detail}</small>}
+                </span>
+              </button>
+            ))}
+            {noResults && <p className={styles.dropdownNote}>No places match. Keep typing, or leave it as written.</p>}
+          </div>
+        ) : null}
+      </div>
+    </FieldShell>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Timezone: every IANA zone, plus a one-click "mine"
+// ---------------------------------------------------------------------------
+
+function allTimezones(): string[] {
+  try {
+    return (Intl as unknown as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf?.("timeZone") ?? TIMEZONE_SUGGESTIONS;
+  } catch {
+    return TIMEZONE_SUGGESTIONS;
+  }
+}
+
+function TimezoneField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [mine, setMine] = useState("");
+  useEffect(() => {
+    setMine(Intl.DateTimeFormat().resolvedOptions().timeZone || "");
+  }, []);
+  const zones = useMemo(allTimezones, []);
+  return (
+    <div className={styles.stack}>
+      <FreeTextCombobox
+        label="Timezone"
+        value={value}
+        onChange={onChange}
+        suggestions={zones}
+        placeholder="Africa/Casablanca"
+        hint={value ? "Visitors see your local time." : undefined}
       />
-      <label className={styles.checkboxLabel}>{label}</label>
+      {mine && value !== mine && (
+        <button type="button" className={styles.linkButton} onClick={() => onChange(mine)}>
+          <Clock size={13} aria-hidden="true" /> Use mine ({mine.replace(/_/g, " ")})
+        </button>
+      )}
     </div>
   );
 }
 
-// Array field component for lists
+// ---------------------------------------------------------------------------
+// Lists: collapsible items with a one-line summary
+// ---------------------------------------------------------------------------
+
 interface ArrayFieldProps<T> {
   label: string;
   items: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
+  // With a summary, each item is a row that opens to edit (one at a time).
+  summary?: (item: T, index: number) => { title?: string; meta?: string; image?: string };
   onAdd: () => void;
   onRemove: (index: number) => void;
   onMove?: (from: number, to: number) => void;
+  addLabel?: string;
 }
 
-function ArrayField<T>({
-  label,
-  items,
-  renderItem,
-  onAdd,
-  onRemove,
-  onMove,
-}: ArrayFieldProps<T>) {
+function ArrayField<T>({ label, items, renderItem, summary, onAdd, onRemove, onMove, addLabel = "Add item" }: ArrayFieldProps<T>) {
+  const [openIndex, setOpenIndex] = useState<number | null>(items.length === 1 ? 0 : null);
+  const previousLength = useRef(items.length);
+
+  // A newly added item opens for editing.
+  useEffect(() => {
+    if (items.length > previousLength.current) setOpenIndex(items.length - 1);
+    previousLength.current = items.length;
+  }, [items.length]);
+
+  const move = (from: number, to: number) => {
+    onMove?.(from, to);
+    if (openIndex === from) setOpenIndex(to);
+    else if (openIndex === to) setOpenIndex(from);
+  };
+
+  const remove = (index: number) => {
+    onRemove(index);
+    if (openIndex === index) setOpenIndex(null);
+    else if (openIndex !== null && openIndex > index) setOpenIndex(openIndex - 1);
+  };
+
   return (
     <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
-      <div className={styles.arrayItems}>
-        {items.map((item, i) => (
-          <div key={i} className={styles.arrayItem}>
-            {renderItem(item, i)}
-            {onMove && (
-              <div className={styles.arrayMoveActions}>
-                <button
-                  type="button"
-                  className={styles.arrayMoveButton}
-                  onClick={() => onMove(i, i - 1)}
-                  disabled={i === 0}
-                  aria-label={`Move ${label} item up`}
-                >
-                  ↑
-                </button>
-                <button
-                  type="button"
-                  className={styles.arrayMoveButton}
-                  onClick={() => onMove(i, i + 1)}
-                  disabled={i === items.length - 1}
-                  aria-label={`Move ${label} item down`}
-                >
-                  ↓
-                </button>
-              </div>
-            )}
-            <button className={styles.removeButton} onClick={() => onRemove(i)}>
-              <Trash2 size={12} />
-            </button>
-          </div>
-        ))}
+      <div className={styles.labelRow}>
+        <span className={styles.label}>{label}</span>
+        {items.length > 0 && <span className={styles.counter}>{items.length}</span>}
       </div>
-      <button className={styles.addButton} onClick={onAdd}>
-        <Plus size={14} />
-        Add item
+      <div className={styles.list}>
+        {items.map((item, i) => {
+          const actions = (
+            <div className={styles.itemActions}>
+              {onMove && (
+                <>
+                  <button type="button" className={styles.iconButton} onClick={() => move(i, i - 1)} disabled={i === 0} aria-label="Move up">
+                    <ArrowUp size={13} />
+                  </button>
+                  <button type="button" className={styles.iconButton} onClick={() => move(i, i + 1)} disabled={i === items.length - 1} aria-label="Move down">
+                    <ArrowDown size={13} />
+                  </button>
+                </>
+              )}
+              <button type="button" className={`${styles.iconButton} ${styles.iconDanger}`} onClick={() => remove(i)} aria-label="Remove">
+                <Trash2 size={13} />
+              </button>
+            </div>
+          );
+
+          if (!summary) {
+            return (
+              <div key={i} className={styles.inlineItem}>
+                <div className={styles.inlineItemBody}>{renderItem(item, i)}</div>
+                {actions}
+              </div>
+            );
+          }
+
+          const info = summary(item, i);
+          const isOpen = openIndex === i;
+          return (
+            <div key={i} className={`${styles.item} ${isOpen ? styles.itemOpen : ""}`}>
+              <div className={styles.itemHead}>
+                <button type="button" className={styles.itemToggle} onClick={() => setOpenIndex(isOpen ? null : i)} aria-expanded={isOpen}>
+                  <span className={styles.itemThumb} aria-hidden="true">
+                    {info.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={info.image} alt="" />
+                    ) : (
+                      (info.title || "?").trim().slice(0, 1).toUpperCase() || "?"
+                    )}
+                  </span>
+                  <span className={styles.itemText}>
+                    <strong className={info.title ? undefined : styles.itemUntitled}>{info.title || "Untitled"}</strong>
+                    {info.meta && <small>{info.meta}</small>}
+                  </span>
+                  <ChevronDown size={15} className={styles.itemChevron} aria-hidden="true" />
+                </button>
+                {actions}
+              </div>
+              {isOpen && <div className={styles.itemBody}>{renderItem(item, i)}</div>}
+            </div>
+          );
+        })}
+      </div>
+      <button type="button" className={styles.addButton} onClick={onAdd}>
+        <Plus size={14} aria-hidden="true" />
+        {addLabel}
       </button>
     </div>
   );
 }
 
-// Image upload field component
+// ---------------------------------------------------------------------------
+// Uploads
+// ---------------------------------------------------------------------------
+
+// Pictures are stored with the page, so they're resized before saving: a
+// phone photo goes from ~4 MB to ~150 KB, and the page saves and loads fast.
+async function prepareImage(file: File, maxSide: number): Promise<string> {
+  const readAsDataUrl = () =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  // Vector and animated images stay as they are.
+  if (file.type === "image/svg+xml" || file.type === "image/gif") return readAsDataUrl();
+
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("unreadable"));
+      image.src = url;
+    });
+    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(img.naturalWidth * scale));
+    canvas.height = Math.max(1, Math.round(img.naturalHeight * scale));
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return readAsDataUrl();
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const webp = canvas.toDataURL("image/webp", 0.86);
+    if (webp.startsWith("data:image/webp")) return webp;
+    return file.type === "image/png" ? canvas.toDataURL("image/png") : canvas.toDataURL("image/jpeg", 0.86);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+function useDropzone(onFile: (file: File) => void) {
+  const [dragging, setDragging] = useState(false);
+  return {
+    dragging,
+    handlers: {
+      onDragOver: (event: React.DragEvent) => {
+        event.preventDefault();
+        setDragging(true);
+      },
+      onDragLeave: () => setDragging(false),
+      onDrop: (event: React.DragEvent) => {
+        event.preventDefault();
+        setDragging(false);
+        const file = event.dataTransfer.files?.[0];
+        if (file) onFile(file);
+      },
+    },
+  };
+}
+
 interface ImageUploadFieldProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  // Logos and avatars: smaller preview, smaller stored size.
   small?: boolean;
+  round?: boolean;
   maxSizeMB?: number;
 }
 
-function ImageUploadField({
-  label,
-  value,
-  onChange,
-  small,
-  maxSizeMB = 10,
-}: ImageUploadFieldProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+function ImageUploadField({ label, value, onChange, small, round, maxSizeMB = 15 }: ImageUploadFieldProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const id = useId();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > maxSizeMB * 1024 * 1024) {
-      alert(`Image must be less than ${maxSizeMB}MB`);
-      return;
+  const handleFile = async (file: File) => {
+    setError(null);
+    if (!file.type.startsWith("image/")) return setError("That isn't an image. Use JPG, PNG, WebP or SVG.");
+    if (file.size > maxSizeMB * 1024 * 1024) return setError(`That image is over ${maxSizeMB} MB.`);
+    setBusy(true);
+    try {
+      onChange(await prepareImage(file, small ? 400 : 1600));
+    } catch {
+      setError("Couldn't read that image. Try another one.");
+    } finally {
+      setBusy(false);
+      if (inputRef.current) inputRef.current.value = "";
     }
-
-    // Convert to base64 for local preview (in production, you'd upload to storage)
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64 = event.target?.result as string;
-      onChange(base64);
-    };
-    reader.readAsDataURL(file);
   };
+  const { dragging, handlers } = useDropzone(handleFile);
 
   return (
-    <div className={styles.field}>
-      <label className={styles.label}>{label}</label>
-      <div className={styles.imageUploadWrapper}>
-        {value ? (
-          <div className={styles.imagePreviewWrapper}>
-            <NextImage
-              src={value}
-              alt="Preview"
-              width={small ? 40 : 80}
-              height={small ? 40 : 80}
-              className={small ? styles.imagePreviewSmall : styles.imagePreview}
-            />
-            <button
-              type="button"
-              className={styles.imageRemoveButton}
-              onClick={() => onChange("")}
-              aria-label={`Remove ${label}`}
-            >
-              <X size={14} />
+    <FieldShell id={id} label={label} error={error ?? undefined}>
+      {value ? (
+        <div className={`${styles.mediaPreview} ${small ? styles.mediaSmall : ""}`} {...handlers}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={value} alt="" className={`${styles.mediaImage} ${round ? styles.round : ""}`} />
+          <div className={styles.mediaActions}>
+            <button type="button" className={styles.smallButton} onClick={() => inputRef.current?.click()} disabled={busy}>
+              {busy ? <Loader2 size={13} className={styles.inlineSpinner} /> : <Upload size={13} />}
+              Replace
+            </button>
+            <button type="button" className={`${styles.smallButton} ${styles.smallDanger}`} onClick={() => onChange("")}>
+              Remove
             </button>
           </div>
-        ) : (
-          <div
-            className={small ? styles.imageDropzoneSmall : styles.imageDropzone}
-            onClick={() => fileInputRef.current?.click()}
-          >
-            <Upload size={20} />
-            <span>Click to upload</span>
-          </div>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className={styles.hiddenInput}
-        />
-      </div>
-    </div>
+        </div>
+      ) : (
+        <button
+          id={id}
+          type="button"
+          className={`${styles.dropzone} ${small ? styles.dropzoneSmall : ""} ${dragging ? styles.dropzoneActive : ""}`}
+          onClick={() => inputRef.current?.click()}
+          disabled={busy}
+          {...handlers}
+        >
+          {busy ? <Loader2 size={16} className={styles.inlineSpinner} /> : <ImagePlus size={16} />}
+          <span>
+            <strong>{busy ? "Preparing…" : "Upload an image"}</strong>
+            <small>or drop it here</small>
+          </span>
+        </button>
+      )}
+      <input ref={inputRef} type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} className={styles.hiddenInput} tabIndex={-1} />
+    </FieldShell>
   );
 }
 
-// File Upload Field (for PDFs, documents, etc.)
 interface FileUploadFieldProps {
   label: string;
   value: string;
-  onChange: (value: string) => void;
+  fileName?: string;
+  onChange: (value: string, fileName?: string) => void;
   accept?: string;
-  hint?: string;
+  maxSizeMB?: number;
 }
 
-function FileUploadField({
-  label,
-  value,
-  onChange,
-  accept = ".pdf,.doc,.docx",
-  hint,
-}: FileUploadFieldProps) {
-  const fileInputRef = useRef<HTMLInputElement>(null);
+// A CV: upload (stored with the page, so kept small) or link to one.
+function FileUploadField({ label, value, fileName, onChange, accept = ".pdf,.doc,.docx", maxSizeMB = 4 }: FileUploadFieldProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
+  const id = useId();
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Convert file to base64 data URL
+  const handleFile = (file: File) => {
+    setError(null);
+    if (file.size > maxSizeMB * 1024 * 1024) {
+      setError(`That file is over ${maxSizeMB} MB. Upload it to Google Drive or Dropbox and paste the link below.`);
+      return;
+    }
     const reader = new FileReader();
-    reader.onloadend = () => {
-      const result = reader.result as string;
-      onChange(result);
-    };
+    reader.onloadend = () => onChange(reader.result as string, file.name);
     reader.readAsDataURL(file);
   };
-
-  const handleUrlPaste = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-  };
-
-  const fileName = value.startsWith("data:")
-    ? "Uploaded file"
-    : value
-      ? value.split("/").pop() || "File"
-      : "";
+  const { dragging, handlers } = useDropzone(handleFile);
+  const isUpload = value.startsWith("data:");
+  const shownName = isUpload ? fileName || "Uploaded file" : value.replace(/^https?:\/\//, "").split("?")[0];
 
   return (
-    <div className={styles.fieldWrapper}>
-      <label className={styles.label}>{label}</label>
-      <div className={styles.fileUploadContainer}>
+    <>
+      <FieldShell id={id} label={label} error={error ?? undefined}>
         {value ? (
           <div className={styles.filePreview}>
-            <FileText size={20} />
-            <span className={styles.fileName}>{fileName}</span>
-            <button
-              className={styles.imageRemoveButton}
-              onClick={() => onChange("")}
-              type="button"
-            >
+            <span className={styles.fileIcon}>
+              <FileText size={16} />
+            </span>
+            <span className={styles.fileName} title={shownName}>
+              {shownName}
+            </span>
+            <button type="button" className={`${styles.iconButton} ${styles.iconDanger}`} onClick={() => onChange("", "")} aria-label="Remove file">
               <X size={14} />
             </button>
           </div>
         ) : (
-          <div
-            className={styles.fileDropzone}
-            onClick={() => fileInputRef.current?.click()}
+          <button
+            id={id}
+            type="button"
+            className={`${styles.dropzone} ${dragging ? styles.dropzoneActive : ""}`}
+            onClick={() => inputRef.current?.click()}
+            {...handlers}
           >
-            <Upload size={20} />
-            <span>Click to upload file</span>
-          </div>
+            <Upload size={16} />
+            <span>
+              <strong>Upload a PDF</strong>
+              <small>or drop it here · up to {maxSizeMB} MB</small>
+            </span>
+          </button>
         )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept={accept}
-          onChange={handleFileChange}
-          className={styles.hiddenInput}
+        <input ref={inputRef} type="file" accept={accept} onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])} className={styles.hiddenInput} tabIndex={-1} />
+      </FieldShell>
+      {!isUpload && (
+        <Field
+          label="Or link to it"
+          value={value}
+          onChange={(v) => onChange(v)}
+          onBlur={(v) => onChange(v.trim() ? normalizeWebsiteInput(v) : "")}
+          placeholder="Google Drive, Dropbox or Notion link"
+          type="url"
         />
-      </div>
-      <input
-        className={styles.urlInput}
-        value={value.startsWith("data:") ? "" : value}
-        onChange={handleUrlPaste}
-        placeholder="Or paste file URL (Google Drive, Dropbox, etc.)"
-      />
-      {hint && <p className={styles.fieldHint}>{hint}</p>}
-    </div>
+      )}
+    </>
   );
 }
 
-// Tech Stack Editor with autocomplete
+// ---------------------------------------------------------------------------
+// Skills
+// ---------------------------------------------------------------------------
+
 interface TechStackEditorProps {
   items: { name: string; icon: string; category?: string }[];
   onChange: (items: { name: string; icon: string; category?: string }[]) => void;
 }
 
-// Tech icon component for editor
-function TechIcon({
-  name,
-  fallbackIcon,
-}: {
-  name: string;
-  fallbackIcon: string;
-}) {
+function TechIcon({ name, fallbackIcon }: { name: string; fallbackIcon: string }) {
   const [imgError, setImgError] = useState(false);
   const iconUrl = getTechIconUrl(name);
-
   if (iconUrl && !imgError) {
-    return (
-      <NextImage
-        src={iconUrl}
-        alt={name}
-        width={16}
-        height={16}
-        className={styles.techIconSvg}
-        onError={() => setImgError(true)}
-      />
-    );
+    return <NextImage src={iconUrl} alt="" width={16} height={16} className={styles.techIconSvg} onError={() => setImgError(true)} unoptimized />;
   }
-  return <span>{fallbackIcon}</span>;
+  return <span className={styles.techFallback}>{fallbackIcon || initialsForSkill(name)}</span>;
 }
 
 function TechStackEditor({ items, onChange }: TechStackEditorProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string>("all");
+  const id = useId();
+  const has = (name: string) => items.some((item) => item.name.trim().toLowerCase() === name.trim().toLowerCase());
 
-  const suggestions = searchQuery
-    ? getTechSuggestions(searchQuery)
-    : selectedCategory === "all"
-      ? techStack.slice(0, 12)
-      : getTechsByCategory(selectedCategory as TechItem["category"]);
+  const suggestions = (
+    query ? getTechSuggestions(query) : category === "all" ? techStack.slice(0, 18) : getTechsByCategory(category as TechItem["category"])
+  ).slice(0, 18);
+  const exactMatch = query.trim() && techStack.some((tech) => tech.name.toLowerCase() === query.trim().toLowerCase());
 
-  const handleAddTech = (tech: TechItem) => {
-    if (
-      items.some((item) => item.name.toLowerCase() === tech.name.toLowerCase())
-    ) {
-      return;
-    }
-    onChange([...items, { name: tech.name, icon: tech.icon, category: tech.category }]);
-    setSearchQuery("");
+  const add = (name: string) => {
+    const clean = name.trim();
+    if (!clean || has(clean)) return;
+    const known = getTechByName(clean);
+    onChange([...items, { name: known?.name || clean, icon: known?.icon || initialsForSkill(clean), category: known?.category }]);
+    setQuery("");
   };
 
-  const handleAddCustomSkill = () => {
-    const name = searchQuery.trim();
-    if (!name) return;
-    if (items.some((item) => item.name.trim().toLowerCase() === name.toLowerCase())) return;
-
-    const known = getTechByName(name);
-    onChange([
-      ...items,
-      {
-        name,
-        icon: known?.icon || initialsForSkill(name),
-        category: known?.category || (selectedCategory === "all" ? undefined : selectedCategory),
-      },
-    ]);
-    setSearchQuery("");
-  };
-
-  const handleRemoveTech = (index: number) => {
-    onChange(items.filter((_, i) => i !== index));
+  const toggle = (tech: TechItem) => {
+    if (has(tech.name)) onChange(items.filter((item) => item.name.toLowerCase() !== tech.name.toLowerCase()));
+    else add(tech.name);
   };
 
   return (
     <div className={styles.field}>
-      <label className={styles.label}>Technologies</label>
+      <div className={styles.labelRow}>
+        <span className={styles.label}>Your stack</span>
+        {items.length > 0 && <span className={styles.counter}>{items.length}</span>}
+      </div>
 
-      {/* Selected techs */}
-      {items.length > 0 && (
+      {items.length > 0 ? (
         <div className={styles.techChips}>
           {items.map((item, i) => (
-            <div key={i} className={styles.techChip}>
+            <span key={`${item.name}-${i}`} className={styles.techChip}>
               <span className={styles.techChipIcon}>
                 <TechIcon name={item.name} fallbackIcon={item.icon} />
               </span>
               <span className={styles.techChipName}>{item.name}</span>
-              <button
-                className={styles.techChipRemove}
-                onClick={() => handleRemoveTech(i)}
-              >
+              {i > 0 && (
+                <button type="button" className={styles.techChipButton} onClick={() => onChange(moveIn(items, i, i - 1))} aria-label={`Move ${item.name} earlier`}>
+                  <ArrowLeft size={11} />
+                </button>
+              )}
+              <button type="button" className={styles.techChipButton} onClick={() => onChange(items.filter((_, index) => index !== i))} aria-label={`Remove ${item.name}`}>
                 <X size={12} />
               </button>
-              <button
-                className={styles.techChipRemove}
-                onClick={() => i > 0 && onChange(items.map((entry, index) => {
-                  if (index === i - 1) return items[i];
-                  if (index === i) return items[i - 1];
-                  return entry;
-                }))}
-                disabled={i === 0}
-                aria-label={`Move ${item.name} up`}
-              >
-                ↑
-              </button>
-              <button
-                className={styles.techChipRemove}
-                onClick={() => i < items.length - 1 && onChange(items.map((entry, index) => {
-                  if (index === i + 1) return items[i];
-                  if (index === i) return items[i + 1];
-                  return entry;
-                }))}
-                disabled={i === items.length - 1}
-                aria-label={`Move ${item.name} down`}
-              >
-                ↓
-              </button>
-            </div>
+            </span>
+          ))}
+        </div>
+      ) : (
+        <p className={styles.fieldHint}>Pick from the list below or type any skill.</p>
+      )}
+
+      <div className={styles.autocompleteWrapper}>
+        <Search size={14} className={styles.locationInputIcon} aria-hidden="true" />
+        <input
+          id={id}
+          className={`${styles.input} ${styles.locationInput}`}
+          value={query}
+          aria-label="Search or add a skill"
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              add(suggestions[0] && query && suggestions[0].name.toLowerCase().startsWith(query.toLowerCase()) ? suggestions[0].name : query);
+            }
+          }}
+          placeholder="Search or add a skill"
+          autoComplete="off"
+        />
+      </div>
+
+      {!query && (
+        <div className={styles.chipRow} role="radiogroup" aria-label="Category">
+          {[{ value: "all", label: "Popular" }, ...techCategories].map((cat) => (
+            <button
+              key={cat.value}
+              type="button"
+              role="radio"
+              aria-checked={category === cat.value}
+              className={`${styles.filterChip} ${category === cat.value ? styles.filterChipOn : ""}`}
+              onClick={() => setCategory(cat.value)}
+            >
+              {cat.label}
+            </button>
           ))}
         </div>
       )}
 
-      {/* Category filter */}
-      <div className={styles.techCategoryFilter}>
-        <button
-          className={`${styles.techCategoryBtn} ${
-            selectedCategory === "all" ? styles.active : ""
-          }`}
-          onClick={() => setSelectedCategory("all")}
-        >
-          All
-        </button>
-        {techCategories.map((cat) => (
-          <button
-            key={cat.value}
-            className={`${styles.techCategoryBtn} ${
-              selectedCategory === cat.value ? styles.active : ""
-            }`}
-            onClick={() => setSelectedCategory(cat.value)}
-          >
-            {cat.label}
-          </button>
-        ))}
-      </div>
-
-      {/* Search input */}
-      <div className={styles.techSearchWrapper}>
-        <input
-          className={styles.input}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              event.preventDefault();
-              handleAddCustomSkill();
-            }
-          }}
-          placeholder="Search technologies..."
-        />
-        <button
-          type="button"
-          className={styles.addButton}
-          onClick={handleAddCustomSkill}
-          disabled={!searchQuery.trim()}
-        >
-          <Plus size={14} />
-          Add custom skill
-        </button>
-      </div>
-
-      {/* Suggestions grid */}
       <div className={styles.techSuggestions}>
-        {suggestions.slice(0, 12).map((tech) => {
-          const isAdded = items.some(
-            (item) => item.name.toLowerCase() === tech.name.toLowerCase(),
-          );
+        {suggestions.map((tech) => {
+          const added = has(tech.name);
           return (
             <button
               key={tech.name}
-              className={`${styles.techSuggestion} ${
-                isAdded ? styles.added : ""
-              }`}
-              onClick={() => !isAdded && handleAddTech(tech)}
-              disabled={isAdded}
+              type="button"
+              className={`${styles.techSuggestion} ${added ? styles.added : ""}`}
+              onClick={() => toggle(tech)}
+              aria-pressed={added}
             >
               <span className={styles.techSuggestionIcon}>
                 <TechIcon name={tech.name} fallbackIcon={tech.icon} />
               </span>
               <span className={styles.techSuggestionName}>{tech.name}</span>
+              {added ? <Check size={13} aria-hidden="true" /> : <Plus size={13} aria-hidden="true" />}
             </button>
           );
         })}
+        {query.trim() && !exactMatch && !has(query) && (
+          <button type="button" className={`${styles.techSuggestion} ${styles.techCustom}`} onClick={() => add(query)}>
+            <Plus size={13} aria-hidden="true" />
+            <span className={styles.techSuggestionName}>Add “{query.trim()}”</span>
+          </button>
+        )}
       </div>
     </div>
   );
 }
 
-// Projects Editor with language autocomplete
+// ---------------------------------------------------------------------------
+// Repositories
+// ---------------------------------------------------------------------------
+
 interface ProjectItem {
   name: string;
   description: string;
@@ -2735,152 +2396,41 @@ interface ProjectItem {
   forks?: number;
 }
 
-interface ProjectsEditorProps {
-  items: ProjectItem[];
-  onChange: (items: ProjectItem[]) => void;
-}
-
-function ProjectsEditor({ items, onChange }: ProjectsEditorProps) {
-  const handleAdd = () => {
-    onChange([...items, { name: "", description: "", url: "", language: "" }]);
-  };
-
-  const handleRemove = (index: number) => {
-    onChange(items.filter((_, i) => i !== index));
-  };
-
-  const handleUpdate = (
-    index: number,
-    field: keyof ProjectItem,
-    value: string | number,
-  ) => {
-    const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
-    onChange(newItems);
-  };
-
+function ProjectsEditor({ items, onChange }: { items: ProjectItem[]; onChange: (items: ProjectItem[]) => void }) {
+  const update = (index: number, patch: Partial<ProjectItem>) => onChange(patchAt(items, index, patch));
   return (
-    <div className={styles.field}>
-      <label className={styles.label}>Projects</label>
-      <div className={styles.arrayItems}>
-        {items.map((item, i) => (
-          <div key={i} className={styles.arrayItem}>
-            <div className={styles.arrayItemColumn}>
-              <input
-                className={styles.input}
-                value={item.name || ""}
-                onChange={(e) => handleUpdate(i, "name", e.target.value)}
-                placeholder="Project name"
-              />
-              <input
-                className={styles.input}
-                value={item.description || ""}
-                onChange={(e) => handleUpdate(i, "description", e.target.value)}
-                placeholder="Description"
-              />
-              <input
-                className={styles.smallInput}
-                value={item.url || ""}
-                onChange={(e) => handleUpdate(i, "url", e.target.value)}
-                placeholder="URL"
-              />
-              <LanguageAutocomplete
-                value={item.language || ""}
-                onChange={(lang) => handleUpdate(i, "language", lang)}
-              />
-            </div>
-            <button
-              className={styles.removeButton}
-              onClick={() => handleRemove(i)}
-            >
-              <Trash2 size={12} />
-            </button>
-          </div>
-        ))}
-      </div>
-      <button className={styles.addButton} onClick={handleAdd}>
-        <Plus size={14} />
-        Add project
-      </button>
-    </div>
-  );
-}
-
-// Language autocomplete component
-interface LanguageAutocompleteProps {
-  value: string;
-  onChange: (value: string) => void;
-}
-
-function LanguageAutocomplete({ value, onChange }: LanguageAutocompleteProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState(value);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  // Filter languages based on search
-  const languages = techStack.filter(
-    (tech) =>
-      tech.category === "language" ||
-      tech.category === "frontend" ||
-      tech.name.toLowerCase().includes(search.toLowerCase()),
-  );
-
-  const filtered = search
-    ? languages.filter((tech) =>
-        tech.name.toLowerCase().includes(search.toLowerCase()),
-      )
-    : languages;
-
-  const handleSelect = (tech: TechItem) => {
-    onChange(tech.name);
-    setSearch(tech.name);
-    setIsOpen(false);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearch(e.target.value);
-    setIsOpen(true);
-    if (!e.target.value) {
-      onChange("");
-    }
-  };
-
-  return (
-    <div className={styles.autocompleteWrapper} ref={wrapperRef}>
-      <div className={styles.autocompleteInput}>
-        {value && getTechIconUrl(value) && (
-          <NextImage
-            src={getTechIconUrl(value)!}
-            alt={value}
-            width={14}
-            height={14}
-            className={styles.autocompleteIcon}
+    <ArrayField
+      label="Projects"
+      items={items}
+      addLabel="Add project"
+      summary={(item) => ({ title: item.name, meta: [item.language, item.url.replace(/^https?:\/\/(www\.)?/, "")].filter(Boolean).join(" · ") })}
+      renderItem={(item, i) => (
+        <>
+          <Field compact label="Name" value={item.name || ""} onChange={(v) => update(i, { name: v })} placeholder="bentofolio" />
+          <Field compact label="Description" value={item.description || ""} onChange={(v) => update(i, { description: v })} placeholder="What it does, in a line" multiline rows={2} limit={110} />
+          <Field
+            compact
+            label="Link"
+            value={item.url || ""}
+            onChange={(v) => update(i, { url: v })}
+            onBlur={(v) => update(i, { url: v.trim() ? normalizeWebsiteInput(v) : "" })}
+            placeholder="github.com/you/project"
+            type="url"
           />
-        )}
-        <input
-          className={styles.smallInput}
-          value={search}
-          onChange={handleInputChange}
-          onFocus={() => setIsOpen(true)}
-          onBlur={() => setTimeout(() => setIsOpen(false), 200)}
-          placeholder="Type to search language..."
-        />
-      </div>
-      {isOpen && filtered.length > 0 && (
-        <div className={styles.autocompleteDropdown}>
-          {filtered.slice(0, 8).map((tech) => (
-            <button
-              key={tech.name}
-              className={styles.autocompleteOption}
-              onClick={() => handleSelect(tech)}
-              type="button"
-            >
-              <TechIcon name={tech.name} fallbackIcon={tech.icon} />
-              <span>{tech.name}</span>
-            </button>
-          ))}
-        </div>
+          <FreeTextCombobox
+            compact
+            label="Language"
+            value={item.language || ""}
+            onChange={(v) => update(i, { language: v })}
+            suggestions={techStack.filter((tech) => tech.category === "language" || tech.category === "frontend").map((tech) => tech.name)}
+            placeholder="TypeScript"
+            adornment={item.language && getTechIconUrl(item.language) ? <NextImage src={getTechIconUrl(item.language)!} alt="" width={14} height={14} unoptimized /> : undefined}
+          />
+        </>
       )}
-    </div>
+      onAdd={() => onChange([...items, { name: "", description: "", url: "", language: "" }])}
+      onRemove={(i) => onChange(removeAt(items, i))}
+      onMove={(from, to) => onChange(moveIn(items, from, to))}
+    />
   );
 }
