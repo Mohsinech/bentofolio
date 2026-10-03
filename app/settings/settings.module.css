@@ -724,3 +724,16 @@
     padding: 0 10px;
   }
 }
+
+.inviteLink {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--accent) !important;
+  text-decoration: none;
+}
+
+.inviteLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

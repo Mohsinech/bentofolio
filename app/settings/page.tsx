@@ -584,6 +584,11 @@ export default function SettingsPage() {
                             : "Nothing to renew."
                           : "Every core block, free forever."}
                       </span>
+                      {!settings.isPro && (
+                        <Link href="/invite" className={s.inviteLink}>
+                          Or invite 5 friends and get Pro free →
+                        </Link>
+                      )}
                     </span>
                   </div>
                   {settings.isPro ? (

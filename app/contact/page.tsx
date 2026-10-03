@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Bug,
-  Globe,
-  LifeBuoy,
-  Mail,
-  MessageSquare,
-  Sparkles,
-} from "lucide-react";
-import styles from "./contact.module.css";
+import { ArrowUpRight, Bug, Globe, LifeBuoy, Mail, Sparkles } from "lucide-react";
+import { bentoFontClasses } from "@/app/components/bento/fonts";
+import { FooterLinks, MarketingHeader } from "@/app/components/marketing/Chrome";
+import m from "@/app/components/marketing/marketing.module.css";
+import { CopyEmail } from "./CopyEmail";
+import s from "./contact.module.css";
 
 export const metadata: Metadata = {
   title: "Contact",
@@ -18,95 +13,91 @@ export const metadata: Metadata = {
   alternates: { canonical: "/contact" },
 };
 
-const contactCards = [
+const EMAIL = "hello@bentofolio.dev";
+
+const topics = [
   {
     icon: LifeBuoy,
-    title: "Product support",
-    text: "Account, billing, Pro access, or custom domain help.",
-    href: "mailto:hello@bentofolio.dev?subject=BentoFolio support",
-    label: "Email support",
-  },
-  {
-    icon: Sparkles,
-    title: "Creator feedback",
-    text: "Tell us which blocks, templates, or workflows should exist next.",
-    href: "mailto:hello@bentofolio.dev?subject=BentoFolio feedback",
-    label: "Share feedback",
+    title: "Help with your account",
+    text: "Signing in, your page address, Pro, billing or a refund.",
+    subject: "Help with my account",
   },
   {
     icon: Bug,
-    title: "Bug report",
-    text: "Send screenshots, browser details, and what you expected to happen.",
-    href: "mailto:hello@bentofolio.dev?subject=BentoFolio bug report",
-    label: "Report issue",
+    title: "Something's broken",
+    text: "Tell us what you did, what you expected, and add a screenshot and your browser if you can.",
+    subject: "Bug report",
+  },
+  {
+    icon: Sparkles,
+    title: "An idea",
+    text: "A block you're missing, a layout, or anything that would make your page better.",
+    subject: "Idea for bentofolio",
   },
 ];
 
 export default function ContactPage() {
   return (
-    <main className={styles.page}>
-      <header className={styles.nav}>
-        <Link href="/" className={styles.back}>
-          <ArrowLeft size={17} />
-          BentoFolio
-        </Link>
-        <div>
-          <Link href="/pricing">Pricing</Link>
-          <Link href="/auth/login">Log in</Link>
-        </div>
-      </header>
+    <div className={`${bentoFontClasses} ${m.page} ${s.page}`}>
+      <MarketingHeader />
 
-      <section className={styles.hero}>
-        <div>
-          <span className={styles.eyebrow}>
-            <MessageSquare size={15} />
-            Contact
-          </span>
-          <h1>Need help with your BentoFolio?</h1>
-          <p>
-            Reach out for product support, custom domain setup, billing, bugs,
-            or ideas for the next creator/dev block.
+      <main className={`${m.sec} ${s.main}`}>
+        <section className={s.hero}>
+          <p className={m.lbl}>Contact</p>
+          <h1 className={s.title}>
+            Write to a <span className={m.ser}>person.</span>
+          </h1>
+          <p className={s.lead}>
+            Questions, bugs or ideas: your email goes straight to the person who builds bentofolio.
           </p>
-          <div className={styles.heroActions}>
-            <a href="mailto:hello@bentofolio.dev" className={styles.primary}>
-              <Mail size={17} />
-              hello@bentofolio.dev
+          <div className={s.actions}>
+            <a href={`mailto:${EMAIL}`} className={`${m.btn} ${m.btnDark}`}>
+              <Mail size={16} aria-hidden="true" />
+              {EMAIL}
             </a>
-            <Link href="/editor" className={styles.secondary}>
-              Open editor
-              <ArrowRight size={17} />
-            </Link>
+            <CopyEmail email={EMAIL} />
           </div>
-        </div>
-
-        <aside className={styles.domainHelp}>
-          <Globe size={24} />
-          <h2>Custom domain help</h2>
-          <p>
-            BentoFolio is hosted on Vercel. For root domains use
-            <code>A 76.76.21.21</code>; for subdomains use Vercel&apos;s CNAME
-            value in your registrar DNS.
-          </p>
-          <Link href="/pricing">Custom domains are Pro</Link>
-        </aside>
-      </section>
-
-      <section className={styles.cards}>
-        {contactCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <a key={card.title} href={card.href} className={styles.card}>
-              <Icon size={22} />
-              <strong>{card.title}</strong>
-              <span>{card.text}</span>
-              <em>
-                {card.label}
-                <ArrowRight size={14} />
-              </em>
+          <p className={s.alt}>
+            Or on X:{" "}
+            <a href="https://x.com/muhsench" target="_blank" rel="noopener noreferrer">
+              @muhsench
             </a>
-          );
-        })}
-      </section>
-    </main>
+          </p>
+        </section>
+
+        <section className={s.topics} aria-label="What it's about">
+          {topics.map(({ icon: Icon, title, text, subject }) => (
+            <a key={title} href={`mailto:${EMAIL}?subject=${encodeURIComponent(subject)}`} className={s.topic}>
+              <span className={s.topicIcon}>
+                <Icon size={18} aria-hidden="true" />
+              </span>
+              <strong>{title}</strong>
+              <span className={s.topicText}>{text}</span>
+              <span className={s.topicLink}>
+                Write about this <ArrowUpRight size={13} aria-hidden="true" />
+              </span>
+            </a>
+          ))}
+        </section>
+
+        <section className={s.note}>
+          <span className={s.topicIcon}>
+            <Globe size={18} aria-hidden="true" />
+          </span>
+          <div>
+            <strong>Setting up your own domain?</strong>
+            <p>
+              Settings shows the exact DNS records for your domain and checks them for you. If it still won&apos;t
+              connect after an hour, write with the domain name and we&apos;ll look.
+            </p>
+          </div>
+          <Link href="/settings#domain" className={`${m.btn} ${m.btnGhost}`}>
+            Open Settings
+          </Link>
+        </section>
+      </main>
+
+      <FooterLinks light />
+    </div>
   );
 }
