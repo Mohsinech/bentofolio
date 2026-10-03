@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { bentoFontClasses } from "@/app/components/bento/fonts";
 import { BlockShowcase } from "@/app/components/marketing/BlockShowcase";
@@ -9,6 +10,10 @@ import { getFeaturedProfiles } from "@/app/lib/supabase/featured";
 
 // Featured pages refresh every 10 minutes; everything else is static.
 export const revalidate = 600;
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 const shades = ["#ECEBE8", "#C9D0FF", "#8A9BFF", "#2B44FF"];
 const contrib = Array.from({ length: 18 }, (_, i) => shades[(i * 7 + (i % 4)) % 4]);

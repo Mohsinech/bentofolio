@@ -57,6 +57,17 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
+  // Only the app needs the session checked here. Public pages (profiles,
+  // landing, pricing, link previews) skip the round trip to Supabase, which
+  // makes them faster; the browser keeps its own session fresh.
+  const path = request.nextUrl.pathname;
+  const needsSession = ["/auth", "/editor", "/settings", "/onboarding", "/api", "/invite", "/admin"].some(
+    (prefix) => path === prefix || path.startsWith(`${prefix}/`)
+  );
+  if (!needsSession) {
+    return supabaseResponse;
+  }
+
   // Refresh session if expired
   const {
     data: { user },

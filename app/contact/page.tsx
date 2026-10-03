@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -10,6 +11,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import styles from "./contact.module.css";
+
+export const metadata: Metadata = {
+  title: "Contact",
+  description: "Questions, feedback or a bug on bentofolio? Write to hello@bentofolio.dev.",
+  alternates: { canonical: "/contact" },
+};
 
 const contactCards = [
   {
