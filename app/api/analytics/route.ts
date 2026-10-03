@@ -1,280 +1,160 @@
+import { createHash } from "crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/app/lib/supabase/admin";
 import { createClient } from "@/app/lib/supabase/server";
 import { isAdmin } from "@/app/lib/config";
+import { aggregate, isBot, parsePeriod, type AnalyticsRow } from "@/app/lib/analytics";
 
-// Service-role client, created on first use. Creating it when the module
-// loads would run at build time and fail the whole build whenever the
-// Supabase variables are missing (for example in Preview deployments).
+// Service-role client, created on first use (creating it at module load
+// would fail builds that don't have the Supabase variables).
 let adminClient: ReturnType<typeof createAdminClient> | null = null;
 function getAdmin() {
   adminClient ??= createAdminClient();
   return adminClient;
 }
 
-function getAppHostname() {
+function appHost() {
   try {
-    return new URL(
-      process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev"
-    ).hostname.replace(/^www\./, "");
+    return new URL(process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev").hostname.replace(/^www\./, "");
   } catch {
     return "bentofolio.dev";
   }
 }
 
-function normalizeReferrer(referrer?: string | null) {
-  if (!referrer) return "Direct";
-
-  try {
-    const url = new URL(referrer);
-    const hostname = url.hostname.replace(/^www\./, "");
-    const appHostname = getAppHostname();
-
-    if (hostname === appHostname || hostname.endsWith(`.${appHostname}`)) {
-      return "Direct";
-    }
-
-    return hostname;
-  } catch {
-    return referrer.length > 42 ? `${referrer.slice(0, 42)}...` : referrer;
-  }
+// Anonymous daily visitor id: can't be reversed, changes every day.
+function visitorHash(ip: string, userAgent: string, day: string) {
+  const salt = process.env.ANALYTICS_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || "bentofolio";
+  return createHash("sha256").update(`${salt}|${day}|${ip}|${userAgent}`).digest("hex").slice(0, 32);
 }
 
-function getGithubUsername(user: {
-  identities?: Array<{
-    provider?: string;
-    identity_data?: Record<string, unknown>;
-  }>;
-  user_metadata?: Record<string, unknown>;
-}) {
-  const githubIdentity = user.identities?.find(
-    (identity) => identity.provider === "github"
-  );
-
-  return (
-    githubIdentity?.identity_data?.user_name ||
-    githubIdentity?.identity_data?.preferred_username ||
-    user.user_metadata?.user_name ||
-    user.user_metadata?.preferred_username ||
-    null
-  );
+function clip(value: unknown, max: number): string | null {
+  return typeof value === "string" && value.trim() ? value.trim().slice(0, max) : null;
 }
 
+// POST: record a view or a link click. Every page is tracked (the numbers
+// are shown to Pro owners); bots and the owner's own visits are skipped.
 export async function POST(request: Request) {
   try {
-    const { username, event, referrer, userAgent } = await request.json();
-
-    if (!username || !event) {
-      return NextResponse.json(
-        { error: "Username and event are required" },
-        { status: 400 }
-      );
+    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
+    const username = clip(body.username, 64);
+    const event = body.event;
+    if (!username || (event !== "view" && event !== "link_click")) {
+      return NextResponse.json({ error: "Invalid event" }, { status: 400 });
     }
 
-    if (!["view", "link_click"].includes(event)) {
-      return NextResponse.json(
-        { error: "Unsupported analytics event" },
-        { status: 400 }
-      );
+    const userAgent = request.headers.get("user-agent") || clip(body.userAgent, 400) || "";
+    if (isBot(userAgent)) return NextResponse.json({ tracked: false, reason: "bot" });
+
+    const { data: profile } = await getAdmin().from("profiles").select("id").eq("username", username).maybeSingle();
+    if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
+
+    // Don't count owners looking at their own page.
+    try {
+      const {
+        data: { user },
+      } = await (await createClient()).auth.getUser();
+      if (user?.id === profile.id) return NextResponse.json({ tracked: false, reason: "owner" });
+    } catch {
+      // Not signed in.
     }
 
-    // Get the profile to verify it exists
-    const { data: profile } = await getAdmin()
-      .from("profiles")
-      .select("id, is_pro")
-      .eq("username", username)
-      .single();
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    // Analytics remains tied to upgraded profiles while the product is simplified.
-    if (!profile.is_pro) {
-      return NextResponse.json({ tracked: false, reason: "free_user" });
-    }
-
-    // Insert analytics event
-    const { error } = await getAdmin().from("profile_analytics").insert({
+    const now = new Date();
+    const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() || request.headers.get("x-real-ip") || "";
+    const country = (request.headers.get("x-vercel-ip-country") || "").toUpperCase();
+    // Columns every version of the table has.
+    const base = {
       profile_id: profile.id,
       event_type: event,
-      referrer: referrer || null,
-      user_agent: userAgent || null,
-      created_at: new Date().toISOString(),
-    });
+      referrer: clip(body.referrer, 500),
+      user_agent: userAgent.slice(0, 400),
+      created_at: now.toISOString(),
+    };
+    const detail = {
+      clicked_url: event === "link_click" ? clip(body.clicked_url, 500) : null,
+      country: /^[A-Z]{2}$/.test(country) ? country : null,
+      visitor_hash: ip ? visitorHash(ip, userAgent, now.toISOString().slice(0, 10)) : null,
+      block: event === "link_click" ? clip(body.block, 32) : null,
+    };
 
+    let { error } = await getAdmin().from("profile_analytics").insert({ ...base, ...detail });
+    // Before migration 017 the detail columns (and on some databases
+    // clicked_url) don't exist yet.
+    if (error && /column|schema cache/i.test(error.message)) {
+      ({ error } = await getAdmin().from("profile_analytics").insert(base));
+    }
     if (error) {
       console.error("Analytics insert error:", error);
-      return NextResponse.json(
-        { error: "Failed to track event" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Failed to track event" }, { status: 500 });
     }
-
     return NextResponse.json({ tracked: true });
   } catch (error) {
     console.error("Analytics error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
+// GET ?username=&period=7d|30d|90d: the dashboard. Pro owners get
+// everything; free owners get the headline numbers only.
 export async function GET(request: Request) {
   try {
-    const authSupabase = await createClient();
+    const supabase = await createClient();
     const {
       data: { user },
-    } = await authSupabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = new URL(request.url);
     const username = searchParams.get("username");
-    const period = searchParams.get("period") || "7d"; // 7d, 30d, 90d, all
+    const period = parsePeriod(searchParams.get("period"));
+    if (!username) return NextResponse.json({ error: "Username is required" }, { status: 400 });
 
-    if (!username) {
-      return NextResponse.json(
-        { error: "Username is required" },
-        { status: 400 }
-      );
-    }
+    const { data: profile } = await getAdmin().from("profiles").select("id, is_pro").eq("username", username).maybeSingle();
+    if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
 
-    // Get the profile
-    const { data: profile } = await getAdmin()
-      .from("profiles")
-      .select("id, is_pro")
-      .eq("username", username)
-      .single();
-
-    if (!profile) {
-      return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-    }
-
-    const githubUsername = getGithubUsername(user) as string | null;
-    const canReadAnalytics =
-      profile.id === user.id || isAdmin(user.email, githubUsername);
-
-    if (!canReadAnalytics) {
+    const github = user.identities?.find((identity) => identity.provider === "github");
+    const githubUsername = (github?.identity_data?.user_name as string | undefined) ?? null;
+    if (profile.id !== user.id && !isAdmin(user.email, githubUsername)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (!profile.is_pro) {
-      return NextResponse.json(
-        { error: "Analytics is a Pro feature" },
-        { status: 403 }
-      );
-    }
-
-    // Calculate date range
-    let startDate = new Date();
-    switch (period) {
-      case "7d":
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case "30d":
-        startDate.setDate(startDate.getDate() - 30);
-        break;
-      case "90d":
-        startDate.setDate(startDate.getDate() - 90);
-        break;
-      case "all":
-        startDate = new Date(0); // Beginning of time
-        break;
-    }
-
-    // Get analytics data
-    const { data: analytics, error } = await getAdmin()
+    // Current period plus the one before it, for the comparison.
+    const since = new Date(Date.now() - (period * 2 + 1) * 86_400_000).toISOString();
+    const full = "event_type, created_at, referrer, user_agent, clicked_url, country, visitor_hash, block";
+    // Typed loosely: the fallback query below returns fewer columns.
+    let result: { data: AnalyticsRow[] | null; error: { message: string } | null } = await getAdmin()
       .from("profile_analytics")
-      .select("event_type, referrer, created_at")
+      .select(full)
       .eq("profile_id", profile.id)
-      .gte("created_at", startDate.toISOString())
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      console.error("Analytics fetch error:", error);
-      return NextResponse.json(
-        { error: "Failed to fetch analytics" },
-        { status: 500 }
-      );
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(100_000);
+    if (result.error && /column|schema cache/i.test(result.error.message)) {
+      // Whatever columns this database has (see migration 017).
+      result = await getAdmin()
+        .from("profile_analytics")
+        .select("*")
+        .eq("profile_id", profile.id)
+        .gte("created_at", since)
+        .order("created_at", { ascending: false })
+        .limit(100_000);
+    }
+    if (result.error) {
+      console.error("Analytics fetch error:", result.error);
+      // Owner-only endpoint, so the database's reason is safe to show.
+      return NextResponse.json({ error: `Couldn't load analytics: ${result.error.message}` }, { status: 500 });
     }
 
-    // Aggregate data
-    const totalViews = analytics.filter((a) => a.event_type === "view").length;
-    const totalClicks = analytics.filter(
-      (a) => a.event_type === "link_click"
-    ).length;
-    const uniqueReferrers = [
-      ...new Set(analytics.map((a) => normalizeReferrer(a.referrer))),
-    ];
-
-    // Group by date for charts
-    const viewsByDate: Record<string, number> = {};
-    const clicksByDate: Record<string, number> = {};
-    analytics
-      .filter((a) => a.event_type === "view")
-      .forEach((a) => {
-        const date = new Date(a.created_at).toISOString().split("T")[0];
-        viewsByDate[date] = (viewsByDate[date] || 0) + 1;
+    const dashboard = aggregate(result.data ?? [], period, new Date(), appHost());
+    if (!profile.is_pro) {
+      return NextResponse.json({
+        locked: true,
+        period,
+        totals: { views: dashboard.totals.views, visitors: dashboard.totals.visitors },
       });
-    analytics
-      .filter((a) => a.event_type === "link_click")
-      .forEach((a) => {
-        const date = new Date(a.created_at).toISOString().split("T")[0];
-        clicksByDate[date] = (clicksByDate[date] || 0) + 1;
-      });
-
-    const dates: string[] = [];
-    if (period === "all") {
-      const uniqueDates = new Set([
-        ...Object.keys(viewsByDate),
-        ...Object.keys(clicksByDate),
-      ]);
-      dates.push(...Array.from(uniqueDates).sort());
-    } else {
-      const dayCount = period === "30d" ? 30 : 7;
-      for (let index = dayCount - 1; index >= 0; index -= 1) {
-        const date = new Date();
-        date.setDate(date.getDate() - index);
-        dates.push(date.toISOString().split("T")[0]);
-      }
     }
-
-    // Referrer breakdown
-    const referrerCounts: Record<string, number> = {};
-    analytics.forEach((a) => {
-      const ref = normalizeReferrer(a.referrer);
-      referrerCounts[ref] = (referrerCounts[ref] || 0) + 1;
-    });
-
-    return NextResponse.json({
-      totalViews,
-      totalClicks,
-      uniqueReferrers,
-      viewsByDate,
-      clicksByDate,
-      recentViews: dates.map((date) => ({ date, count: viewsByDate[date] || 0 })),
-      recentClicks: dates.map((date) => ({
-        date,
-        count: clicksByDate[date] || 0,
-      })),
-      referrerBreakdown: Object.entries(referrerCounts)
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10),
-      topReferrers: Object.entries(referrerCounts)
-        .map(([source, count]) => ({ source, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10),
-    });
+    return NextResponse.json({ locked: false, ...dashboard });
   } catch (error) {
     console.error("Analytics error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

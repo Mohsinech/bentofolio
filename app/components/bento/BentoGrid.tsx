@@ -260,6 +260,7 @@ export function BentoGrid({ layout, content, avatarUrl, isPro, forceMobile = fal
           <div
             key={item.id}
             data-cell
+            data-block={item.type}
             data-top={item.y === 0 ? "true" : undefined}
             data-h={item.h}
             data-w={item.w}
