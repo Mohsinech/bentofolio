@@ -117,7 +117,7 @@ export default function InvitePage() {
 
   return (
     <div className={`${bentoFontClasses} ${m.page} ${s.page}`}>
-      <MarketingHeader />
+      <MarketingHeader active="invite" />
 
       <main className={`${m.sec} ${s.main}`}>
         <section className={s.hero}>
