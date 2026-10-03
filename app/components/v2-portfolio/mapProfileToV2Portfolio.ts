@@ -51,6 +51,13 @@ function isValidHref(value: unknown): value is string {
   }
 }
 
+// Uploaded pictures are stored inline as data: URLs.
+function isImageSrc(value: unknown): value is string {
+  if (!hasText(value)) return false;
+  const trimmed = value.trim();
+  return /^data:image\//i.test(trimmed) || trimmed.startsWith("/") || isValidHref(trimmed);
+}
+
 function hasItems<T>(items: T[] | undefined, predicate: (item: T) => boolean) {
   return Array.isArray(items) && items.some(predicate);
 }
@@ -108,7 +115,7 @@ export function hasRenderableBlockContent(blockType: BlockType, content?: BlockC
     case "resume":
       return isValidHref(content.data.fileUrl);
     case "gallery":
-      return hasItems(content.data.images, (item) => isValidHref(item.src));
+      return hasItems(content.data.images, (item) => isImageSrc(item.src));
     case "youtube":
       return isValidHref(content.data.url);
     case "services":

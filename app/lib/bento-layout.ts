@@ -239,14 +239,62 @@ export function convertTemplateLayout<T extends GridItem>(
 }
 
 // Grid cell under a point, given the grid's measured geometry.
+export interface GridGeometry {
+  left: number;
+  top: number;
+  colWidth: number;
+  // The smallest row; rows grow to fit what's in them, so `rows` holds the
+  // real height of each one when the browser reports it.
+  rowHeight: number;
+  rows?: number[];
+  gap: number;
+}
+
+function rowSize(geometry: GridGeometry, index: number): number {
+  return geometry.rows?.[index] ?? geometry.rowHeight;
+}
+
+// Distance from the top of the grid to the top of row `index`.
+export function rowOffset(geometry: GridGeometry, index: number): number {
+  let offset = 0;
+  for (let row = 0; row < index; row += 1) offset += rowSize(geometry, row) + geometry.gap;
+  return offset;
+}
+
+// The row under a point `offset` pixels below the top of the grid (the gap
+// between two rows counts half to each).
+export function rowAt(geometry: GridGeometry, offset: number): number {
+  let row = 0;
+  let bottom = rowSize(geometry, 0) + geometry.gap / 2;
+  while (offset >= bottom && row < 400) {
+    row += 1;
+    bottom += rowSize(geometry, row) + geometry.gap;
+  }
+  return row;
+}
+
+// How many rows from `start` a resize handle at `offset` covers (a row
+// counts once the pointer passes its middle).
+export function rowsTo(geometry: GridGeometry, start: number, offset: number): number {
+  let count = 0;
+  let top = rowOffset(geometry, start);
+  while (count < 400) {
+    const size = rowSize(geometry, start + count);
+    if (offset < top + size / 2) break;
+    count += 1;
+    top += size + geometry.gap;
+  }
+  return count;
+}
+
 export function cellFromPoint(
   px: number,
   py: number,
-  geometry: { left: number; top: number; colWidth: number; rowHeight: number; gap: number },
+  geometry: GridGeometry,
   cols = DESKTOP_COLS
 ): { x: number; y: number } {
   const x = Math.floor((px - geometry.left + geometry.gap / 2) / (geometry.colWidth + geometry.gap));
-  const y = Math.floor((py - geometry.top + geometry.gap / 2) / (geometry.rowHeight + geometry.gap));
+  const y = rowAt(geometry, py - geometry.top);
   return { x: Math.min(Math.max(x, 0), cols - 1), y: Math.max(y, 0) };
 }
 

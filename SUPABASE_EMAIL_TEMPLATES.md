@@ -1,324 +1,283 @@
-# BentoFolio Supabase Email Templates
+# bentofolio — Supabase email templates
 
-Copy each **Subject** and **Body** into:
+Quiet proof style: light page, white card, ink button, blue accent. Matches the Pro welcome email sent from `app/lib/email.ts`.
 
-`Supabase Dashboard -> Authentication -> Emails -> Templates`
+Paste each **Subject** and **Body** into Supabase → Authentication → Emails. The first six are under **Templates**; "Password changed" is under **Security notifications** (turn it on there).
 
-Notes:
-- Keep every `{{ ... }}` Supabase variable exactly as written.
-- These templates use BentoFolio colors: `#080809` background, `#f7f3eb` text, and `#d7ff5f` accent.
-- Custom fonts in email are not reliable across Gmail, Outlook, Apple Mail, etc. Use the system font stack here for the cleanest result.
-- Supabase variables reference: <https://supabase.com/docs/guides/auth/auth-email-templates>
+- Keep every `{{ .Variable }}` exactly as written. Supabase reference: <https://supabase.com/docs/guides/auth/auth-email-templates>
+- Magic link and Reauthentication show `{{ .Token }}` (the 6-digit code). Remove that block if you only use links.
+- Emails use the system font: custom fonts aren't reliable in Gmail and Outlook.
+- Set the sender name to `bentofolio` under Authentication → Emails → SMTP settings so the inbox shows the brand, not "Supabase Auth".
 
 ---
 
-## Confirm Sign Up
+## Confirm sign up
 
 ### Subject
 
 ```text
-Your BentoFolio is waiting at the door
+Confirm your email
 ```
 
 ### Body
 
 ```html
-<div style="margin:0;padding:0;background:#080809;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f7f3eb;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;margin-bottom:32px;">
-      <h1 style="font-size:32px;font-weight:900;margin:0;color:#f7f3eb;letter-spacing:-0.02em;">
-        Bento<span style="color:#d7ff5f;">Folio</span>
-      </h1>
-    </div>
-
-    <div style="background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025));border:1px solid rgba(215,255,95,0.20);border-radius:24px;padding:32px;box-shadow:0 28px 80px rgba(0,0,0,0.38);">
-      <div style="display:inline-block;margin-bottom:18px;padding:8px 12px;border:1px solid rgba(215,255,95,0.24);border-radius:999px;background:rgba(215,255,95,0.10);color:#d7ff5f;font-size:12px;font-weight:800;">
-        EMAIL CONFIRMATION
-      </div>
-
-      <h2 style="margin:0 0 16px;color:#ffffff;font-size:28px;line-height:1.12;">Knock knock, portfolio delivery.</h2>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        Your BentoFolio account is almost ready. It is currently standing politely outside the internet, holding a tiny clipboard.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        Confirm your email and you can start arranging your work into clean little rectangles like a person with excellent taste.
-      </p>
-
-      <div style="text-align:center;margin:32px 0;">
-        <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#d7ff5f;color:#080809;padding:16px 32px;border-radius:999px;text-decoration:none;font-weight:900;font-size:16px;box-shadow:0 8px 24px rgba(215,255,95,0.24);">
-          Confirm My Email
-        </a>
-      </div>
-
-      <p style="background:rgba(215,255,95,0.10);border:1px solid rgba(215,255,95,0.18);padding:16px;border-radius:14px;color:#d7ff5f;font-size:14px;margin:24px 0 0;line-height:1.6;">
-        Tiny security ritual: this proves the email is yours and not someone trying to build a portfolio in your name. Bold move, honestly.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.44);font-size:13px;margin:24px 0 0;line-height:1.6;">
-        Button not vibing? Copy and paste this URL:<br />
-        <span style="color:#d7ff5f;word-break:break-all;">{{ .ConfirmationURL }}</span>
-      </p>
-    </div>
-
-    <div style="text-align:center;margin-top:26px;color:rgba(247,243,235,0.42);font-size:13px;">
-      <p style="margin:0;">If this was not you, ignore this email. The bento will wait.</p>
-      <p style="margin:14px 0 0;">Made with taste by BentoFolio.</p>
-    </div>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Confirm your email</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f6f4;color:#111110;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">Confirm your email to open your bentofolio editor.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="width:9px;height:9px;background:#111110;border-radius:2px;"></td><td style="width:2px;"></td>
+    <td style="width:9px;height:9px;background:#2b44ff;border-radius:2px;"></td>
+    <td style="padding-left:10px;font-size:16px;font-weight:600;color:#111110;" rowspan="3">bentofolio</td>
+  </tr><tr><td colspan="3" style="height:2px;"></td></tr>
+  <tr><td colspan="3" style="height:9px;background:#111110;border-radius:2px;"></td></tr></table>
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #ecebe8;border-radius:16px;padding:32px 32px 28px;">
+  <p style="margin:0 0 10px;font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;">CONFIRM EMAIL</p>
+  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;font-weight:500;letter-spacing:-0.8px;color:#111110;">One click and your page is yours.</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#55544f;">Confirm {{ .Email }} and you'll go straight to the editor to set up your page. The link works once and expires in 24 hours.</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+    <td style="background:#111110;border-radius:10px;"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 20px;font-size:15px;font-weight:500;color:#ffffff;text-decoration:none;">Confirm my email</a></td>
+  </tr></table>
+  <p style="margin:0 0 6px;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#6f6e69;">Or paste this link into your browser:</p>
+  <p style="margin:0;font:400 12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#2b44ff;text-decoration:none;">{{ .ConfirmationURL }}</a></p>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.6;color:#6f6e69;">
+  You're getting this because someone used {{ .Email }} on bentofolio.dev. If it wasn't you, you can ignore this email. Questions? Write to <a href="mailto:hello@bentofolio.dev" style="color:#6f6e69;">hello@bentofolio.dev</a>.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
 ```
 
 ---
 
-## Invite User
+## Invite user
 
 ### Subject
 
 ```text
-You have been invited to BentoFolio
+You're invited to bentofolio
 ```
 
 ### Body
 
 ```html
-<div style="margin:0;padding:0;background:#080809;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f7f3eb;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;margin-bottom:32px;">
-      <h1 style="font-size:32px;font-weight:900;margin:0;color:#f7f3eb;letter-spacing:-0.02em;">
-        Bento<span style="color:#d7ff5f;">Folio</span>
-      </h1>
-    </div>
-
-    <div style="background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025));border:1px solid rgba(215,255,95,0.20);border-radius:24px;padding:32px;box-shadow:0 28px 80px rgba(0,0,0,0.38);">
-      <div style="display:inline-block;margin-bottom:18px;padding:8px 12px;border:1px solid rgba(215,255,95,0.24);border-radius:999px;background:rgba(215,255,95,0.10);color:#d7ff5f;font-size:12px;font-weight:800;">
-        INVITE
-      </div>
-
-      <h2 style="margin:0 0 16px;color:#ffffff;font-size:28px;line-height:1.12;">You got an invite. Very exclusive. Very rectangles.</h2>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        Someone invited you to BentoFolio, which means they respect your work or want you to stop sending giant portfolio PDFs.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        Accept the invite and start building a sharp public profile for projects, links, proof-of-work, and tasteful flexing.
-      </p>
-
-      <div style="text-align:center;margin:32px 0;">
-        <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#d7ff5f;color:#080809;padding:16px 32px;border-radius:999px;text-decoration:none;font-weight:900;font-size:16px;box-shadow:0 8px 24px rgba(215,255,95,0.24);">
-          Accept Invite
-        </a>
-      </div>
-
-      <p style="background:rgba(215,255,95,0.10);border:1px solid rgba(215,255,95,0.18);padding:16px;border-radius:14px;color:#d7ff5f;font-size:14px;margin:24px 0 0;line-height:1.6;">
-        This invite link is your backstage pass. Keep it away from suspicious browser tabs with too much confidence.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.44);font-size:13px;margin:24px 0 0;line-height:1.6;">
-        Button acting mysterious? Copy and paste this URL:<br />
-        <span style="color:#d7ff5f;word-break:break-all;">{{ .ConfirmationURL }}</span>
-      </p>
-    </div>
-
-    <div style="text-align:center;margin-top:26px;color:rgba(247,243,235,0.42);font-size:13px;">
-      <p style="margin:0;">Welcome to the bento side. We have grids.</p>
-      <p style="margin:14px 0 0;">Made with taste by BentoFolio.</p>
-    </div>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>You're invited to bentofolio</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f6f4;color:#111110;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">Someone invited you to make a page on bentofolio.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="width:9px;height:9px;background:#111110;border-radius:2px;"></td><td style="width:2px;"></td>
+    <td style="width:9px;height:9px;background:#2b44ff;border-radius:2px;"></td>
+    <td style="padding-left:10px;font-size:16px;font-weight:600;color:#111110;" rowspan="3">bentofolio</td>
+  </tr><tr><td colspan="3" style="height:2px;"></td></tr>
+  <tr><td colspan="3" style="height:9px;background:#111110;border-radius:2px;"></td></tr></table>
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #ecebe8;border-radius:16px;padding:32px 32px 28px;">
+  <p style="margin:0 0 10px;font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;">INVITATION</p>
+  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;font-weight:500;letter-spacing:-0.8px;color:#111110;">You're invited to bentofolio.</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#55544f;">Accept the invite to make your account and build your page: your work, your numbers, your links, arranged on one page at bentofolio.dev.</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+    <td style="background:#111110;border-radius:10px;"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 20px;font-size:15px;font-weight:500;color:#ffffff;text-decoration:none;">Accept the invite</a></td>
+  </tr></table>
+  <p style="margin:0 0 6px;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#6f6e69;">Or paste this link into your browser:</p>
+  <p style="margin:0;font:400 12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#2b44ff;text-decoration:none;">{{ .ConfirmationURL }}</a></p>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.6;color:#6f6e69;">
+  You're getting this because someone invited {{ .Email }} to bentofolio.dev. If you weren't expecting it, you can ignore this email. Questions? Write to <a href="mailto:hello@bentofolio.dev" style="color:#6f6e69;">hello@bentofolio.dev</a>.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
 ```
 
 ---
 
-## Magic Link Or OTP
+## Magic link
 
 ### Subject
 
 ```text
-Your BentoFolio magic link has entered the chat
+Your bentofolio sign-in link
 ```
 
 ### Body
 
 ```html
-<div style="margin:0;padding:0;background:#080809;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f7f3eb;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;margin-bottom:32px;">
-      <h1 style="font-size:32px;font-weight:900;margin:0;color:#f7f3eb;letter-spacing:-0.02em;">
-        Bento<span style="color:#d7ff5f;">Folio</span>
-      </h1>
-    </div>
-
-    <div style="background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025));border:1px solid rgba(215,255,95,0.20);border-radius:24px;padding:32px;box-shadow:0 28px 80px rgba(0,0,0,0.38);">
-      <div style="display:inline-block;margin-bottom:18px;padding:8px 12px;border:1px solid rgba(215,255,95,0.24);border-radius:999px;background:rgba(215,255,95,0.10);color:#d7ff5f;font-size:12px;font-weight:800;">
-        MAGIC LINK
-      </div>
-
-      <h2 style="margin:0 0 16px;color:#ffffff;font-size:28px;line-height:1.12;">Password-free entrance? Fancy.</h2>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        Click the button below to sign in to BentoFolio. No password gymnastics required today.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        If your email app is suspicious of buttons, use the one-time code below.
-      </p>
-
-      <div style="text-align:center;margin:32px 0;">
-        <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#d7ff5f;color:#080809;padding:16px 32px;border-radius:999px;text-decoration:none;font-weight:900;font-size:16px;box-shadow:0 8px 24px rgba(215,255,95,0.24);">
-          Sign Me In
-        </a>
-      </div>
-
-      <div style="text-align:center;margin:24px 0;">
-        <p style="color:rgba(247,243,235,0.58);font-size:14px;margin:0 0 10px;">Your one-time code:</p>
-        <div style="display:inline-block;background:#d7ff5f;color:#080809;padding:14px 20px;border-radius:16px;font-size:26px;font-weight:900;letter-spacing:0.18em;">
-          {{ .Token }}
-        </div>
-      </div>
-
-      <p style="background:rgba(215,255,95,0.10);border:1px solid rgba(215,255,95,0.18);padding:16px;border-radius:14px;color:#d7ff5f;font-size:14px;margin:24px 0 0;line-height:1.6;">
-        If you did not ask for this, ignore it. Your account is still sitting calmly.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.44);font-size:13px;margin:24px 0 0;line-height:1.6;">
-        Link not linking? Copy and paste this URL:<br />
-        <span style="color:#d7ff5f;word-break:break-all;">{{ .ConfirmationURL }}</span>
-      </p>
-    </div>
-
-    <div style="text-align:center;margin-top:26px;color:rgba(247,243,235,0.42);font-size:13px;">
-      <p style="margin:0;">Magic responsibly.</p>
-      <p style="margin:14px 0 0;">Made with taste by BentoFolio.</p>
-    </div>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Your bentofolio sign-in link</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f6f4;color:#111110;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">Your link to sign in to bentofolio.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="width:9px;height:9px;background:#111110;border-radius:2px;"></td><td style="width:2px;"></td>
+    <td style="width:9px;height:9px;background:#2b44ff;border-radius:2px;"></td>
+    <td style="padding-left:10px;font-size:16px;font-weight:600;color:#111110;" rowspan="3">bentofolio</td>
+  </tr><tr><td colspan="3" style="height:2px;"></td></tr>
+  <tr><td colspan="3" style="height:9px;background:#111110;border-radius:2px;"></td></tr></table>
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #ecebe8;border-radius:16px;padding:32px 32px 28px;">
+  <p style="margin:0 0 10px;font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;">SIGN IN</p>
+  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;font-weight:500;letter-spacing:-0.8px;color:#111110;">Here's your sign-in link.</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#55544f;">Use the button to sign in as {{ .Email }}. It works once and expires in an hour. You can also enter this code:</p>
+  <div style="margin:0 0 24px;padding:18px 20px;border:1px solid #ecebe8;border-radius:12px;background:#f6f6f4;font:600 28px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:6px;color:#111110;text-align:center;">{{ .Token }}</div>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+    <td style="background:#111110;border-radius:10px;"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 20px;font-size:15px;font-weight:500;color:#ffffff;text-decoration:none;">Sign in to bentofolio</a></td>
+  </tr></table>
+  <p style="margin:0 0 6px;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#6f6e69;">Or paste this link into your browser:</p>
+  <p style="margin:0;font:400 12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#2b44ff;text-decoration:none;">{{ .ConfirmationURL }}</a></p>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.6;color:#6f6e69;">
+  You're getting this because someone used {{ .Email }} on bentofolio.dev. If it wasn't you, you can ignore this email. Questions? Write to <a href="mailto:hello@bentofolio.dev" style="color:#6f6e69;">hello@bentofolio.dev</a>.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
 ```
 
 ---
 
-## Change Email Address
+## Change email address
 
 ### Subject
 
 ```text
-Confirm your new BentoFolio email
+Confirm your new email
 ```
 
 ### Body
 
 ```html
-<div style="margin:0;padding:0;background:#080809;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f7f3eb;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;margin-bottom:32px;">
-      <h1 style="font-size:32px;font-weight:900;margin:0;color:#f7f3eb;letter-spacing:-0.02em;">
-        Bento<span style="color:#d7ff5f;">Folio</span>
-      </h1>
-    </div>
-
-    <div style="background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025));border:1px solid rgba(215,255,95,0.20);border-radius:24px;padding:32px;box-shadow:0 28px 80px rgba(0,0,0,0.38);">
-      <div style="display:inline-block;margin-bottom:18px;padding:8px 12px;border:1px solid rgba(215,255,95,0.24);border-radius:999px;background:rgba(215,255,95,0.10);color:#d7ff5f;font-size:12px;font-weight:800;">
-        EMAIL CHANGE
-      </div>
-
-      <h2 style="margin:0 0 16px;color:#ffffff;font-size:28px;line-height:1.12;">New inbox, who dis?</h2>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        You asked to change the email on your BentoFolio account to:
-      </p>
-
-      <p style="background:rgba(215,255,95,0.10);border:1px solid rgba(215,255,95,0.18);padding:14px 16px;border-radius:14px;color:#d7ff5f;font-size:15px;margin:16px 0;word-break:break-all;">
-        {{ .NewEmail }}
-      </p>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        Confirm it below and we will update the address. Smooth. Administrative. Slightly glamorous.
-      </p>
-
-      <div style="text-align:center;margin:32px 0;">
-        <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#d7ff5f;color:#080809;padding:16px 32px;border-radius:999px;text-decoration:none;font-weight:900;font-size:16px;box-shadow:0 8px 24px rgba(215,255,95,0.24);">
-          Confirm New Email
-        </a>
-      </div>
-
-      <p style="background:rgba(215,255,95,0.10);border:1px solid rgba(215,255,95,0.18);padding:16px;border-radius:14px;color:#d7ff5f;font-size:14px;margin:24px 0 0;line-height:1.6;">
-        If you did not request this, ignore this email. Your current email will stay exactly where it is.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.44);font-size:13px;margin:24px 0 0;line-height:1.6;">
-        Button not cooperating? Copy and paste this URL:<br />
-        <span style="color:#d7ff5f;word-break:break-all;">{{ .ConfirmationURL }}</span>
-      </p>
-    </div>
-
-    <div style="text-align:center;margin-top:26px;color:rgba(247,243,235,0.42);font-size:13px;">
-      <p style="margin:0;">Inbox migration department has left the chat.</p>
-      <p style="margin:14px 0 0;">Made with taste by BentoFolio.</p>
-    </div>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Confirm your new email</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f6f4;color:#111110;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">Confirm the new email address for your bentofolio account.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="width:9px;height:9px;background:#111110;border-radius:2px;"></td><td style="width:2px;"></td>
+    <td style="width:9px;height:9px;background:#2b44ff;border-radius:2px;"></td>
+    <td style="padding-left:10px;font-size:16px;font-weight:600;color:#111110;" rowspan="3">bentofolio</td>
+  </tr><tr><td colspan="3" style="height:2px;"></td></tr>
+  <tr><td colspan="3" style="height:9px;background:#111110;border-radius:2px;"></td></tr></table>
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #ecebe8;border-radius:16px;padding:32px 32px 28px;">
+  <p style="margin:0 0 10px;font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;">CHANGE EMAIL</p>
+  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;font-weight:500;letter-spacing:-0.8px;color:#111110;">Confirm your new email.</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#55544f;">You asked to change your sign-in email from {{ .Email }} to {{ .NewEmail }}. Confirm to make the switch; until then, nothing changes.</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+    <td style="background:#111110;border-radius:10px;"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 20px;font-size:15px;font-weight:500;color:#ffffff;text-decoration:none;">Confirm new email</a></td>
+  </tr></table>
+  <p style="margin:0 0 6px;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#6f6e69;">Or paste this link into your browser:</p>
+  <p style="margin:0;font:400 12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#2b44ff;text-decoration:none;">{{ .ConfirmationURL }}</a></p>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.6;color:#6f6e69;">
+  You're getting this because someone used {{ .Email }} on bentofolio.dev. If it wasn't you, you can ignore this email. Questions? Write to <a href="mailto:hello@bentofolio.dev" style="color:#6f6e69;">hello@bentofolio.dev</a>.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
 ```
 
 ---
 
-## Reset Password
+## Reset password
 
 ### Subject
 
 ```text
-Password troubles? BentoFolio has the button
+Reset your bentofolio password
 ```
 
 ### Body
 
 ```html
-<div style="margin:0;padding:0;background:#080809;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f7f3eb;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;margin-bottom:32px;">
-      <h1 style="font-size:32px;font-weight:900;margin:0;color:#f7f3eb;letter-spacing:-0.02em;">
-        Bento<span style="color:#d7ff5f;">Folio</span>
-      </h1>
-    </div>
-
-    <div style="background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025));border:1px solid rgba(215,255,95,0.20);border-radius:24px;padding:32px;box-shadow:0 28px 80px rgba(0,0,0,0.38);">
-      <div style="display:inline-block;margin-bottom:18px;padding:8px 12px;border:1px solid rgba(215,255,95,0.24);border-radius:999px;background:rgba(215,255,95,0.10);color:#d7ff5f;font-size:12px;font-weight:800;">
-        PASSWORD RESET
-      </div>
-
-      <h2 style="margin:0 0 16px;color:#ffffff;font-size:28px;line-height:1.12;">Password troubles? Classic plot twist.</h2>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        It happens. Was it the clever password, the extra clever password, or the one with a mysterious capital letter?
-      </p>
-
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        Click below to reset your password and get back to building a portfolio that looks like it has its life together.
-      </p>
-
-      <div style="text-align:center;margin:32px 0;">
-        <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#d7ff5f;color:#080809;padding:16px 32px;border-radius:999px;text-decoration:none;font-weight:900;font-size:16px;box-shadow:0 8px 24px rgba(215,255,95,0.24);">
-          Reset My Password
-        </a>
-      </div>
-
-      <p style="background:rgba(215,255,95,0.10);border:1px solid rgba(215,255,95,0.18);padding:16px;border-radius:14px;color:#d7ff5f;font-size:14px;margin:24px 0 0;line-height:1.6;">
-        This link expires soon. If you did not request this reset, ignore this email and carry on being secure.
-      </p>
-
-      <p style="color:rgba(247,243,235,0.44);font-size:13px;margin:24px 0 0;line-height:1.6;">
-        Button not behaving? Copy and paste this URL:<br />
-        <span style="color:#d7ff5f;word-break:break-all;">{{ .ConfirmationURL }}</span>
-      </p>
-    </div>
-
-    <div style="text-align:center;margin-top:26px;color:rgba(247,243,235,0.42);font-size:13px;">
-      <p style="margin:0;">Pro tip: a password manager is just autocomplete with ambition.</p>
-      <p style="margin:14px 0 0;">Made with taste by BentoFolio.</p>
-    </div>
-  </div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Reset your bentofolio password</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f6f4;color:#111110;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">A link to choose a new bentofolio password.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="width:9px;height:9px;background:#111110;border-radius:2px;"></td><td style="width:2px;"></td>
+    <td style="width:9px;height:9px;background:#2b44ff;border-radius:2px;"></td>
+    <td style="padding-left:10px;font-size:16px;font-weight:600;color:#111110;" rowspan="3">bentofolio</td>
+  </tr><tr><td colspan="3" style="height:2px;"></td></tr>
+  <tr><td colspan="3" style="height:9px;background:#111110;border-radius:2px;"></td></tr></table>
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #ecebe8;border-radius:16px;padding:32px 32px 28px;">
+  <p style="margin:0 0 10px;font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;">RESET PASSWORD</p>
+  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;font-weight:500;letter-spacing:-0.8px;color:#111110;">Choose a new password.</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#55544f;">Someone (hopefully you) asked to reset the password for {{ .Email }}. The link works once and expires in an hour.</p>
+  <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 24px;"><tr>
+    <td style="background:#111110;border-radius:10px;"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 20px;font-size:15px;font-weight:500;color:#ffffff;text-decoration:none;">Choose a new password</a></td>
+  </tr></table>
+  <p style="margin:0 0 6px;font:500 12px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#6f6e69;">Or paste this link into your browser:</p>
+  <p style="margin:0;font:400 12px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;word-break:break-all;"><a href="{{ .ConfirmationURL }}" style="color:#2b44ff;text-decoration:none;">{{ .ConfirmationURL }}</a></p>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.6;color:#6f6e69;">
+  You're getting this because someone used {{ .Email }} on bentofolio.dev. If it wasn't you, you can ignore this email. Questions? Write to <a href="mailto:hello@bentofolio.dev" style="color:#6f6e69;">hello@bentofolio.dev</a>.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
 ```
 
 ---
@@ -328,47 +287,98 @@ Password troubles? BentoFolio has the button
 ### Subject
 
 ```text
-BentoFolio needs one quick identity check
+Your bentofolio confirmation code
 ```
 
 ### Body
 
 ```html
-<div style="margin:0;padding:0;background:#080809;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f7f3eb;">
-  <div style="max-width:600px;margin:0 auto;padding:40px 20px;">
-    <div style="text-align:center;margin-bottom:32px;">
-      <h1 style="font-size:32px;font-weight:900;margin:0;color:#f7f3eb;letter-spacing:-0.02em;">
-        Bento<span style="color:#d7ff5f;">Folio</span>
-      </h1>
-    </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Your bentofolio confirmation code</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f6f4;color:#111110;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">Your code to confirm it's you.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="width:9px;height:9px;background:#111110;border-radius:2px;"></td><td style="width:2px;"></td>
+    <td style="width:9px;height:9px;background:#2b44ff;border-radius:2px;"></td>
+    <td style="padding-left:10px;font-size:16px;font-weight:600;color:#111110;" rowspan="3">bentofolio</td>
+  </tr><tr><td colspan="3" style="height:2px;"></td></tr>
+  <tr><td colspan="3" style="height:9px;background:#111110;border-radius:2px;"></td></tr></table>
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #ecebe8;border-radius:16px;padding:32px 32px 28px;">
+  <p style="margin:0 0 10px;font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;">CONFIRM IT'S YOU</p>
+  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;font-weight:500;letter-spacing:-0.8px;color:#111110;">Your confirmation code.</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#55544f;">Enter this code in bentofolio to confirm it's you. It expires in a few minutes.</p>
+  <div style="margin:0 0 24px;padding:18px 20px;border:1px solid #ecebe8;border-radius:12px;background:#f6f6f4;font:600 28px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:6px;color:#111110;text-align:center;">{{ .Token }}</div>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.6;color:#6f6e69;">
+  You're getting this because someone used {{ .Email }} on bentofolio.dev. If it wasn't you, you can ignore this email. Questions? Write to <a href="mailto:hello@bentofolio.dev" style="color:#6f6e69;">hello@bentofolio.dev</a>.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
+```
 
-    <div style="background:linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.025));border:1px solid rgba(215,255,95,0.20);border-radius:24px;padding:32px;box-shadow:0 28px 80px rgba(0,0,0,0.38);">
-      <div style="display:inline-block;margin-bottom:18px;padding:8px 12px;border:1px solid rgba(215,255,95,0.24);border-radius:999px;background:rgba(215,255,95,0.10);color:#d7ff5f;font-size:12px;font-weight:800;">
-        SECURITY CHECK
-      </div>
+---
 
-      <h2 style="margin:0 0 16px;color:#ffffff;font-size:28px;line-height:1.12;">One quick “yep, it’s me” moment.</h2>
+## Password changed
 
-      <p style="color:rgba(247,243,235,0.72);line-height:1.6;margin:16px 0;">
-        You are doing something sensitive in BentoFolio, so we need a quick verification code before we let the important buttons do important button things.
-      </p>
+### Subject
 
-      <div style="text-align:center;margin:32px 0;">
-        <p style="color:rgba(247,243,235,0.58);font-size:14px;margin:0 0 10px;">Your verification code:</p>
-        <div style="display:inline-block;background:#d7ff5f;color:#080809;padding:16px 22px;border-radius:16px;font-size:28px;font-weight:900;letter-spacing:0.18em;">
-          {{ .Token }}
-        </div>
-      </div>
+```text
+Your bentofolio password was changed
+```
 
-      <p style="background:rgba(215,255,95,0.10);border:1px solid rgba(215,255,95,0.18);padding:16px;border-radius:14px;color:#d7ff5f;font-size:14px;margin:24px 0 0;line-height:1.6;">
-        If this was not you, do not use the code. Your account is safer when mystery clicks are left alone.
-      </p>
-    </div>
+### Body
 
-    <div style="text-align:center;margin-top:26px;color:rgba(247,243,235,0.42);font-size:13px;">
-      <p style="margin:0;">Security, but make it tidy.</p>
-      <p style="margin:14px 0 0;">Made with taste by BentoFolio.</p>
-    </div>
-  </div>
-</div>
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>Your bentofolio password was changed</title>
+</head>
+<body style="margin:0;padding:0;background:#f6f6f4;color:#111110;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+<div style="display:none;max-height:0;overflow:hidden;">The password for your bentofolio account was just changed.</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f6f6f4;">
+<tr><td align="center" style="padding:40px 16px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;">
+<tr><td style="padding:0 4px 20px;">
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="width:9px;height:9px;background:#111110;border-radius:2px;"></td><td style="width:2px;"></td>
+    <td style="width:9px;height:9px;background:#2b44ff;border-radius:2px;"></td>
+    <td style="padding-left:10px;font-size:16px;font-weight:600;color:#111110;" rowspan="3">bentofolio</td>
+  </tr><tr><td colspan="3" style="height:2px;"></td></tr>
+  <tr><td colspan="3" style="height:9px;background:#111110;border-radius:2px;"></td></tr></table>
+</td></tr>
+<tr><td style="background:#ffffff;border:1px solid #ecebe8;border-radius:16px;padding:32px 32px 28px;">
+  <p style="margin:0 0 10px;font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:#2b44ff;">SECURITY</p>
+  <h1 style="margin:0 0 12px;font-size:28px;line-height:1.1;font-weight:500;letter-spacing:-0.8px;color:#111110;">Your password was changed.</h1>
+  <p style="margin:0 0 24px;font-size:15px;line-height:1.55;color:#55544f;">The password for {{ .Email }} was just changed. If that was you, there's nothing to do.</p>
+  <p style="margin:0 0 20px;font-size:15px;line-height:1.55;color:#55544f;">If it wasn't you, reset your password right away and write to us.</p>
+  <table role="presentation" cellpadding="0" cellspacing="0"><tr>
+    <td style="background:#111110;border-radius:10px;"><a href="{{ .SiteURL }}/auth/reset-password" style="display:inline-block;padding:13px 20px;font-size:15px;font-weight:500;color:#ffffff;text-decoration:none;">Reset my password</a></td>
+  </tr></table>
+</td></tr>
+<tr><td style="padding:20px 4px 0;font-size:12px;line-height:1.6;color:#6f6e69;">
+  This is a security notice for {{ .Email }} on bentofolio.dev. Questions? Write to <a href="mailto:hello@bentofolio.dev" style="color:#6f6e69;">hello@bentofolio.dev</a>.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>
 ```

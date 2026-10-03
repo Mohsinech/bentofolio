@@ -180,10 +180,14 @@
   border-radius: 10px;
   font-size: 13px;
   color: var(--muted);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .code:focus-within {
-  border-color: var(--ink);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(43, 68, 255, 0.14);
 }
 
 .code input {
@@ -195,6 +199,13 @@
   color: var(--ink);
   font: 500 14px/1 var(--bento-mono, ui-monospace), ui-monospace, monospace;
   text-transform: uppercase;
+}
+
+/* The whole field shows focus (above), not the bare input inside it. */
+.code input:focus,
+.code input:focus-visible {
+  outline: none !important;
+  box-shadow: none;
 }
 
 .error {

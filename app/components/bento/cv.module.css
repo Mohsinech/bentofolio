@@ -227,6 +227,26 @@ a.title:hover,
   object-fit: contain;
 }
 
+/* Services sit side by side and wrap, tighter than the other rows. */
+.services {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.services li {
+  padding: 4px 10px;
+  border: 1px solid var(--bento-line);
+  border-radius: 99px;
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--bento-ink);
+}
+
 .quote {
   margin: 0;
   font: 400 20px/1.35 var(--bento-serif), Georgia, serif;

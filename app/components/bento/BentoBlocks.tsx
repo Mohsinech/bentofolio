@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import {
   ArrowUpRight,
   BadgeCheck,
@@ -77,7 +77,7 @@ export function Logo({ src, name, size = 30 }: { src?: string | null; name: stri
   const [failed, setFailed] = useState(false);
   const url = !failed && src ? src : null;
   return (
-    <span className={styles.logo} style={{ width: size, height: size }} aria-hidden="true">
+    <span className={`${styles.logo} ${url ? styles.logoImage : ""}`} style={{ width: size, height: size }} aria-hidden="true">
       {url ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={url} alt="" loading="lazy" onError={() => setFailed(true)} />
@@ -252,11 +252,30 @@ function SkillsBlock({ heading, items }: { heading: string; items: { name: strin
   );
 }
 
-function periodOf(item: { period?: string; startDate?: string; endDate?: string; isCurrent?: boolean }) {
-  if (text(item.period)) return text(item.period);
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+// "2026-03" → "Mar 2026"; "present" → "Now"; anything else as written.
+function monthYear(value: string): string {
+  const match = /^(\d{4})-(\d{1,2})(?:-\d{1,2})?$/.exec(value.trim());
+  if (match) {
+    const month = MONTHS[Number(match[2]) - 1];
+    return month ? `${month} ${match[1]}` : match[1];
+  }
+  if (/^(present|current|now|today)$/i.test(value.trim())) return "Now";
+  return value.trim();
+}
+
+export function periodOf(item: { period?: string; startDate?: string; endDate?: string; isCurrent?: boolean }) {
   const start = text(item.startDate);
-  const end = item.isCurrent ? "Now" : text(item.endDate);
-  return [start, end].filter(Boolean).join(" — ");
+  if (start) {
+    const end = item.isCurrent ? "Now" : text(item.endDate);
+    return [monthYear(start), end && monthYear(end)].filter(Boolean).join(" – ");
+  }
+  return text(item.period)
+    .split(/\s+[-–—]\s+|\s+to\s+/i)
+    .map(monthYear)
+    .filter(Boolean)
+    .join(" – ");
 }
 
 function TimelineRows({
@@ -283,10 +302,9 @@ function TimelineRows({
 }
 
 function ExperienceBlock({ data, size }: { data: Extract<BlockContent, { type: "experience" }>["data"]; size: Size }) {
-  const limit = isTall(size) ? 4 : isSmall(size) ? 1 : 2;
+  // The block grows to fit every entry.
   const rows = (data.items || [])
     .filter((item) => text(item.role) || text(item.company))
-    .slice(0, limit)
     .map((item, index) => ({
       key: `${item.company}-${item.role}-${index}`,
       period: periodOf(item),
@@ -304,10 +322,8 @@ function ExperienceBlock({ data, size }: { data: Extract<BlockContent, { type: "
 }
 
 function EducationBlock({ data, size }: { data: Extract<BlockContent, { type: "education" }>["data"]; size: Size }) {
-  const limit = isTall(size) ? 4 : isSmall(size) ? 1 : 2;
   const rows = (data.items || [])
     .filter((item) => text(item.school) || text(item.degree))
-    .slice(0, limit)
     .map((item, index) => {
       const school = text(item.school) || text(item.institution);
       return {
@@ -328,13 +344,18 @@ function EducationBlock({ data, size }: { data: Extract<BlockContent, { type: "e
 }
 
 function WorkBlock({ data, size, editing }: { data: Extract<BlockContent, { type: "work" }>["data"]; size: Size; editing: boolean }) {
+  // Every project shows, pictures at their own shape; the block grows to fit.
   const projects = (data.items || []).filter((item) => text(item.title));
-  const count = isWide(size) ? 3 : 1;
-  const shown = projects.slice(0, count);
+  const columns = isWide(size) ? Math.min(projects.length, 3) : 1;
+  // A 2×1 block puts the picture beside the caption.
+  const beside = !isWide(size) && !isTall(size) && size.w >= 2;
 
   return (
-    <div className={`${styles.work} ${isWide(size) ? styles.workRow : ""} ${isTall(size) ? styles.workTall : ""}`}>
-      {shown.map((project, index) => (
+    <div
+      className={`${styles.work} ${beside ? styles.workBeside : ""}`}
+      style={{ "--work-cols": Math.max(columns, 1) } as CSSProperties}
+    >
+      {projects.map((project, index) => (
         <ExternalLink
           key={`${project.title}-${index}`}
           href={editing ? undefined : project.url}
@@ -363,13 +384,12 @@ function WorkBlock({ data, size, editing }: { data: Extract<BlockContent, { type
           </span>
         </ExternalLink>
       ))}
-      {!isWide(size) && projects.length > 1 && <span className={styles.moreBadge}>+{projects.length - 1}</span>}
     </div>
   );
 }
 
-function ReposBlock({ data, size }: { data: Extract<BlockContent, { type: "projects" }>["data"]; size: Size }) {
-  const repos = (data.items || []).filter((item) => text(item.name)).slice(0, isTall(size) ? 4 : 2);
+function ReposBlock({ data }: { data: Extract<BlockContent, { type: "projects" }>["data"] }) {
+  const repos = (data.items || []).filter((item) => text(item.name));
   return (
     <div className={styles.stack}>
       <Label>Repositories</Label>
@@ -513,7 +533,7 @@ function SocialBlock({ data, size }: { data: Extract<BlockContent, { type: "soci
         </div>
       ) : (
         <ul className={styles.linkList}>
-          {links.slice(0, isTall(size) ? 8 : 2).map((item, index) => (
+          {links.map((item, index) => (
             <li key={`${item.platform}-${index}`}>
               <ExternalLink
                 href={item.platform === "email" && !item.url.includes(":") ? `mailto:${item.url}` : item.url}
@@ -556,7 +576,8 @@ function CtaBlock({ data, editing }: { data: Extract<BlockContent, { type: "link
           <span className={styles.ctaTitle}>{title}</span>
           {text(data.description) && <span className={styles.ctaDescription}>{data.description}</span>}
         </div>
-        <span className={styles.ctaButton} aria-hidden="true">
+        <span className={`${styles.ctaButton} ${text(data.buttonLabel) ? styles.ctaButtonLabel : ""}`} aria-hidden="true">
+          {text(data.buttonLabel) && <span>{copied ? "Copied" : text(data.buttonLabel)}</span>}
           {action === "copy-email" ? (
             copied ? <Check size={17} /> : <Copy size={17} />
           ) : action === "download" ? (
@@ -651,7 +672,12 @@ function QuoteBlock({ data, size }: { data: Extract<BlockContent, { type: "quote
           <strong>{text(data.author)}</strong>
           {role && <span>{role}</span>}
         </span>
-        {text(data.company) && <Logo src={companyLogo(data.companyLogo, data.company)} name={data.company!} size={24} />}
+        {/* The company mark only when it leads somewhere or was set on purpose. */}
+        {text(data.company) && (text(data.sourceUrl) || text(data.companyLogo)) && (
+          <ExternalLink href={data.sourceUrl} className={styles.quoteSource} label={`${text(data.company)} (source)`}>
+            <Logo src={companyLogo(data.companyLogo, data.company)} name={data.company!} size={24} />
+          </ExternalLink>
+        )}
       </figcaption>
     </figure>
   );
@@ -676,7 +702,11 @@ function ResumeBlock({ data, editing }: { data: Extract<BlockContent, { type: "r
 }
 
 function GalleryBlock({ data, size }: { data: Extract<BlockContent, { type: "gallery" }>["data"]; size: Size }) {
-  const images = (data.images || []).filter((image) => normalizeHref(image.src) || text(image.src).startsWith("/"));
+  // Uploads are stored inline as data: URLs.
+  const images = (data.images || []).filter((image) => {
+    const src = text(image.src);
+    return /^data:image\//i.test(src) || src.startsWith("/") || Boolean(normalizeHref(src));
+  });
   const count = isSmall(size) ? 1 : isWide(size) ? 4 : isTall(size) ? 4 : 3;
   return (
     <div className={`${styles.gallery} ${styles[`gallery_${Math.min(images.length, count)}`] || ""}`}>
@@ -1015,12 +1045,11 @@ function SaaSBlock({ data, size, editing }: { data: Extract<BlockContent, { type
 
 function StatsBlock({ data, size }: { data: Extract<BlockContent, { type: "stats" }>["data"]; size: Size }) {
   const items = (data.items || []).filter((item) => text(item.label) && text(item.value));
-  const max = isSmall(size) ? 1 : isWide(size) ? 4 : isTall(size) ? 4 : 3;
   return (
     <div className={styles.stack}>
       <Label>{text(data.heading) || text(data.eyebrow) || "By the numbers"}</Label>
-      <div className={`${styles.statGrid} ${isTall(size) && !isWide(size) ? styles.statGridTwo : ""}`}>
-        {items.slice(0, max).map((item, index) => (
+      <div className={`${styles.statGrid} ${isSmall(size) ? styles.statGridOne : ""}`}>
+        {items.map((item, index) => (
           <ExternalLink key={`${item.label}-${index}`} href={item.url} className={styles.statCell}>
             <span className={styles.statValue}>
               {text(item.prefix)}
@@ -1040,14 +1069,11 @@ function ServicesBlock({ data, size }: { data: Extract<BlockContent, { type: "se
   return (
     <div className={styles.stack}>
       <Label>{text(data.title) || "Services"}</Label>
-      <ol className={`${styles.services} ${isWide(size) ? styles.servicesRow : ""}`}>
-        {items.slice(0, isTall(size) || isWide(size) ? 6 : 3).map((item, index) => (
-          <li key={`${item}-${index}`}>
-            <span className={styles.mono}>{String(index + 1).padStart(2, "0")}</span>
-            {item}
-          </li>
+      <ul className={styles.services}>
+        {items.map((item, index) => (
+          <li key={`${item}-${index}`}>{item}</li>
         ))}
-      </ol>
+      </ul>
     </div>
   );
 }
@@ -1084,7 +1110,7 @@ export function BentoBlockBody({
     case "work":
       return <WorkBlock data={content.data} size={size} editing={editing} />;
     case "projects":
-      return <ReposBlock data={content.data} size={size} />;
+      return <ReposBlock data={content.data} />;
     case "github":
       return <GitHubBlock data={content.data} size={size} />;
     case "social":
@@ -1115,6 +1141,23 @@ export function BentoBlockBody({
       return null;
   }
 }
+
+// Blocks that grow taller than their grid size to show everything in them.
+// Other blocks keep their size (pictures, maps and embeds crop to fit).
+export const GROW_TYPES = new Set([
+  "experience",
+  "education",
+  "techstack",
+  "tools",
+  "services",
+  "stats",
+  "quote",
+  "projects",
+  "social",
+  "work",
+  "availability",
+  "github",
+]);
 
 // Blocks whose content fills the card edge to edge (no padding).
 export const FULL_BLEED_TYPES = new Set(["map", "work", "gallery", "youtube", "spotify"]);

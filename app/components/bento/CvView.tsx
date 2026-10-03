@@ -3,7 +3,7 @@
 import { BadgeCheck } from "lucide-react";
 import type { BlockContent, BlockLayout } from "@/app/lib/types";
 import { getTechIconUrl } from "@/app/lib/tech-icons";
-import { Logo, companyLogo, formatMoney } from "./BentoBlocks";
+import { Logo, companyLogo, formatMoney, periodOf } from "./BentoBlocks";
 import styles from "./cv.module.css";
 
 // The same blocks as the grid, read as a one-column CV: who, about, roles,
@@ -200,7 +200,7 @@ export function CvView({
       {roles.length > 0 && (
         <Section title="Work experience">
           {roles.map((role, index) => (
-            <Row key={`${role.company}-${index}`} label={text(role.period)}>
+            <Row key={`${role.company}-${index}`} label={periodOf(role)}>
               <div className={styles.withLogo}>
                 <Logo src={companyLogo(role.logo, role.company)} name={text(role.company) || text(role.role)} size={30} />
                 <div className={styles.stack}>
@@ -270,7 +270,7 @@ export function CvView({
       {schools.length > 0 && (
         <Section title="Education">
           {schools.map((school, index) => (
-            <Row key={`edu-${index}`} label={text(school.period)}>
+            <Row key={`edu-${index}`} label={periodOf(school)}>
               <div className={styles.withLogo}>
                 <Logo src={companyLogo(school.logo, school.institution || school.school)} name={text(school.school) || text(school.institution)} size={30} />
                 <div className={styles.stack}>
@@ -308,11 +308,13 @@ export function CvView({
 
       {services.length > 0 && (
         <Section title="Services">
-          {services.map((service, index) => (
-            <Row key={`svc-${index}`}>
-              <span className={styles.title}>{service}</span>
-            </Row>
-          ))}
+          <Row>
+            <ul className={styles.services}>
+              {services.map((service, index) => (
+                <li key={`svc-${index}`}>{service}</li>
+              ))}
+            </ul>
+          </Row>
         </Section>
       )}
 
@@ -432,8 +434,8 @@ export function CvPrint({
                 <strong>{text(role.role) || text(role.company)}</strong>
                 {text(role.role) && text(role.company) ? `, ${text(role.company)}` : ""}
               </p>
-              {(text(role.period) || text(role.location)) && (
-                <p className={styles.atsMeta}>{[text(role.period), text(role.location)].filter(Boolean).join("  |  ")}</p>
+              {(periodOf(role) || text(role.location)) && (
+                <p className={styles.atsMeta}>{[periodOf(role), text(role.location)].filter(Boolean).join("  |  ")}</p>
               )}
               {lines(role.description).length > 0 && (
                 <ul>
@@ -509,8 +511,8 @@ export function CvPrint({
                   ? `, ${text(school.school) || text(school.institution)}`
                   : ""}
               </p>
-              {(text(school.period) || text(school.location)) && (
-                <p className={styles.atsMeta}>{[text(school.period), text(school.location)].filter(Boolean).join("  |  ")}</p>
+              {(periodOf(school) || text(school.location)) && (
+                <p className={styles.atsMeta}>{[periodOf(school), text(school.location)].filter(Boolean).join("  |  ")}</p>
               )}
             </div>
           ))}
