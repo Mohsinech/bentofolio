@@ -61,22 +61,24 @@ export async function POST(request: Request) {
     const now = new Date();
     const ip = (request.headers.get("x-forwarded-for") || "").split(",")[0].trim() || request.headers.get("x-real-ip") || "";
     const country = (request.headers.get("x-vercel-ip-country") || "").toUpperCase();
+    // Columns every version of the table has.
     const base = {
       profile_id: profile.id,
       event_type: event,
       referrer: clip(body.referrer, 500),
       user_agent: userAgent.slice(0, 400),
-      clicked_url: event === "link_click" ? clip(body.clicked_url, 500) : null,
       created_at: now.toISOString(),
     };
     const detail = {
+      clicked_url: event === "link_click" ? clip(body.clicked_url, 500) : null,
       country: /^[A-Z]{2}$/.test(country) ? country : null,
       visitor_hash: ip ? visitorHash(ip, userAgent, now.toISOString().slice(0, 10)) : null,
       block: event === "link_click" ? clip(body.block, 32) : null,
     };
 
     let { error } = await getAdmin().from("profile_analytics").insert({ ...base, ...detail });
-    // Before migration 017 the detail columns don't exist yet.
+    // Before migration 017 the detail columns (and on some databases
+    // clicked_url) don't exist yet.
     if (error && /column|schema cache/i.test(error.message)) {
       ({ error } = await getAdmin().from("profile_analytics").insert(base));
     }
@@ -127,9 +129,10 @@ export async function GET(request: Request) {
       .order("created_at", { ascending: false })
       .limit(100_000);
     if (result.error && /column|schema cache/i.test(result.error.message)) {
+      // Whatever columns this database has (see migration 017).
       result = await getAdmin()
         .from("profile_analytics")
-        .select("event_type, created_at, referrer, user_agent, clicked_url")
+        .select("*")
         .eq("profile_id", profile.id)
         .gte("created_at", since)
         .order("created_at", { ascending: false })
@@ -137,7 +140,8 @@ export async function GET(request: Request) {
     }
     if (result.error) {
       console.error("Analytics fetch error:", result.error);
-      return NextResponse.json({ error: "Failed to fetch analytics" }, { status: 500 });
+      // Owner-only endpoint, so the database's reason is safe to show.
+      return NextResponse.json({ error: `Couldn't load analytics: ${result.error.message}` }, { status: 500 });
     }
 
     const dashboard = aggregate(result.data ?? [], period, new Date(), appHost());
