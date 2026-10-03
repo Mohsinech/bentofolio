@@ -41,6 +41,7 @@ function rolesOf(words: string): DiscoverRole[] {
 
 function isOpenToWork(blocks: BlockContent[]): boolean {
   for (const block of blocks) {
+    if (!block?.data) continue;
     if (block.type === "availability") {
       if (block.data.forHire || block.data.status === "available") return true;
     }
@@ -68,7 +69,10 @@ export async function getDiscoverProfiles(limit = 120): Promise<DiscoverProfile[
       .not("content", "is", null)
       .order("updated_at", { ascending: false })
       .limit(400);
-    if (error || !data) return [];
+    if (error || !data) {
+      console.error("Discover: couldn't load profiles", error);
+      return [];
+    }
 
     const rows = data.filter(
       (row) => row.username && row.discoverable !== false && !isPlaceholderUsername(row.username) && Array.isArray(row.layout) && row.layout.length > 0
@@ -76,33 +80,40 @@ export async function getDiscoverProfiles(limit = 120): Promise<DiscoverProfile[
 
     const profiles = await Promise.all(
       rows.map(async (row): Promise<(DiscoverProfile & { updatedAt: number }) | null> => {
-        const profile = toProfileData(row);
-        const hasSaas = Object.values(profile.content || {}).some((block) => block?.type === "saas");
-        const verified = hasSaas ? await getVerifiedRevenue(profile.id) : [];
-        const { blocks, summary } = publicPage(profile, verified);
-        if (!summary.hasName || !summary.headline || blocks.length < 3) return null;
+        // One page with old or odd data must not empty the whole list.
+        try {
+          const profile = toProfileData(row);
+          const hasSaas = Object.values(profile.content || {}).some((block) => block?.type === "saas");
+          const verified = hasSaas ? await getVerifiedRevenue(profile.id) : [];
+          const { blocks, summary } = publicPage(profile, verified);
+          // A real name and a few blocks; the headline is shown when there is one.
+          if (!summary.hasName || blocks.length < 3) return null;
 
-        const identity = blocks.find((block) => block.type === "identity");
-        const words =
-          identity?.type === "identity"
-            ? `${text(identity.data.title)} ${text(identity.data.headline)} ${text(identity.data.bio)}`
-            : summary.headline;
-        const verifiedRevenue = summary.proofs.some((proof) => proof.verified);
+          const identity = blocks.find((block) => block.type === "identity");
+          const words =
+            identity?.type === "identity"
+              ? `${text(identity.data.title)} ${text(identity.data.headline)} ${text(identity.data.bio)}`
+              : summary.headline;
+          const verifiedRevenue = summary.proofs.some((proof) => proof.verified);
 
-        return {
-          username: profile.username,
-          name: summary.name,
-          headline: summary.headline,
-          location: summary.location,
-          avatar: avatarUrl(profile.username, summary.avatar),
-          isPro: profile.isPro,
-          proof: summary.proofs[0] ?? null,
-          verifiedRevenue,
-          openToWork: isOpenToWork(blocks),
-          roles: rolesOf(words),
-          blocks: blocks.length,
-          updatedAt: row.updated_at ? Date.parse(row.updated_at) : 0,
-        };
+          return {
+            username: profile.username,
+            name: summary.name,
+            headline: summary.headline,
+            location: summary.location,
+            avatar: avatarUrl(profile.username, summary.avatar),
+            isPro: profile.isPro,
+            proof: summary.proofs[0] ?? null,
+            verifiedRevenue,
+            openToWork: isOpenToWork(blocks),
+            roles: rolesOf(words),
+            blocks: blocks.length,
+            updatedAt: row.updated_at ? Date.parse(row.updated_at) : 0,
+          };
+        } catch (rowError) {
+          console.error(`Discover: skipped ${row.username}`, rowError);
+          return null;
+        }
       })
     );
 
@@ -118,7 +129,8 @@ export async function getDiscoverProfiles(limit = 120): Promise<DiscoverProfile[
       )
       .slice(0, limit)
       .map(({ updatedAt: _updatedAt, ...profile }) => profile);
-  } catch {
+  } catch (listError) {
+    console.error("Discover: couldn't build the list", listError);
     return [];
   }
 }

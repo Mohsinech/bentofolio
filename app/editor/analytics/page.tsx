@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowDownRight, ArrowUpRight, Check, Copy, Loader2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Check, Copy } from "lucide-react";
 import { bentoFontClasses } from "@/app/components/bento/fonts";
 import m from "@/app/components/marketing/marketing.module.css";
 import { PREMIUM_PRICE } from "@/app/lib/config";
@@ -10,6 +10,7 @@ import { delta, type Dashboard, type Period } from "@/app/lib/analytics";
 import { useProfile } from "@/app/lib/hooks";
 import { useUpgrade } from "@/app/components/upgrade/UpgradeDialog";
 import s from "./analytics.module.css";
+import { StatsSkeleton } from "@/app/components/skeleton/Skeleton";
 
 type Locked = { locked: true; period: Period; totals: { views: number; visitors: number } };
 type Data = ({ locked: false } & Dashboard) | Locked;
@@ -266,7 +267,7 @@ export default function AnalyticsPage() {
           </p>
         )}
 
-        {(profileLoading || (loading && !data)) && !error && <Loader2 size={20} className={s.spin} aria-label="Loading" />}
+        {(profileLoading || (loading && !data)) && !error && <StatsSkeleton />}
 
         {data?.locked && (
           <section className={`${s.card} ${s.locked}`}>

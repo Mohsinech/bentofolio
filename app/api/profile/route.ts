@@ -85,12 +85,13 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // Try to get existing profile
-  const { data: existingProfile, error } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
+  // The profile and its unpublished draft, fetched together (one round trip
+  // instead of two). A missing draft table (migration 011 not applied yet) or
+  // no draft both mean "the editor starts from the live page".
+  const [{ data: existingProfile, error }, { data: draft }] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", user.id).single(),
+    supabase.from("profile_drafts").select("*").eq("profile_id", user.id).maybeSingle(),
+  ]);
   let data = existingProfile;
 
   // If profile doesn't exist, create one
@@ -173,14 +174,6 @@ export async function GET() {
       }
     }
   }
-
-  // The unpublished draft, if any. Missing table (migration 011 not applied
-  // yet) or no draft both mean "the editor starts from the live page".
-  const { data: draft } = await supabase
-    .from("profile_drafts")
-    .select("*")
-    .eq("profile_id", user.id)
-    .maybeSingle();
 
   return NextResponse.json({ ...data, draft: draft ?? null });
 }

@@ -63,6 +63,7 @@ import { addItem, moveItem, removeItem, sortByPosition } from "@/app/lib/bento-l
 import type { BlockContent, BlockLayout, BlockType, ThemeId } from "@/app/lib/types";
 import { generateId } from "@/app/lib/utils";
 import styles from "./editor.module.css";
+import { EditorSkeleton } from "@/app/components/skeleton/Skeleton";
 
 type LeftTab = "blocks" | "structure";
 type RemovedBlock = {
@@ -612,12 +613,7 @@ function EditorStudio() {
   }
 
   if (loading) {
-    return (
-      <main className={`${styles.loading} ${bentoFontClasses}`}>
-        <Loader2 className={styles.spin} size={22} />
-        <span>Opening your editor…</span>
-      </main>
-    );
+    return <EditorSkeleton className={bentoFontClasses} />;
   }
 
   if (error || !profile) {

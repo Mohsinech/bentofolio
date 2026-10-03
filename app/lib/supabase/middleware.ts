@@ -57,11 +57,12 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // Only the app needs the session checked here. Public pages (profiles,
-  // landing, pricing, link previews) skip the round trip to Supabase, which
-  // makes them faster; the browser keeps its own session fresh.
+  // Only the app's pages need the session checked here. Public pages
+  // (profiles, landing, pricing, link previews) skip the round trip to
+  // Supabase, and so do API routes: each one checks the user itself, so a
+  // second check here only made every save and load slower.
   const path = request.nextUrl.pathname;
-  const needsSession = ["/auth", "/editor", "/settings", "/onboarding", "/api", "/invite", "/admin"].some(
+  const needsSession = ["/auth", "/editor", "/settings", "/onboarding", "/invite", "/admin"].some(
     (prefix) => path === prefix || path.startsWith(`${prefix}/`)
   );
   if (!needsSession) {

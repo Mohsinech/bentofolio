@@ -9,6 +9,7 @@ import m from "@/app/components/marketing/marketing.module.css";
 import { useAuth } from "@/app/lib/hooks/useAuth";
 import { APP_DOMAIN } from "@/app/lib/config";
 import s from "./invite.module.css";
+import { SectionsSkeleton } from "@/app/components/skeleton/Skeleton";
 
 type ReferralInvite = { id: string; email: string; referral_code: string; created_at: string };
 type ReferralSignup = { id: string; referred_email: string | null; created_at: string };
@@ -131,7 +132,7 @@ export default function InvitePage() {
         </section>
 
         {authLoading || loading ? (
-          <Loader2 size={20} className={s.spin} aria-label="Loading" />
+          <SectionsSkeleton sections={2} label="Loading your invites" />
         ) : !user ? (
           <section className={s.card}>
             <h2>Sign in to get your invite links.</h2>
