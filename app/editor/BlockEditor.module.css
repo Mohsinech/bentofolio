@@ -670,18 +670,24 @@
 }
 
 .inlineItem .input {
-  border-color: transparent;
-  background: transparent;
+  min-height: 34px;
+}
+
+/* Short rows: the controls float over the end of the field on hover, so
+   the field keeps the full width. */
+.inlineItem {
+  position: relative;
+}
+
+.inlineItem .itemActions {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%);
   padding-left: 6px;
-}
-
-.inlineItem .input:hover {
-  border-color: var(--i-line-strong);
-}
-
-.inlineItem .input:focus {
-  border-color: var(--i-accent);
+  border-radius: 8px;
   background: #fff;
+  box-shadow: -10px 0 10px #fff;
 }
 
 .iconButton {

@@ -994,7 +994,7 @@ function BlockFields({ blockId, content, onUpdate }: BlockFieldsProps) {
             <div className={styles.row}>
               <input
                 className={styles.input}
-                style={{ width: "6rem", flex: "none" }}
+                style={{ width: "5rem", flex: "none" }}
                 value={item.value || ""}
                 aria-label="Value"
                 onChange={(event) => handleChange("items", patchAt(items, i, { value: event.target.value }))}
@@ -1680,13 +1680,30 @@ interface LocationSuggestion {
   lng: number;
 }
 
+// Place search uses Photon (photon.komoot.io): OpenStreetMap data, built for
+// type-ahead, so "casa" already suggests Casablanca. Nominatim is the backup.
+interface PhotonFeature {
+  geometry?: { coordinates?: [number, number] };
+  properties?: {
+    osm_id?: number;
+    osm_type?: string;
+    osm_key?: string;
+    osm_value?: string;
+    type?: string;
+    name?: string;
+    city?: string;
+    county?: string;
+    state?: string;
+    country?: string;
+  };
+}
+
 interface NominatimPlace {
   place_id: number;
   display_name: string;
   name?: string;
   lat: string;
   lon: string;
-  type?: string;
   address?: {
     city?: string;
     town?: string;
@@ -1698,16 +1715,91 @@ interface NominatimPlace {
   };
 }
 
-function toSuggestion(place: NominatimPlace): LocationSuggestion | null {
-  const lat = Number(place.lat);
-  const lng = Number(place.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+function placeSuggestion(id: string, town: string, region: string | undefined, country: string | undefined, lat: number, lng: number) {
+  if (!town || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  const label = [town, country && country !== town ? country : ""].filter(Boolean).join(", ");
+  const detail = [region, country].filter((part) => part && part !== town).join(", ");
+  return { id, label, detail, lat, lng } satisfies LocationSuggestion;
+}
+
+// Towns and cities first, then wider areas; streets and shops never.
+const PLACE_RANK: Record<string, number> = {
+  city: 0,
+  town: 1,
+  municipality: 1,
+  village: 2,
+  suburb: 3,
+  borough: 3,
+  hamlet: 4,
+  county: 5,
+  district: 5,
+  state: 6,
+  region: 6,
+  province: 6,
+  country: 7,
+};
+
+function fromPhoton(feature: PhotonFeature): LocationSuggestion | null {
+  const p = feature.properties || {};
+  const [lng, lat] = feature.geometry?.coordinates || [NaN, NaN];
+  const kind = p.osm_value || p.type || "";
+  if (!(kind in PLACE_RANK)) return null;
+  const region = p.state && p.state !== p.name ? p.state : p.county;
+  return placeSuggestion(`${p.osm_type || ""}${p.osm_id ?? `${lat},${lng}`}`, p.name || p.city || "", region, p.country, lat, lng);
+}
+
+function fromNominatim(place: NominatimPlace): LocationSuggestion | null {
   const a = place.address || {};
   const town = a.city || a.town || a.village || a.municipality || place.name || place.display_name.split(",")[0];
-  const country = a.country || "";
-  const label = [town, country && country !== town ? country : ""].filter(Boolean).join(", ");
-  const detail = [a.state || a.county, country].filter((part) => part && part !== town).join(", ");
-  return { id: String(place.place_id), label: label || place.display_name, detail, lat, lng };
+  return placeSuggestion(String(place.place_id), town, a.state || a.county, a.country, Number(place.lat), Number(place.lon));
+}
+
+async function searchPlaces(query: string, signal: AbortSignal): Promise<LocationSuggestion[]> {
+  let places: LocationSuggestion[] = [];
+  try {
+    const response = await fetch(
+      `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=12&lang=en&osm_tag=place`,
+      { signal }
+    );
+    if (!response.ok) throw new Error(String(response.status));
+    const json = (await response.json()) as { features?: PhotonFeature[] };
+    places = (json.features || [])
+      .map((feature) => ({ feature, place: fromPhoton(feature) }))
+      .filter((entry): entry is { feature: PhotonFeature; place: LocationSuggestion } => Boolean(entry.place))
+      // Keep Photon's relevance order, but put cities ahead of regions.
+      .map((entry, index) => ({ ...entry, score: index + (PLACE_RANK[entry.feature.properties?.osm_value || ""] ?? 4) * 1.5 }))
+      .sort((x, y) => x.score - y.score)
+      .map((entry) => entry.place);
+  } catch (error) {
+    if ((error as DOMException).name === "AbortError") throw error;
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&accept-language=en&q=${encodeURIComponent(query)}`,
+      { signal }
+    );
+    places = ((await response.json()) as NominatimPlace[])
+      .map(fromNominatim)
+      .filter((place): place is LocationSuggestion => Boolean(place));
+  }
+  const seen = new Set<string>();
+  return places.filter((place) => (seen.has(place.label) ? false : (seen.add(place.label), true))).slice(0, 6);
+}
+
+async function placeAt(lat: number, lng: number): Promise<LocationSuggestion | null> {
+  try {
+    const response = await fetch(`https://photon.komoot.io/reverse?lat=${lat}&lon=${lng}&lang=en&limit=1`);
+    const feature = ((await response.json()) as { features?: PhotonFeature[] }).features?.[0];
+    const p = feature?.properties || {};
+    const town = p.city || (p.osm_value && p.osm_value in PLACE_RANK ? p.name : "") || p.county || "";
+    const found = placeSuggestion(`${lat},${lng}`, town, p.state, p.country, lat, lng);
+    if (found) return found;
+  } catch {
+    // Try Nominatim.
+  }
+  const response = await fetch(
+    `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=10&accept-language=en&lat=${lat}&lon=${lng}`
+  );
+  const place = fromNominatim((await response.json()) as NominatimPlace);
+  return place ? { ...place, lat, lng } : null;
 }
 
 function LocationAutocompleteField({
@@ -1754,17 +1846,7 @@ function LocationAutocompleteField({
     const timer = window.setTimeout(async () => {
       setLoading(true);
       try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&limit=6&featuretype=settlement&accept-language=en&q=${encodeURIComponent(query)}`,
-          { signal: controller.signal }
-        );
-        const places = (await response.json()) as NominatimPlace[];
-        const seen = new Set<string>();
-        const mapped = places
-          .map(toSuggestion)
-          .filter((place): place is LocationSuggestion => Boolean(place))
-          .filter((place) => (seen.has(place.label) ? false : (seen.add(place.label), true)))
-          .slice(0, 5);
+        const mapped = await searchPlaces(query, controller.signal);
         locationSuggestionCache.set(cacheKey, mapped);
         setSuggestions(mapped);
         setOpen(true);
@@ -1774,7 +1856,7 @@ function LocationAutocompleteField({
       } finally {
         setLoading(false);
       }
-    }, 350);
+    }, 250);
     return () => {
       window.clearTimeout(timer);
       controller.abort();
@@ -1800,11 +1882,8 @@ function LocationAutocompleteField({
       async (position) => {
         try {
           const { latitude, longitude } = position.coords;
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=10&accept-language=en&lat=${latitude}&lon=${longitude}`
-          );
-          const place = toSuggestion((await response.json()) as NominatimPlace);
-          if (place) choose({ ...place, lat: latitude, lng: longitude });
+          const place = await placeAt(latitude, longitude);
+          if (place) choose(place);
           else setMessage("Couldn't name that place. Type your city instead.");
         } catch {
           setMessage("Couldn't look up your location. Type your city instead.");
