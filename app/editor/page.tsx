@@ -29,6 +29,7 @@ import {
   Smartphone,
   Sun,
   Trash2,
+  X,
 } from "lucide-react";
 
 import { useUpgrade } from "@/app/components/upgrade/UpgradeDialog";
@@ -64,6 +65,16 @@ import { generateId } from "@/app/lib/utils";
 import styles from "./editor.module.css";
 
 type LeftTab = "blocks" | "structure";
+type RemovedBlock = {
+  block: BlockLayout;
+  content: BlockContent | undefined;
+  name: string;
+  wasSelected: boolean;
+  disconnect: boolean;
+  timer: number;
+};
+// How long Undo stays offered after deleting a block.
+const UNDO_MS = 6000;
 type PreviewMode = "desktop" | "mobile";
 type ResizeSide = "left" | "right";
 
@@ -172,6 +183,8 @@ function EditorStudio() {
   const savedSnapshotRef = useRef<string>("");
   const canvasRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [removed, setRemoved] = useState<RemovedBlock | null>(null);
+  const removedRef = useRef<RemovedBlock | null>(null);
   const resizeStateRef = useRef<{
     side: ResizeSide;
     startX: number;
@@ -463,22 +476,77 @@ function EditorStudio() {
     showStatus(`${getBlockDefinition(type).v2Name} added`);
   }
 
+  // Deleting is instant; a toast offers Undo for a few seconds. A SaaS
+  // block's stored provider key is only removed once that window has passed.
+  function finishRemoval(pending: RemovedBlock | null) {
+    if (!pending) return;
+    window.clearTimeout(pending.timer);
+    if (pending.disconnect) void disconnectRevenue(pending.block.id);
+  }
+
   function handleRemoveBlock(id: string) {
     const block = layout.find((item) => item.id === id);
-    const blockName = block ? getBlockDefinition(block.type).v2Name : "block";
+    const blockContent = content[id];
+    if (!block) return;
 
-    if (!window.confirm(`Remove ${blockName}?`)) return;
-
+    finishRemoval(removedRef.current);
     const nextContent = { ...content };
     delete nextContent[id];
-    // A removed SaaS block shouldn't leave a stored provider key behind.
-    if (block?.type === "saas" && revenueConnections.some((c) => c.block_id === id)) {
-      void disconnectRevenue(id);
-    }
     setLayout(removeItem(layout, id));
     setContent(nextContent);
-    selectBlock(null);
-    showStatus("Block removed");
+    if (selectedBlockId === id) selectBlock(null);
+
+    const pending: RemovedBlock = {
+      block,
+      content: blockContent,
+      name: getBlockDefinition(block.type).v2Name,
+      wasSelected: selectedBlockId === id,
+      disconnect: block.type === "saas" && revenueConnections.some((c) => c.block_id === id),
+      timer: window.setTimeout(() => {
+        finishRemoval(removedRef.current);
+        removedRef.current = null;
+        setRemoved(null);
+      }, UNDO_MS),
+    };
+    removedRef.current = pending;
+    setRemoved(pending);
+  }
+
+  function undoRemove() {
+    const pending = removedRef.current;
+    if (!pending) return;
+    window.clearTimeout(pending.timer);
+    removedRef.current = null;
+    setRemoved(null);
+    // Back where it was; blocks that moved into its place make room.
+    const { block } = pending;
+    const restored = addItem(layout, { id: block.id, type: block.type, w: block.w, h: block.h } as BlockLayout);
+    setLayout(moveItem(restored, block.id, block.x, block.y));
+    if (pending.content) setContent({ ...content, [block.id]: pending.content });
+    if (pending.wasSelected) handleSelectBlock(block.id);
+  }
+
+  // Ctrl/Cmd+Z undoes a delete while its toast is up (not while typing).
+  useEffect(() => {
+    if (!removed) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.shiftKey || event.key.toLowerCase() !== "z") return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+      event.preventDefault();
+      undoRemove();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
+
+  // Leaving the editor ends the undo window.
+  useEffect(() => () => finishRemoval(removedRef.current), []);
+
+  function dismissRemoved() {
+    finishRemoval(removedRef.current);
+    removedRef.current = null;
+    setRemoved(null);
   }
 
   function handleDuplicateBlock(id: string) {
@@ -1033,6 +1101,20 @@ function EditorStudio() {
             </button>
           )}
         </section>
+        {removed && (
+          <div className={styles.toast} role="status" aria-live="polite" key={removed.block.id}>
+            <span>
+              <strong>{removed.name}</strong> removed
+            </span>
+            <button type="button" className={styles.toastUndo} onClick={undoRemove}>
+              Undo
+            </button>
+            <button type="button" className={styles.toastClose} onClick={dismissRemoved} aria-label="Dismiss">
+              <X size={14} />
+            </button>
+            <span className={styles.toastBar} style={{ animationDuration: `${UNDO_MS}ms` }} aria-hidden="true" />
+          </div>
+        )}
         {usernameDialog && (
           <UsernameDialog
             mode={usernameDialog}
