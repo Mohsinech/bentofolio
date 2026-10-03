@@ -10,6 +10,7 @@ import { createClient } from "@/app/lib/supabase/client";
 import { PREMIUM_PRICE } from "@/app/lib/config";
 import type { DomainStatus } from "@/app/lib/domains";
 import { checkUsernameFormat, normalizeUsername, usernameMessage } from "@/app/lib/usernames";
+import { useUpgrade } from "@/app/components/upgrade/UpgradeDialog";
 import s from "./settings.module.css";
 
 interface Settings {
@@ -79,6 +80,7 @@ function CopyButton({ value }: { value: string }) {
 export default function SettingsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<Settings | null>(null);
+  const { openUpgrade, upgradeDialog } = useUpgrade();
   const [loadError, setLoadError] = useState<string | null>(null);
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -399,9 +401,9 @@ export default function SettingsPage() {
                 {!settings.isPro ? (
                   <div className={s.foot}>
                     <span className={s.muted}>Custom domains come with Pro, ${PREMIUM_PRICE} once.</span>
-                    <Link href="/pricing" className={`${m.btn} ${m.btnAccent} ${s.small}`}>
+                    <button type="button" onClick={() => openUpgrade("domain")} className={`${m.btn} ${m.btnAccent} ${s.small}`}>
                       Get Pro
-                    </Link>
+                    </button>
                   </div>
                 ) : !domain?.domain ? (
                   <form className={s.body} onSubmit={connectDomain}>
@@ -589,9 +591,9 @@ export default function SettingsPage() {
                       Analytics
                     </Link>
                   ) : (
-                    <Link href="/pricing" className={`${m.btn} ${m.btnAccent} ${s.small}`}>
+                    <button type="button" onClick={() => openUpgrade()} className={`${m.btn} ${m.btnAccent} ${s.small}`}>
                       Get Pro — ${PREMIUM_PRICE}
-                    </Link>
+                    </button>
                   )}
                 </div>
               </section>
@@ -706,6 +708,7 @@ export default function SettingsPage() {
           {toast.text}
         </div>
       )}
+      {upgradeDialog}
     </div>
   );
 }

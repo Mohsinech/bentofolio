@@ -32,6 +32,7 @@ import {
   Trash2,
 } from "lucide-react";
 
+import { useUpgrade } from "@/app/components/upgrade/UpgradeDialog";
 import { BlockEditor } from "./BlockEditor";
 import { UsernameDialog } from "./UsernameDialog";
 import { applyVerifiedRevenue } from "@/app/lib/revenue/overlay";
@@ -133,6 +134,7 @@ function EditorStudio() {
     hasProAccess,
   } = useProfile();
   const { signOut, githubUsername } = useAuth();
+  const { openUpgrade, upgradeDialog } = useUpgrade();
   const router = useRouter();
   // A brand-new account (nothing saved or published) starts in onboarding.
   const isFresh = Boolean(profile && isFreshPage(profile));
@@ -440,7 +442,7 @@ function EditorStudio() {
     const definition = getBlockDefinition(type);
 
     if (definition.accessLevel === "pro" && !hasProAccess) {
-      showStatus("This block is Pro");
+      openUpgrade("embeds");
       return;
     }
 
@@ -479,7 +481,7 @@ function EditorStudio() {
     const sourceContent = content[id];
     if (!source || !sourceContent) return;
     if (getBlockDefinition(source.type).accessLevel === "pro" && !hasProAccess) {
-      showStatus("This block is Pro");
+      openUpgrade("embeds");
       return;
     }
     const copyId = generateId();
@@ -1023,6 +1025,7 @@ function EditorStudio() {
             onClose={() => setUsernameDialog(null)}
           />
         )}
+        {upgradeDialog}
       </main>
     </>
   );

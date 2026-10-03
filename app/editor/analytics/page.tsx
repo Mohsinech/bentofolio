@@ -8,6 +8,7 @@ import m from "@/app/components/marketing/marketing.module.css";
 import { PREMIUM_PRICE } from "@/app/lib/config";
 import { delta, type Dashboard, type Period } from "@/app/lib/analytics";
 import { useProfile } from "@/app/lib/hooks";
+import { useUpgrade } from "@/app/components/upgrade/UpgradeDialog";
 import s from "./analytics.module.css";
 
 type Locked = { locked: true; period: Period; totals: { views: number; visitors: number } };
@@ -163,6 +164,7 @@ function DailyChart({ daily }: { daily: Dashboard["daily"] }) {
 export default function AnalyticsPage() {
   const { profile, loading: profileLoading } = useProfile();
   const [period, setPeriod] = useState<Period>(30);
+  const { openUpgrade, upgradeDialog } = useUpgrade();
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -278,9 +280,9 @@ export default function AnalyticsPage() {
                 : "Share your link to start getting visits. With Pro you see where visitors come from and what they click."}
             </p>
             <div className={s.lockedActions}>
-              <Link href="/pricing" className={`${m.btn} ${m.btnAccent}`}>
+              <button type="button" className={`${m.btn} ${m.btnAccent}`} onClick={() => openUpgrade("analytics")}>
                 Unlock analytics — ${PREMIUM_PRICE} once
-              </Link>
+              </button>
               <button type="button" className={`${m.btn} ${m.btnGhost}`} onClick={copyLink}>
                 {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
                 {copied ? "Copied" : "Copy your link"}
@@ -340,6 +342,7 @@ export default function AnalyticsPage() {
           </div>
         )}
       </main>
+      {upgradeDialog}
     </div>
   );
 }

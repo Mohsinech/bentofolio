@@ -45,8 +45,16 @@ export async function POST(request: Request) {
       );
     }
 
+    // Already Pro (a second tab, a double click): nothing to buy.
+    const { data: current } = await supabase.from("profiles").select("is_pro").eq("id", user.id).maybeSingle();
+    if (current?.is_pro) {
+      return NextResponse.json({ upgraded: true, url: `${getAppUrl()}/upgrade/success` });
+    }
+
     const body = await request.json().catch(() => ({}));
     const discountCode = normalizeCouponCode(body.discountCode);
+    // true when the browser opens checkout on top of the page (lemon.js).
+    const embed = body.embed === true;
 
     const betaActivation = await activateBetaFreeProCode({
       userId: user.id,
@@ -63,7 +71,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         upgraded: true,
-        url: `${getAppUrl()}/editor?upgraded=true`,
+        url: `${getAppUrl()}/upgrade/success`,
       });
     }
 
@@ -119,7 +127,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({
           upgraded: true,
-          url: `${getAppUrl()}/editor?upgraded=true`,
+          url: `${getAppUrl()}/upgrade/success`,
         });
       }
     }
@@ -177,19 +185,20 @@ export async function POST(request: Request) {
               },
             },
             checkout_options: {
-              dark: true,
-              embed: false,
+              dark: false,
+              embed,
               media: false,
               logo: true,
-              button_color: "#d7ff5f",
+              button_color: "#2b44ff",
             },
             product_options: {
-              name: "BentoFolio Pro",
-              description: `One-time payment of $${PREMIUM_PRICE} for custom domains, analytics, embed blocks and the verified badge`,
-              receipt_button_text: "Go to Dashboard",
-              receipt_thank_you_note:
-                "Thanks for upgrading to Pro! You can now connect your custom domain.",
-              redirect_url: `${getAppUrl()}/editor?upgraded=true`,
+              name: "bentofolio Pro",
+              description: `One payment of $${PREMIUM_PRICE}, yours for good: custom domain, analytics, media blocks, the verified badge and CV as PDF.`,
+              receipt_button_text: "Open bentofolio",
+              receipt_link_url: `${getAppUrl()}/upgrade/success`,
+              receipt_thank_you_note: "Thanks for going Pro. Everything is unlocked on your account.",
+              // Full-page checkout comes back here; the page confirms the order.
+              redirect_url: `${getAppUrl()}/upgrade/success`,
             },
           },
           relationships: {

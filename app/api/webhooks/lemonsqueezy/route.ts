@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/app/lib/supabase/admin";
 import crypto from "crypto";
-import { sendEmail, emailTemplates } from "@/app/lib/email";
+import { grantPro } from "@/app/lib/pro-unlock";
 
 // Service-role client, created on first use. Creating it when the module
 // loads would run at build time and fail the whole build whenever the
@@ -75,43 +75,25 @@ export async function POST(request: Request) {
         `Order ${orderId} - Status: ${orderStatus}, User: ${userId}, Email: ${customerEmail}, Total: ${orderTotal}`
       );
 
-      // Only upgrade if order is paid
+      // Only upgrade if order is paid. Shared with the thank-you page, which
+      // may have turned Pro on already; the receipt is sent once either way.
       if (orderStatus === "paid") {
-        // Update user to Pro
-        const { error } = await getAdmin()
-          .from("profiles")
-          .update({
-            is_pro: true,
-            upgraded_at: new Date().toISOString(),
-            lemon_squeezy_order_id: orderId,
-          })
-          .eq("id", userId);
-
-        if (error) {
-          console.error("Error updating profile:", error);
-          return NextResponse.json(
-            { error: "Failed to upgrade user" },
-            { status: 500 }
-          );
-        }
-
-        console.log(`User ${userId} upgraded to Pro successfully`);
-
-        // Get user profile to send welcome email
-        const { data: profile } = await getAdmin()
-          .from("profiles")
-          .select("username")
-          .eq("id", userId)
-          .single();
-
-        if (profile && customerEmail) {
-          const emailTemplate = emailTemplates.welcomePro(profile.username);
-          await sendEmail({
-            to: customerEmail,
-            subject: emailTemplate.subject,
-            html: emailTemplate.html,
-          });
-          console.log(`Welcome email sent to ${customerEmail}`);
+        const attributes = event.data.attributes;
+        const result = await grantPro(getAdmin(), userId, {
+          id: String(orderId),
+          orderNumber: attributes.order_number != null ? String(attributes.order_number) : null,
+          email: customerEmail ?? null,
+          total: orderTotal ?? null,
+          createdAt: attributes.created_at ?? null,
+        });
+        if (result.conflict) {
+          // Retrying won't change this, so don't ask Lemon Squeezy to.
+          console.error(`Order ${orderId} is already on another account; not moved to ${userId}`);
+        } else if (result.error) {
+          console.error("Error upgrading profile:", result.error);
+          return NextResponse.json({ error: "Failed to upgrade user" }, { status: 500 });
+        } else {
+          console.log(result.granted ? `User ${userId} upgraded to Pro` : `User ${userId} was already Pro`);
         }
       }
     }
