@@ -220,11 +220,25 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      console.error("Lemon Squeezy error:", error);
+      const raw = await response.text();
+      console.error("Lemon Squeezy error:", response.status, raw);
+      const problems = lemonErrors(raw);
+      // A code Lemon Squeezy doesn't know (or that ran out) is the usual cause:
+      // say so instead of a generic failure.
+      if (discountCode && problems.some((problem) => /discount/i.test(`${problem.pointer} ${problem.detail}`))) {
+        return NextResponse.json(
+          { error: `The code ${discountCode} isn't valid or has expired. Check it, or continue without a code.` },
+          { status: 400 }
+        );
+      }
+      const detail = problems.map((problem) => problem.detail).filter(Boolean)[0];
       return NextResponse.json(
-        { error: "Failed to create checkout" },
-        { status: 500 }
+        {
+          error: detail
+            ? `Checkout couldn't start: ${detail}`
+            : "Checkout couldn't start. Please try again in a moment.",
+        },
+        { status: response.status >= 400 && response.status < 500 ? 502 : 500 }
       );
     }
 
@@ -238,5 +252,18 @@ export async function POST(request: Request) {
       { error: "Internal server error" },
       { status: 500 }
     );
+  }
+}
+
+// Lemon Squeezy answers errors as JSON:API: { errors: [{ detail, source: { pointer } }] }.
+function lemonErrors(raw: string): { detail: string; pointer: string }[] {
+  try {
+    const body = JSON.parse(raw) as { errors?: { detail?: string; title?: string; source?: { pointer?: string } }[] };
+    return (body.errors || []).map((error) => ({
+      detail: String(error.detail || error.title || ""),
+      pointer: String(error.source?.pointer || ""),
+    }));
+  } catch {
+    return [];
   }
 }

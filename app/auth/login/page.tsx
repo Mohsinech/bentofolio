@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowRight, Github, Lock, Mail } from "lucide-react";
@@ -12,6 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // A name claimed on the landing page rides along, so "Sign up" keeps it.
+  const [claimed, setClaimed] = useState("");
+  useEffect(() => {
+    setClaimed(new URLSearchParams(window.location.search).get("username")?.trim() || "");
+  }, []);
   const router = useRouter();
   const supabase = createClient();
 
@@ -133,7 +138,7 @@ export default function LoginPage() {
         <div className={styles.footer}>
           <p className={styles.footerText}>
             New here?{" "}
-            <Link href="/auth/signup" className={styles.footerLink}>
+            <Link href={claimed ? `/auth/signup?username=${encodeURIComponent(claimed)}` : "/auth/signup"} className={styles.footerLink}>
               Create your page
             </Link>
           </p>

@@ -20,7 +20,9 @@ import {
   moveItem,
   nearestSize,
   resizeItem,
+  rowAt,
   rowCount,
+  rowsTo,
   sizeKeyFor,
   stepDownTarget,
   toMobileLayout,
@@ -30,7 +32,7 @@ import {
   draftMessageForBlock,
   hasRenderableBlockContent,
 } from "@/app/components/v2-portfolio/mapProfileToV2Portfolio";
-import { BentoBlockBody, FULL_BLEED_TYPES, OWN_SURFACE_TYPES } from "./BentoBlocks";
+import { BentoBlockBody, FULL_BLEED_TYPES, GROW_TYPES, OWN_SURFACE_TYPES } from "./BentoBlocks";
 import { supportedSizes } from "./grid-layout";
 import styles from "./bento.module.css";
 
@@ -63,7 +65,7 @@ type Gesture =
       grabRow: number;
       active: boolean;
     }
-  | { kind: "resize"; id: string; pointerId: number; left: number; top: number; supported: SizeKey[] };
+  | { kind: "resize"; id: string; pointerId: number; left: number; row: number; supported: SizeKey[] };
 
 const DRAG_THRESHOLD = 6;
 
@@ -99,9 +101,15 @@ export function BentoGrid({ layout, content, avatarUrl, isPro, forceMobile = fal
     const rect = grid.getBoundingClientRect();
     const computed = window.getComputedStyle(grid);
     const gap = parseFloat(computed.columnGap) || 14;
-    const rowHeight = parseFloat(computed.gridAutoRows) || 176;
+    // grid-auto-rows is "minmax(176px, auto)": rows are at least that tall
+    // and grow with their content, so read each row's real height too.
+    const rowHeight = parseFloat(/[\d.]+px/.exec(computed.gridAutoRows)?.[0] || "") || 176;
+    const rows = computed.gridTemplateRows
+      .split(/\s+/)
+      .map((track) => parseFloat(track))
+      .filter((track) => Number.isFinite(track));
     const colWidth = (rect.width - gap * (DESKTOP_COLS - 1)) / DESKTOP_COLS;
-    return { left: rect.left, top: rect.top, colWidth, rowHeight, gap };
+    return { left: rect.left, top: rect.top, colWidth, rowHeight, rows, gap };
   }, []);
 
   // ---- move -------------------------------------------------------------
@@ -113,7 +121,7 @@ export function BentoGrid({ layout, content, avatarUrl, isPro, forceMobile = fal
     const geometry = measure();
     if (!geometry) return;
     const grabCol = Math.max(0, Math.min(item.w - 1, Math.floor((event.clientX - geometry.left) / (geometry.colWidth + geometry.gap)) - item.x));
-    const grabRow = Math.max(0, Math.min(item.h - 1, Math.floor((event.clientY - geometry.top) / (geometry.rowHeight + geometry.gap)) - item.y));
+    const grabRow = Math.max(0, Math.min(item.h - 1, rowAt(geometry, event.clientY - geometry.top) - item.y));
     gestureRef.current = {
       kind: "move",
       id: item.id,
@@ -151,7 +159,7 @@ export function BentoGrid({ layout, content, avatarUrl, isPro, forceMobile = fal
 
     // resize
     const w = Math.round((event.clientX - gesture.left + geometry.gap / 2) / (geometry.colWidth + geometry.gap));
-    const h = Math.round((event.clientY - gesture.top + geometry.gap / 2) / (geometry.rowHeight + geometry.gap));
+    const h = rowsTo(geometry, gesture.row, event.clientY - geometry.top);
     const key = nearestSize(Math.max(1, w), Math.max(1, h), gesture.supported);
     const size = SIZE_DIMENSIONS[key];
     setPreview(resizeItem(layout, gesture.id, size.w, size.h));
@@ -185,7 +193,7 @@ export function BentoGrid({ layout, content, avatarUrl, isPro, forceMobile = fal
       id: item.id,
       pointerId: event.pointerId,
       left: geometry.left + item.x * (geometry.colWidth + geometry.gap),
-      top: geometry.top + item.y * (geometry.rowHeight + geometry.gap),
+      row: item.y,
       supported: supportedSizes(item.type),
     };
     setDraggingId(item.id);
@@ -261,6 +269,7 @@ export function BentoGrid({ layout, content, avatarUrl, isPro, forceMobile = fal
             key={item.id}
             data-cell
             data-block={item.type}
+            data-grow={GROW_TYPES.has(item.type) ? "" : undefined}
             data-top={item.y === 0 ? "true" : undefined}
             data-h={item.h}
             data-w={item.w}

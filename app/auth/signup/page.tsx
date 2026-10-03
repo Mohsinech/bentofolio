@@ -153,7 +153,7 @@ export default function SignupPage() {
           <div className={styles.footer}>
             <p className={styles.footerText}>
               Already confirmed?{" "}
-              <Link href="/auth/login" className={styles.footerLink}>
+              <Link href={claimed ? `/auth/login?username=${encodeURIComponent(claimed)}` : "/auth/login"} className={styles.footerLink}>
                 Log in
               </Link>
             </p>
@@ -246,7 +246,7 @@ export default function SignupPage() {
         <div className={styles.footer}>
           <p className={styles.footerText}>
             Already have an account?{" "}
-            <Link href="/auth/login" className={styles.footerLink}>
+            <Link href={claimed ? `/auth/login?username=${encodeURIComponent(claimed)}` : "/auth/login"} className={styles.footerLink}>
               Log in
             </Link>
           </p>
