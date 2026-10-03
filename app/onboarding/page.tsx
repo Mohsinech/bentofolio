@@ -13,6 +13,7 @@ import { GRID_LAYOUT_VERSION } from "@/app/components/bento/grid-layout";
 import { STARTERS, buildStarter, isFreshPage, type StarterGitHub, type StarterId } from "@/app/lib/starters";
 import { checkUsernameFormat, isPlaceholderUsername, normalizeUsername, usernameMessage } from "@/app/lib/usernames";
 import s from "./onboarding.module.css";
+import { SectionsSkeleton } from "@/app/components/skeleton/Skeleton";
 
 type Step = 1 | 2 | 3;
 type Picture = "photo" | "memoji" | "none";
@@ -252,7 +253,9 @@ export default function OnboardingPage() {
   if (step === null) {
     return (
       <div className={`${bentoFontClasses} ${m.page} ${s.loading}`}>
-        <Loader2 size={20} className={s.spin} aria-label="Loading" />
+        <div style={{ width: "min(560px, 100%)", padding: "0 16px", boxSizing: "border-box" }}>
+          <SectionsSkeleton sections={2} label="Getting your page ready" />
+        </div>
       </div>
     );
   }

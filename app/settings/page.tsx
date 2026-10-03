@@ -12,6 +12,7 @@ import type { DomainStatus } from "@/app/lib/domains";
 import { checkUsernameFormat, normalizeUsername, usernameMessage } from "@/app/lib/usernames";
 import { useUpgrade } from "@/app/components/upgrade/UpgradeDialog";
 import s from "./settings.module.css";
+import { SectionsSkeleton } from "@/app/components/skeleton/Skeleton";
 
 interface Settings {
   username: string;
@@ -329,7 +330,7 @@ export default function SettingsPage() {
               {loadError}
             </p>
           )}
-          {!settings && !loadError && <Loader2 size={20} className={s.spin} aria-label="Loading" />}
+          {!settings && !loadError && <SectionsSkeleton sections={4} label="Loading settings" />}
 
           {settings && (
             <>

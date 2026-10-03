@@ -955,25 +955,32 @@
   }
 }
 
-/* The picture keeps its own shape: never cropped, never squeezed. */
+/* Every picture sits in a frame of the same shape, so projects side by
+   side line up. The picture fills the frame from the top (site
+   screenshots keep their header in view). */
 .projectImage {
   position: relative;
-  flex: 1 1 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
+  flex: 0 0 auto;
+  aspect-ratio: 16 / 10;
   overflow: hidden;
   background: var(--bento-card-2);
 }
 
 .workBeside .projectImage {
   flex: 0 0 50%;
+  aspect-ratio: 4 / 3;
+  align-self: flex-start;
 }
 
 .projectImage img {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
   transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
@@ -982,7 +989,8 @@
 }
 
 .projectPlaceholder {
-  aspect-ratio: 16 / 10;
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;

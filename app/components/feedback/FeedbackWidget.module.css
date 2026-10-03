@@ -1,9 +1,18 @@
+/* Feedback, "Quiet proof": a small ink button that opens a white card. */
+
 .wrap {
+  --ink: #111110;
+  --body: #55544f;
+  --muted: #6f6e69;
+  --line: #ecebe8;
+  --line-strong: #deddd8;
+  --accent: #2b44ff;
   position: fixed;
   right: 20px;
   bottom: 20px;
   z-index: 80;
-  font-family: var(--font-editor-body), var(--font-saans), system-ui, sans-serif;
+  font-family: var(--bento-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: var(--ink);
 }
 
 .trigger,
@@ -15,47 +24,56 @@
 }
 
 .trigger {
-  width: 54px;
-  height: 54px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
-  background: #d7ff5f;
-  color: #080809;
-  box-shadow:
-    0 18px 55px rgba(0, 0, 0, 0.38),
-    0 0 0 1px rgba(255, 255, 255, 0.18) inset;
-  font-size: 1.45rem;
-  font-weight: 900;
+  border-radius: 99px;
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 10px 28px -12px rgba(17, 17, 16, 0.55);
   transition:
-    transform 180ms ease,
-    filter 180ms ease;
+    transform 0.15s ease,
+    background-color 0.15s ease;
 }
 
 .trigger:hover {
-  transform: translateY(-2px) scale(1.03);
-  filter: brightness(1.03);
+  transform: translateY(-1px);
+  background: #2a2a28;
+}
+
+.triggerOpen {
+  background: #fff;
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px var(--line-strong),
+    0 10px 28px -14px rgba(17, 17, 16, 0.4);
+}
+
+.triggerOpen:hover {
+  background: #f6f6f4;
+}
+
+.trigger:focus-visible,
+.sendButton:focus-visible,
+.closeButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .panel {
   position: absolute;
   right: 0;
-  bottom: 66px;
-  width: min(360px, calc(100vw - 32px));
-  padding: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(215, 255, 95, 0.12), transparent 32%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.028)),
-    rgba(13, 13, 14, 0.96);
-  color: #f7f3eb;
-  box-shadow:
-    0 26px 90px rgba(0, 0, 0, 0.48),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(18px);
+  bottom: 56px;
+  width: min(340px, calc(100vw - 32px));
+  box-sizing: border-box;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 60px -28px rgba(17, 17, 16, 0.35);
   transform-origin: bottom right;
-  animation: pop 180ms ease both;
+  animation: pop 0.16s ease both;
 }
 
 .panelHeader {
@@ -63,119 +81,151 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .eyebrow {
   display: block;
   margin-bottom: 8px;
-  color: rgba(215, 255, 95, 0.86);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+  font: 500 12px/1 var(--bento-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--accent);
 }
 
 .panel h2 {
   margin: 0;
-  color: #ffffff;
-  font-family: var(--font-editor-heading), var(--font-general), system-ui, sans-serif;
-  font-size: 1.15rem;
+  font-size: 19px;
+  font-weight: 500;
   line-height: 1.15;
+  letter-spacing: -0.02em;
 }
 
 .closeButton {
-  width: 32px;
-  height: 32px;
   display: grid;
   place-items: center;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.72);
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+}
+
+.closeButton:hover {
+  background: #f6f6f4;
+  color: var(--ink);
 }
 
 .copy {
   margin: 0 0 14px;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
 }
 
 .form {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
 .textarea {
-  min-height: 116px;
+  box-sizing: border-box;
   width: 100%;
+  min-height: 96px;
   resize: vertical;
-  padding: 13px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  background: rgba(0, 0, 0, 0.28);
-  color: #ffffff;
-  outline: none;
-  font: inherit;
-  line-height: 1.45;
-}
-
-.textarea:focus {
-  border-color: rgba(215, 255, 95, 0.45);
-  box-shadow: 0 0 0 3px rgba(215, 255, 95, 0.08);
+  padding: 10px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: inherit;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .textarea::placeholder {
-  color: rgba(255, 255, 255, 0.32);
+  color: #a3a29c;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(43, 68, 255, 0.14);
+}
+
+.formFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .sendButton {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border-radius: 999px;
-  background: #d7ff5f;
-  color: #080809;
-  font-weight: 900;
+  flex-shrink: 0;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 10px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.sendButton:hover:not(:disabled) {
+  background: #2a2a28;
 }
 
 .sendButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+  opacity: 0.4;
+  cursor: default;
 }
 
 .status,
 .error {
-  margin: 2px 0 0;
-  font-size: 0.82rem;
-  line-height: 1.45;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .status {
-  color: #d7ff5f;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #0f7b4b;
 }
 
 .error {
-  color: #fecaca;
+  color: #c0362c;
 }
 
 @keyframes pop {
   from {
     opacity: 0;
-    transform: translateY(8px) scale(0.96);
+    transform: translateY(6px) scale(0.98);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: none;
   }
 }
 
 @media (max-width: 640px) {
   .wrap {
-    right: 14px;
-    bottom: 14px;
+    right: 16px;
+    bottom: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel {
+    animation: none;
+  }
+  .trigger,
+  .trigger:hover {
+    transition: none;
+    transform: none;
   }
 }

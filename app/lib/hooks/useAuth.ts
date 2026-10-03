@@ -19,8 +19,16 @@ export function useAuth(): UseAuthReturn {
   const supabase = createClient();
 
   useEffect(() => {
-    // Get initial user
+    let active = true;
+    // The saved session is read locally, so pages can show right away; the
+    // server then confirms it (and signs out a session that's no longer valid).
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!active) return;
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
     supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!active) return;
       setUser(user);
       setLoading(false);
     });
@@ -33,6 +41,7 @@ export function useAuth(): UseAuthReturn {
     });
 
     return () => {
+      active = false;
       subscription.unsubscribe();
     };
   }, [supabase.auth]);
