@@ -4,7 +4,7 @@
 import { publicPage } from "@/app/lib/public-page";
 import type { Proof } from "@/app/lib/profile-summary";
 import { createPublicClient, getVerifiedRevenue, toProfileData } from "@/app/lib/supabase/profiles";
-import { isPlaceholderUsername } from "@/app/lib/usernames";
+import { isPlaceholderUsername, isUntouchedDemo } from "@/app/lib/usernames";
 import type { BlockContent } from "@/app/lib/types";
 
 export type DiscoverRole = "developer" | "designer" | "founder" | "creator";
@@ -75,7 +75,13 @@ export async function getDiscoverProfiles(limit = 120): Promise<DiscoverProfile[
     }
 
     const rows = data.filter(
-      (row) => row.username && row.discoverable !== false && !isPlaceholderUsername(row.username) && Array.isArray(row.layout) && row.layout.length > 0
+      (row) =>
+        row.username &&
+        row.discoverable !== false &&
+        !isPlaceholderUsername(row.username) &&
+        Array.isArray(row.layout) &&
+        row.layout.length > 0 &&
+        !isUntouchedDemo(row.content)
     );
 
     const profiles = await Promise.all(

@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { isPlaceholderUsername } from "@/app/lib/usernames";
+import { isPlaceholderUsername, isUntouchedDemo } from "@/app/lib/usernames";
 
 export interface FeaturedProfile {
   username: string;
@@ -28,7 +28,7 @@ export async function getFeaturedProfiles(limit = 4): Promise<FeaturedProfile[]>
     if (error || !data) return [];
 
     return data
-      .filter((row) => row.discoverable !== false)
+      .filter((row) => row.discoverable !== false && !isUntouchedDemo(row.content))
       .map((row) => {
         const content = (row.content ?? {}) as Record<string, { type?: string; data?: Record<string, unknown> }>;
         const blocks = Object.values(content);

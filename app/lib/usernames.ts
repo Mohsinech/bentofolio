@@ -63,3 +63,10 @@ export function statusFromDatabaseError(message: unknown): UsernameStatus | null
   const match = message.match(/username_unavailable:(\w+)/);
   return match ? (match[1] as UsernameStatus) : null;
 }
+
+// The old "Alice, Independent Product Designer" demo page, published
+// unchanged by some early accounts. Not shown on Discover or the landing page.
+export function isUntouchedDemo(content: unknown): boolean {
+  const json = JSON.stringify(content ?? {});
+  return /"name"\s*:\s*"Alice"/.test(json) && (/hello@alice\.design/i.test(json) || /Independent Product Designer/.test(json));
+}
