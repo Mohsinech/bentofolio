@@ -299,12 +299,10 @@ export function EditorSidebar({
           </div>
 
           <div className={styles.utilityGrid}>
-            <Link
-              href={isPro ? "/editor/analytics" : "/pricing"}
-              className={styles.utilityButton}
-            >
+            {/* Free accounts see their view count there, with the upgrade. */}
+            <Link href="/editor/analytics" className={styles.utilityButton}>
               <BarChart3 size={14} />
-              <span>{isPro ? "Analytics" : "Unlock analytics"}</span>
+              <span>Analytics</span>
             </Link>
 
             {githubUsername ? (
