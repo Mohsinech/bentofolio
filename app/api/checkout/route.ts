@@ -24,15 +24,32 @@ function appendDiscountCode(checkoutUrl: string, discountCode: string) {
   }
 }
 
+// The site's address for links Lemon Squeezy sends people back to. It must
+// be a full public https URL, so a setting without "https://", with spaces
+// or pointing at localhost falls back to the address this request came in on,
+// then to bentofolio.dev.
+let requestOrigin = "";
+
+function publicOrigin(value: string | undefined): string | null {
+  const raw = (value || "").trim();
+  if (!raw) return null;
+  try {
+    const url = new URL(/^[a-z][a-z\d+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`);
+    if (!/^https?:$/.test(url.protocol)) return null;
+    if (/^(localhost|127\.|0\.0\.0\.0|\[::1\])/.test(url.hostname) || !url.hostname.includes(".")) return null;
+    return `https://${url.host}`;
+  } catch {
+    return null;
+  }
+}
+
 function getAppUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL || "https://bentofolio.dev").replace(
-    /\/$/,
-    ""
-  );
+  return publicOrigin(process.env.NEXT_PUBLIC_APP_URL) || publicOrigin(requestOrigin) || "https://bentofolio.dev";
 }
 
 export async function POST(request: Request) {
   try {
+    requestOrigin = new URL(request.url).origin;
     const supabase = await createClient();
     const {
       data: { user },
