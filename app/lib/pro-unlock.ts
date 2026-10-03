@@ -55,34 +55,65 @@ export async function grantPro(
   return { granted: true };
 }
 
-// Reads an order from Lemon Squeezy and checks it's a paid order for Pro in
-// our store. Returns null when it isn't (or can't be checked).
-export async function fetchPaidOrder(orderId: string): Promise<PaidOrder | null> {
-  const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
+type LemonOrder = { id?: string | number; attributes?: Record<string, any> };
+
+// A paid order for Pro in our store, or null.
+function paidOrder(order: LemonOrder | undefined): PaidOrder | null {
   const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
   const variantId = process.env.LEMON_SQUEEZY_VARIANT_ID;
-  if (!apiKey || !storeId || !/^\d+$/.test(orderId)) return null;
+  const attributes = order?.attributes ?? {};
+  if (!order?.id || String(attributes.store_id) !== String(storeId)) return null;
+  if (attributes.status !== "paid") return null;
+  const orderVariant = attributes.first_order_item?.variant_id;
+  if (variantId && orderVariant != null && String(orderVariant) !== String(variantId)) return null;
+  return {
+    id: String(order.id),
+    orderNumber: attributes.order_number != null ? String(attributes.order_number) : null,
+    email: typeof attributes.user_email === "string" ? attributes.user_email : null,
+    total: typeof attributes.total_formatted === "string" ? attributes.total_formatted : null,
+    createdAt: typeof attributes.created_at === "string" ? attributes.created_at : null,
+  };
+}
 
+async function lemonGet(path: string): Promise<any | null> {
+  const apiKey = process.env.LEMON_SQUEEZY_API_KEY;
+  if (!apiKey || !process.env.LEMON_SQUEEZY_STORE_ID) return null;
   try {
-    const response = await fetch(`https://api.lemonsqueezy.com/v1/orders/${orderId}`, {
+    const response = await fetch(`https://api.lemonsqueezy.com/v1/${path}`, {
       headers: { Accept: "application/vnd.api+json", Authorization: `Bearer ${apiKey}` },
       cache: "no-store",
     });
-    if (!response.ok) return null;
-    const json = await response.json();
-    const attributes = json?.data?.attributes ?? {};
-    if (String(attributes.store_id) !== String(storeId)) return null;
-    if (attributes.status !== "paid") return null;
-    const orderVariant = attributes.first_order_item?.variant_id;
-    if (variantId && orderVariant != null && String(orderVariant) !== String(variantId)) return null;
-    return {
-      id: String(json.data.id),
-      orderNumber: attributes.order_number != null ? String(attributes.order_number) : null,
-      email: typeof attributes.user_email === "string" ? attributes.user_email : null,
-      total: typeof attributes.total_formatted === "string" ? attributes.total_formatted : null,
-      createdAt: typeof attributes.created_at === "string" ? attributes.created_at : null,
-    };
+    if (!response.ok) {
+      console.error("Lemon Squeezy lookup failed:", response.status, path.split("?")[0]);
+      return null;
+    }
+    return await response.json();
   } catch {
     return null;
   }
+}
+
+// Reads an order from Lemon Squeezy and checks it's a paid order for Pro in
+// our store. Returns null when it isn't (or can't be checked).
+export async function fetchPaidOrder(orderId: string): Promise<PaidOrder | null> {
+  if (!/^\d+$/.test(orderId)) return null;
+  const json = await lemonGet(`orders/${orderId}`);
+  return paidOrder(json?.data);
+}
+
+// The newest paid Pro order made with this email in our store. Used when the
+// thank-you page has no order id (checkout opened as a full page) so a buyer
+// never depends on the webhook alone.
+export async function findPaidOrderByEmail(email: string): Promise<PaidOrder | null> {
+  const storeId = process.env.LEMON_SQUEEZY_STORE_ID;
+  if (!email || !storeId) return null;
+  const query = `orders?filter[store_id]=${encodeURIComponent(storeId)}&filter[user_email]=${encodeURIComponent(email)}&page[size]=10`;
+  const json = await lemonGet(query);
+  const orders: LemonOrder[] = Array.isArray(json?.data) ? json.data : [];
+  return (
+    orders
+      .map(paidOrder)
+      .filter((order): order is PaidOrder => Boolean(order))
+      .sort((a, b) => Date.parse(b.createdAt || "") - Date.parse(a.createdAt || ""))[0] ?? null
+  );
 }

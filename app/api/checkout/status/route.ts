@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/app/lib/supabase/admin";
 import { createClient } from "@/app/lib/supabase/server";
-import { fetchPaidOrder, grantPro } from "@/app/lib/pro-unlock";
+import { fetchPaidOrder, findPaidOrderByEmail, grantPro } from "@/app/lib/pro-unlock";
 
-// GET ?order=<id>: is Pro on yet? With an order id from the checkout, the
-// order is checked with Lemon Squeezy and Pro turned on right away, without
-// waiting for the webhook.
+// GET ?order=<id>: is Pro on yet? The order (or, without an id, the newest
+// paid order for the account's email) is checked with Lemon Squeezy and Pro
+// turned on right away, without waiting for the webhook.
 export async function GET(request: Request) {
   try {
     const supabase = await createClient();
@@ -19,10 +19,12 @@ export async function GET(request: Request) {
     if (!profile) return NextResponse.json({ error: "Profile not found" }, { status: 404 });
     if (profile.is_pro) return NextResponse.json({ pro: true, username: profile.username });
 
+    // With the order id from the checkout popup, check that order; without
+    // one (checkout opened as a full page), look up a paid order made with
+    // this account's email. Either way Pro doesn't wait on the webhook.
     const orderId = new URL(request.url).searchParams.get("order")?.trim() ?? "";
-    if (!orderId) return NextResponse.json({ pro: false });
-
-    const order = await fetchPaidOrder(orderId);
+    const order =
+      (orderId ? await fetchPaidOrder(orderId) : null) ?? (user.email ? await findPaidOrderByEmail(user.email) : null);
     // Only for the buyer's own email; anything else waits for the webhook,
     // which knows the account from the checkout itself.
     if (!order || !order.email || !user.email || order.email.toLowerCase() !== user.email.toLowerCase()) {
